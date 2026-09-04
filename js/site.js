@@ -77,12 +77,16 @@
 
   /* ---------- Werke ---------- */
   const isReal = w => !!w.src;
+  /* Tuscheblätter kommen mit multiply auf die Seite: Das Papier verschwindet, stehen
+     bleibt nur die Zeichnung. Ein Foto mit dunklem Grund darf das nicht, sonst säuft
+     die ganze Fläche ab. Werk VII liegt auf schwarzem Holz und ist so ein Fall. */
+  const bildKlasse = w => (w.tr === 'papier' && w.grund !== 'foto' ? 'ink-img' : 'photo-img');
   const ratio = w => (isReal(w) ? `${w.w} / ${w.h}` : `${w.vbW} / ${w.vbH}`);
   const meta = w => (w.tr === 'haut' ? `Nr. ${w.nr} — Haut, ${w.ort}, ${w.jahr}` : `Nr. ${w.nr} — ${w.technik}, ${w.jahr}`);
   const altText = w => (w.tr === 'haut' ? `${w.t}, Blackwork auf ${w.ort}, ${w.jahr}.` : `${w.t}, ${w.technik}, ${w.jahr}.`) + (isReal(w) ? '' : ' Platzhalterzeichnung.') + ' Werkansicht öffnen.';
   function bildHTML(w, fid, sizes, alt) {
     if (isReal(w)) {
-      return `<img class="${w.tr === 'papier' ? 'ink-img' : 'photo-img'}" src="${esc(w.src)}"${w.srcset ? ` srcset="${esc(w.srcset)}"` : ''} sizes="${sizes}" width="${w.w}" height="${w.h}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
+      return `<img class="${bildKlasse(w)}" src="${esc(w.src)}"${w.srcset ? ` srcset="${esc(w.srcset)}"` : ''} sizes="${sizes}" width="${w.w}" height="${w.h}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
     }
     return artSVG(art(w.id, w.seed, w.vbW, w.vbH, !!w.red), w.vbW, w.vbH, w.seed, fid);
   }
@@ -226,7 +230,7 @@
        Seitenverhältnis brauchte für jedes Format eine Ausnahme und ergab auf dem Telefon
        entweder einen Streifen oder eine Fläche, die nicht mehr aufs Bild passte. */
     const bild = isReal(ow)
-      ? `<img class="${ow.tr === 'papier' ? 'ink-img' : 'photo-img'}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`
+      ? `<img class="${bildKlasse(ow)}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`
       : artSVG(art(ow.id, ow.seed, ow.vbW, ow.vbH, !!ow.red), ow.vbW, ow.vbH, ow.seed, 'fx' + ow.id);
     const zaehler = liste.length > 1 ? `<span class="ov-zaehler">${stelle + 1} von ${liste.length}</span>` : '';
     root.innerHTML = `<div id="ov" role="dialog" aria-modal="true" aria-label="${esc(ow.t)}"><div id="ov-bg"></div><div class="ov-card"><figure id="ov-fig" class="ov-fig">${bild}</figure><div class="ov-info"><h3 class="hd">${esc(ow.t)}</h3><div class="ov-rows">${rows.map(x => `<div class="ov-row"><div class="mut">${esc(x.k)}</div><div>${esc(x.v)}</div></div>`).join('')}</div><div class="ov-actions">${zaehler}<button type="button" id="ov-prev" class="btn">Zurück</button><button type="button" id="ov-next" class="btn">Weiter</button><button type="button" id="ov-close" class="btn primary" style="padding:10px 20px;font-size:16px;">Schließen</button></div></div></div></div>`;

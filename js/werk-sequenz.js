@@ -47,7 +47,9 @@
   function realImages(key) {
     const L = window.LUKE || {};
     if (key === 'flash') return (L.FLASH || []).filter(f => f.src).map(f => f.src);
-    return (L.WERKE || []).filter(w => w.tr === key && w.src).map(w => w.src);
+    /* Aufnahmen mit dunklem Grund bleiben draußen: In der Sequenz liegen Blätter auf
+       hellem Grund, ein schwarzes Rechteck wäre dort ein Fremdkörper. */
+    return (L.WERKE || []).filter(w => w.tr === key && w.src && w.grund !== 'foto').map(w => w.src);
   }
   class WerkSequenz extends HTMLElement {
     static get observedAttributes() { return ['richtung', 'bewegung']; }

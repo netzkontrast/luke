@@ -96,6 +96,18 @@ Kopiere sie nach `video/public/`, referenziere mit `staticFile()`:
   Kleinere Fassungen `-1200`, `-800`.
 - `assets/img/werk-2-auge-1800.jpg` — 1800×480, Auge am Ende einer langen Linie, mit
   Signatur. Werk II. Quer, gut für Bauchbinden und Abspann.
+- `assets/img/werk-3-strang-728.jpg` — 728×1350, Figur im Profil, schwarze Masse, Strang
+  nach oben. Werk III. Kleinere Fassung `-480`.
+- `assets/img/werk-4-beugung-822.jpg` — 822×1350, weit gebeugte Figur, viel Rot. Werk IV.
+- `assets/img/werk-5-fall-720.jpg` — 720×1350, hängende Figur mit Haar, Kopf gesenkt. Werk V.
+- `assets/img/werk-6-schlinge-808.jpg` — 808×1350, Schlinge und roter Kopf über einer
+  Waagerechten. Werk VI.
+  Diese vier sind alle Hochformat, freigestellt und auf reinem Weiß: multiply zieht das
+  Papier vollständig weg, die Figur steht frei. Zusammen die Serie „Befreiung der
+  Körperlichkeit“ — sie lesen als Folge, nicht als Einzelbilder.
+- `assets/img/werk-7-koepfe-1600.jpg` — 1600×1790, zwölf kleine Blätter mit Köpfen, auf
+  schwarzem Holz ausgelegt und dort fotografiert. Werk VII. **Kein multiply**: Der Grund
+  ist dunkel, multiply macht daraus eine schwarze Fläche. Wie das Porträt behandeln.
 
 **Zeichenanimationen** (das Entstehen, bestes Material für Schnitte)
 - `assets/video/werk-1-profil-zeichnung.mp4` — 6,0 s, 432×704, Werk I baut sich auf.

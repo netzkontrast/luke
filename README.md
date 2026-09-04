@@ -25,9 +25,12 @@ css/site.css          Alle Stile, drei Richtungen über .app[data-richtung]
 js/works.js           Werkdaten, Flash-Blätter, Filterlisten, Konfiguration
 js/site.js            Seitenlogik: Galerie, Filter, Werkansicht, Formular, Übergänge
 js/werk-sequenz.js    <werk-sequenz>, scrollgetriebene 3D-Sequenz (three.js)
+js/motion.js          Sanftes Scrollen, Parallaxe, Hintergrundbühne (three.js)
+js/tropfspur.js       Die rote Spur, die aus Werk I austritt und mit dem Lesen mitläuft
 vendor/               three.js 0.161.0, lokal gehostet
 assets/fonts/         Alegreya, Alegreya Sans, Big Shoulders als woff2 (latin, latin-ext) plus fonts.css
 assets/img/           Werkbilder, Atelierfoto, Poster, Favicon
+assets/original/      Die Aufnahmen der Papierarbeiten, unbearbeitet (wird nicht ausgeliefert)
 assets/video/         Zeichenanimationen (H.264, ohne Ton)
 NOTES.md              Offene Punkte aus dem Prototyp
 video/                Der Film zur Werkschau, gebaut mit Remotion (eigene README)
@@ -41,15 +44,33 @@ Werke stehen in `js/works.js` unter `LUKE.WERKE`. Ein Eintrag mit `src`, `w`, `h
 ohne `src` wird eine generierte Tuschzeichnung als Platzhalter angezeigt. Beispiel:
 
 ```js
-{ id: 'w6', nr: 'VI', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025,
+{ id: 'w8', nr: 'VIII', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025,
   sitzungen: 2, zustand: 'abgeheilt',
-  src: 'assets/img/werk-6-schwarzdorn-1200.jpg',
-  srcset: 'assets/img/werk-6-schwarzdorn-800.jpg 800w, assets/img/werk-6-schwarzdorn-1200.jpg 1200w',
+  src: 'assets/img/werk-8-schwarzdorn-1200.jpg',
+  srcset: 'assets/img/werk-8-schwarzdorn-800.jpg 800w, assets/img/werk-8-schwarzdorn-1200.jpg 1200w',
   w: 1200, h: 1500 }
 ```
 
 Empfohlene Größen: 800, 1200 und Originalbreite als JPG, Seitenverhältnis frei (die Galerie richtet sich danach).
 Flash-Blätter (`LUKE.FLASH`) nehmen ebenfalls ein `src`.
+
+### Aufnahmen von Papierarbeiten vorbereiten
+
+Ein Blatt mit `tr: 'papier'` wird mit `mix-blend-mode: multiply` auf die Seite gelegt: Das Papier verschwindet,
+die Zeichnung steht frei auf Weiß. Damit das aufgeht, muss die Aufnahme zugeschnitten und der Papierton auf
+reines Weiß gezogen sein. Für die Blätter III bis VI lief dafür (mit ffmpeg):
+
+```
+crop=<Papierbreite>:<Höhe>:<x>:0,
+colorlevels=rimin=0.02:gimin=0.02:bimin=0.02:rimax=<R>:gimax=<G>:bimax=<B>,
+scale=<Breite>:<Höhe>:flags=lanczos,setsar=1
+```
+
+`R`, `G`, `B` sind der gemessene Papierton geteilt durch 255 (hier rund 0,92). `setsar=1` und `-map_metadata -1`
+sind wichtig: Ohne sie schreibt ffmpeg eine Pixelseitenverhältnis-Korrektur in den JFIF-Kopf.
+
+Eine Aufnahme, die ihren dunklen Hintergrund behalten soll, bekommt stattdessen `grund: 'foto'`. Sie wird dann
+nicht multipliziert und bleibt aus der Blättersequenz heraus. Beispiel: Werk VII, die zwölf Köpfe auf schwarzem Holz.
 
 - Auftakt: `assets/video/werk-1-profil-zeichnung.mp4` wird einmal abgespielt und blendet dann auf `werk-1-profil-*.jpg` über.
   `werk-1-profil-zeichnung-alt.mp4` ist die frühere Fassung der Animation (August), derzeit nicht eingebunden.

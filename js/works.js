@@ -35,6 +35,8 @@ LUKE.FILTER = {
    Papier: serie, technik, masse
    Haut:   ort, ortKey (Filter), motiv, sitzungen, zustand
    Bild:   src, srcset (optional), w, h (Pixelmaße), video (optional, Zeichenanimation)
+           grund: 'foto' für Aufnahmen mit dunklem Hintergrund, die nicht mit multiply
+           auf die Seite gelegt werden dürfen
    Platzhalter: vbW, vbH (Seitenverhältnis), seed (Zufallsstartwert), red (roter Strang) */
 LUKE.WERKE = [
   { id: 'w1', nr: 'I', t: 'Befreiung der Körperlichkeit, Werk I', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true, vbW: 400, vbH: 500, seed: 11,
@@ -47,16 +49,36 @@ LUKE.WERKE = [
     srcset: 'assets/img/werk-2-auge-1200.jpg 1200w, assets/img/werk-2-auge-1800.jpg 1800w',
     w: 1800, h: 480,
     video: 'assets/video/werk-2-auge-signatur.mp4' },
-  { id: 'w3', nr: 'III', t: 'Tuschstudie, Profil', tr: 'papier', serie: 'Tuschstudien', jahr: 2025, technik: 'Tusche auf Papier', masse: '42 × 59,4 cm', vbW: 400, vbH: 600, seed: 37 },
-  { id: 'w4', nr: 'IV', t: 'Tuschstudie, Rückenlinie', tr: 'papier', serie: 'Tuschstudien', jahr: 2025, technik: 'Tusche auf Papier', masse: '29,7 × 42 cm', vbW: 400, vbH: 500, seed: 41 },
-  { id: 'w5', nr: 'V', t: 'Tuschstudie, zwei Hände', tr: 'papier', serie: 'Tuschstudien', jahr: 2024, technik: 'Tusche und Bleistift auf Papier', masse: '29,7 × 42 cm', vbW: 400, vbH: 500, seed: 53 },
-  { id: 'w6', nr: 'VI', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 61 },
-  { id: 'w7', nr: 'VII', t: 'Zugvogel', tr: 'haut', ort: 'Schulter', ortKey: 'Arm', motiv: 'Tier', jahr: 2025, sitzungen: 1, zustand: 'frisch', vbW: 400, vbH: 500, seed: 67 },
-  { id: 'w8', nr: 'VIII', t: 'Doppelprofil', tr: 'haut', ort: 'Rücken', ortKey: 'Rücken', motiv: 'Figur', jahr: 2024, sitzungen: 4, zustand: 'abgeheilt', vbW: 600, vbH: 400, seed: 71 },
-  { id: 'w9', nr: 'IX', t: 'Nachtfalter', tr: 'haut', ort: 'Brust', ortKey: 'Brust', motiv: 'Tier', jahr: 2024, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 79 },
-  { id: 'w10', nr: 'X', t: 'Distelzweig', tr: 'haut', ort: 'Wade', ortKey: 'Bein', motiv: 'Botanik', jahr: 2023, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 600, seed: 83 },
-  { id: 'w11', nr: 'XI', t: 'Bannerschrift', tr: 'haut', ort: 'Handrücken', ortKey: 'Hand', motiv: 'Schrift', jahr: 2023, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 89 },
-  { id: 'w12', nr: 'XII', t: 'Schwalbenpaar', tr: 'haut', ort: 'Oberschenkel', ortKey: 'Bein', motiv: 'Tier', jahr: 2022, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 97 }
+  { id: 'w3', nr: 'III', t: 'Befreiung der Körperlichkeit, Werk III', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+    src: 'assets/img/werk-3-strang-728.jpg',
+    srcset: 'assets/img/werk-3-strang-480.jpg 480w, assets/img/werk-3-strang-728.jpg 728w',
+    w: 728, h: 1350 },
+  { id: 'w4', nr: 'IV', t: 'Befreiung der Körperlichkeit, Werk IV', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+    src: 'assets/img/werk-4-beugung-822.jpg',
+    srcset: 'assets/img/werk-4-beugung-480.jpg 480w, assets/img/werk-4-beugung-822.jpg 822w',
+    w: 822, h: 1350 },
+  { id: 'w5', nr: 'V', t: 'Befreiung der Körperlichkeit, Werk V', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+    src: 'assets/img/werk-5-fall-720.jpg',
+    srcset: 'assets/img/werk-5-fall-480.jpg 480w, assets/img/werk-5-fall-720.jpg 720w',
+    w: 720, h: 1350 },
+  { id: 'w6', nr: 'VI', t: 'Befreiung der Körperlichkeit, Werk VI', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+    src: 'assets/img/werk-6-schlinge-808.jpg',
+    srcset: 'assets/img/werk-6-schlinge-480.jpg 480w, assets/img/werk-6-schlinge-808.jpg 808w',
+    w: 808, h: 1350 },
+  /* Zwölf kleine Blätter, auf schwarzem Holz ausgelegt und dort fotografiert. Das Bild
+     behält seinen dunklen Grund: `grund: 'foto'` nimmt es von der multiply-Behandlung aus
+     und hält es aus der Blättersequenz heraus. */
+  { id: 'w7', nr: 'VII', t: 'Zwölf Köpfe', tr: 'papier', serie: 'Tuschstudien', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
+    src: 'assets/img/werk-7-koepfe-800.jpg',
+    srcset: 'assets/img/werk-7-koepfe-480.jpg 480w, assets/img/werk-7-koepfe-800.jpg 800w, assets/img/werk-7-koepfe-1600.jpg 1600w',
+    w: 1600, h: 1790 },
+  { id: 'w8', nr: 'VIII', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 61 },
+  { id: 'w9', nr: 'IX', t: 'Zugvogel', tr: 'haut', ort: 'Schulter', ortKey: 'Arm', motiv: 'Tier', jahr: 2025, sitzungen: 1, zustand: 'frisch', vbW: 400, vbH: 500, seed: 67 },
+  { id: 'w10', nr: 'X', t: 'Doppelprofil', tr: 'haut', ort: 'Rücken', ortKey: 'Rücken', motiv: 'Figur', jahr: 2024, sitzungen: 4, zustand: 'abgeheilt', vbW: 600, vbH: 400, seed: 71 },
+  { id: 'w11', nr: 'XI', t: 'Nachtfalter', tr: 'haut', ort: 'Brust', ortKey: 'Brust', motiv: 'Tier', jahr: 2024, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 79 },
+  { id: 'w12', nr: 'XII', t: 'Distelzweig', tr: 'haut', ort: 'Wade', ortKey: 'Bein', motiv: 'Botanik', jahr: 2023, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 600, seed: 83 },
+  { id: 'w13', nr: 'XIII', t: 'Bannerschrift', tr: 'haut', ort: 'Handrücken', ortKey: 'Hand', motiv: 'Schrift', jahr: 2023, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 89 },
+  { id: 'w14', nr: 'XIV', t: 'Schwalbenpaar', tr: 'haut', ort: 'Oberschenkel', ortKey: 'Bein', motiv: 'Tier', jahr: 2022, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 97 }
 ];
 
 /* Flash-Blätter. `src` (optional) für ein echtes Foto des Blatts, sonst Platzhalter. status: 'verfügbar' | 'vergeben' */
