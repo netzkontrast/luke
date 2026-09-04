@@ -44,11 +44,15 @@
   const STRANG_X = 0.705;
   /* Abstand der Stützpunkte auf der Spur in Seitenpixeln. */
   const SCHRITT = 6;
+  /* Das Canvas ist nur so breit wie die Spur samt Spritzern braucht, nicht so breit wie
+     das Fenster: multiply auf einer fensterfüllenden Fläche kostet den Browser bei jedem
+     Bild einen ganzen Mischdurchgang, auf einem Streifen fast nichts. */
+  const BREITE = 140;
 
   const zufall = i => { const v = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
 
   let aktiv = false, statisch = false;
-  let dpr = 1;
+  let dpr = 1, links = 0;
   const quelle = { x: 0, y: 0 };
   let ende = 0, strecke = 0;
   let HW0 = 3, POOL_MAX = 3.2;
@@ -91,11 +95,7 @@
     ROT2 = rgb('--red2', ROT2);
     satt = app.dataset.rot === 'satt';
     dpr = Math.min(2, window.devicePixelRatio || 1);
-    cv.width = Math.round(z.fenster.b * dpr);
-    cv.height = Math.round(z.fenster.h * dpr);
-    cv.style.width = z.fenster.b + 'px';
-    cv.style.height = z.fenster.h + 'px';
-    HW0 = z.schmal ? 2.2 : 3.0;
+    HW0 = z.schmal ? 2.4 : 3.2;
     POOL_MAX = z.schmal ? 2.4 : 3.2;
     letzterStempel = '';
 
@@ -107,6 +107,13 @@
     if (!(r.width > 0 && r.height > 0)) return;
     quelle.x = r.left + window.scrollX + r.width * STRANG_X;
     quelle.y = r.bottom + window.scrollY - parallaxe();
+    /* Der Streifen sitzt um die Quelle; gezeichnet wird trotzdem in Seitenkoordinaten. */
+    links = Math.round(quelle.x - BREITE / 2);
+    cv.width = Math.round(BREITE * dpr);
+    cv.height = Math.round(z.fenster.h * dpr);
+    cv.style.left = links + 'px';
+    cv.style.width = BREITE + 'px';
+    cv.style.height = z.fenster.h + 'px';
     /* Das Ende: der erste Abschnitt unter der Quelle, in dem die Seite ganz gefasst ist.
        Dort trocknet die Spur, ein paar Pixel vor der Kante, damit die Lache davor liegt.
        Gibt es keinen, läuft sie bis kurz vor den Fuß. */
@@ -127,7 +134,8 @@
   }
 
   /* Wie breit der Strang von sich aus ist: an der Quelle am breitesten, dann dünner, und
-     überall so stark, wie die Seite dort blutet. */
+     überall so stark, wie die Seite dort blutet. Ganz dünn wird er nie: Auch die trockene
+     Spur soll man noch sehen. */
   function grundHw(f, y) {
     const blut = 1 - welt.fassungBei(y);
     return HW0 * misch(1, 0.5, Math.pow(f, 0.7)) * (0.32 + 0.68 * blut);
@@ -215,11 +223,17 @@
   }
 
   /* ---- Form ---- */
+  /* Ein wenig Zufall über die Strecke, weich zwischen festen Stützstellen: Reine Sinuswellen
+     wiederholen sich, und das Auge findet den Takt. Papier hat keinen. */
+  function rausch(y, saat) {
+    const i = Math.floor(y / 90), t = y / 90 - i, w = t * t * (3 - 2 * t);
+    return misch(zufall(i * 7 + saat) - 0.5, zufall(i * 7 + 7 + saat) - 0.5, w);
+  }
   /* Seitliches Wandern, an die Strecke gebunden, nicht an die Zeit. Wenig: Blut läuft
      gerade, mit kleinen Knicken, wo das Papier es hält. */
-  const wander = y => Math.sin(y / 138 + 1.1) * 3.5 + Math.sin(y / 415 + 0.6) * 8 + Math.sin(y / 37) * 0.6;
+  const wander = y => Math.sin(y / 138 + 1.1) * 3 + Math.sin(y / 415 + 0.6) * 7 + Math.sin(y / 37) * 0.6 + rausch(y, 3) * 7;
   /* Feine Unruhe in der Breite, damit kein Strich daraus wird. */
-  const fein = y => 1 + Math.sin(y / 71 + 0.3) * 0.12 + Math.sin(y / 233 + 2.1) * 0.16;
+  const fein = y => 1 + Math.sin(y / 71 + 0.3) * 0.12 + Math.sin(y / 233 + 2.1) * 0.14 + rausch(y * 1.7 + 50, 11) * 0.2;
   /* Der Versatz des Blatts durch die Parallaxe klingt über die ersten 90 Pixel ab. */
   const versatz = (y, ty) => ty * Math.max(0, 1 - (y - quelle.y) / 90);
   /* Stauungen als Verdickung. */
@@ -289,8 +303,8 @@
       : 'leer';
     if (stempel === letzterStempel) return;
     letzterStempel = stempel;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, -z.y * dpr);
-    ctx.clearRect(0, z.y, z.fenster.b, z.fenster.h);
+    ctx.setTransform(dpr, 0, 0, dpr, -links * dpr, -z.y * dpr);
+    ctx.clearRect(links, z.y, BREITE, z.fenster.h);
     if (!aktiv || spitze * strecke < 2) return;
 
     const deck = satt ? 1.25 : 1;
@@ -317,7 +331,7 @@
     if (ey > oben - 40 && ey < unten + 40) {
       const ex = quelle.x + wander(spitzeY);
       const letzte = proben.length ? proben[proben.length - 1].hw : HW0;
-      const r = letzte * 1.4 * fein(spitzeY) + pool;
+      const r = letzte * 1.6 * fein(spitzeY) + pool;
       const ry = r * (1 + klemm(tempoGlatt / 22, 0, 1) * 0.6);
       tropfen(ex, ey, r, ry, wasch);
       tropfen(ex, ey, r * 0.55, ry * 0.55, kern);

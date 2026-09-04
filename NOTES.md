@@ -68,8 +68,10 @@ Bereits umgesetzt:
 
 Beim nächsten Durchgang anzusehen:
 
-- Der Weltzustand fährt auf der Seite bislang nur die Tropfspur. `js/motion.js` und `js/werk-sequenz.js` lesen
-  die Scrollposition weiter selbst; der nächste Schritt wäre, auch sie auf `LUKE.welt` zu setzen.
+- Der Weltzustand fährt auf der Seite die Tropfspur und die Kamera der Sequenz. `js/motion.js` liest die
+  Scrollposition weiter selbst, weil seine Schleife das sanfte Radscrollen fährt und dabei selbst schreibt, was
+  der Weltzustand danach liest; die Parallaxe, das Einblenden und das Signaturvideo hängen an dieser Schleife.
+  Der nächste Schritt wäre, auch sie auf `LUKE.welt` zu setzen, ohne die Glättung zu verlieren.
 
 - Zwischen Kapitel 1 und 2 sowie zwischen 2 und 3 steht die Blättersequenz (`js/werk-sequenz.js`) kurz leer:
   Die Gruppen liegen 18 Einheiten auseinander, sichtbar ist ein Fenster von ±7,5. Wer langsam scrollt, sieht

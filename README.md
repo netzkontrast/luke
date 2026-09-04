@@ -131,7 +131,8 @@ Der Tropfen folgt dem Lesen mit Verzögerung, zieht bei schnellem Scrollen eine 
 stehen bleibt, und lässt dort eine Verdickung zurück, manchmal einen Spritzer. Zurück läuft er nie; wer
 hochscrollt, sieht, was schon gelaufen ist. Die Spur liegt mit `multiply` auf dem Papier, über Tusche wird sie
 dunkel. Was auf dem Papier liegt, deckt sie zu: der Streifen „Aktuell“, Plakate, Fotos, Formularfelder
-(`z-index: 2` in `css/site.css`).
+(`z-index: 2` in `css/site.css`). Gezeichnet wird auf einen schmalen Streifen um die Spur, nicht auf das ganze
+Fenster; das hält das Mischen auf dem Telefon billig.
 
 Wie viel an einer Stelle läuft, steht in der Tabelle `LUKE.ABSCHNITTE` in `index.html`, die der Weltzustand
 (`js/weltzustand.js`) liest: ein Eintrag je Abschnitt mit `fassung` (1 beisammen, 0 gar nicht). Oben, bei den

@@ -41,7 +41,6 @@
     static get observedAttributes() { return ['richtung', 'bewegung']; }
     connectedCallback() {
       if (this._init) {
-        addEventListener('scroll', this.onScroll, { passive: true });
         addEventListener('pointermove', this.onMove, { passive: true });
         if (this.io) this.io.observe(this);
         this.calc(); this.loop();
@@ -69,8 +68,6 @@
       this.hint.style.cssText = 'position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--mut);font-size:13px;transition:opacity .5s;';
       this.hint.innerHTML = '<span>Scrollen</span><span style="display:block;width:1px;height:26px;background:var(--mut);"></span>';
       this.stick.appendChild(this.hint);
-      this.onScroll = () => { this.calc(); if (this.m === 0) this.draw(0); };
-      addEventListener('scroll', this.onScroll, { passive: true });
       addEventListener('resize', () => this.resize(), { passive: true });
       this.onMove = e => { this.tx = (e.clientX / innerWidth - 0.5); this.ty = (e.clientY / innerHeight - 0.5); };
       addEventListener('pointermove', this.onMove, { passive: true });
@@ -170,10 +167,26 @@
       this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
       this.draw(performance.now() / 1000);
     }
+    /* Wo auf der Strecke die Kamera steht. Die Scrollposition kommt vom Weltzustand
+       (js/weltzustand.js), die eigene Lage wird nur neu gemessen, wenn der die Seite neu
+       ausgemessen hat. Vorher las die Sequenz bei jedem Bild ihr Rechteck aus, und weil
+       die Parallaxe kurz davor Transformationen schreibt, zwang das den Browser jedes Mal
+       zum Nachrechnen. Ohne Weltzustand bleibt es beim alten Weg. */
     calc() {
-      const r = this.getBoundingClientRect();
-      const total = r.height - innerHeight;
-      this.p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+      const w = window.LUKE && window.LUKE.welt;
+      if (w) {
+        if (w.z.messung !== this._messung) {
+          this._messung = w.z.messung;
+          const r = this.getBoundingClientRect();
+          this.oben = r.top + scrollY; this.hoehe = r.height;
+        }
+        const total = this.hoehe - w.z.fenster.h;
+        this.p = total > 0 ? Math.min(1, Math.max(0, (w.z.y - this.oben) / total)) : 0;
+      } else {
+        const r = this.getBoundingClientRect();
+        const total = r.height - innerHeight;
+        this.p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+      }
       if (this.hint) this.hint.style.opacity = (this.p > 0.04 || this.m === 0) ? '0' : '1';
     }
     draw(t) {
@@ -215,7 +228,7 @@
       this._raf = requestAnimationFrame(step);
     }
     disconnectedCallback() {
-      removeEventListener('scroll', this.onScroll); removeEventListener('pointermove', this.onMove);
+      removeEventListener('pointermove', this.onMove);
       if (this.io) this.io.unobserve(this);
       if (this._raf) cancelAnimationFrame(this._raf);
       this._raf = 0; this.vis = false;
