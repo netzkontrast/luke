@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skizze — Weltzustand, fliegende Blätter, weinende Seite</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="css/skizze.css">
+</head>
+<body hx-ext="hx-live">
+
+  <!-- Die Blätter ziehen hinter allem durch. -->
+  <div id="flug-buehne" aria-hidden="true"></div>
+  <!-- Die Seite weint darüber. -->
+  <canvas id="weinen" aria-hidden="true"></canvas>
+
+  <main>
+    <section id="auftakt">
+      <div class="wrap kopf">
+        <div>
+          <h1>Luke WTF</h1>
+          <p class="mut">Skizze. Ein Zustand, drei Systeme: Die Blätter fliegen, die Zeichnung
+             entsteht, die Seite weint. Keines davon liest selbst, wo du gerade bist.</p>
+          <p class="klein mut">Scrollen. Die Anzeige unten zeigt, was die Welt gerade weiß.</p>
+        </div>
+        <div>
+          <!-- Der Ansatzpunkt der Tränen liegt im Sprite, dort wo das Auge sitzt. -->
+          <div id="sprite-buehne">
+            <span id="traenenpunkt" aria-hidden="true"
+                  style="position:absolute;left:52%;top:34%;width:2px;height:2px;"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="zug">
+      <div class="wrap">
+        <h2>Der Zug</h2>
+        <p>Die Zeichnung entsteht nicht von selbst, sie entsteht, weil du liest. Der Sprite
+           hat 48 Bilder; welches davon steht, entscheidet der Fortschritt der Seite. Wer
+           schnell scrollt, zeichnet schnell. Wer zurückgeht, nimmt die Tusche wieder mit.</p>
+        <p class="mut klein">48 Bilder, 283 kB, statt 1,8 MB Video. Ein Sprite lässt sich
+           bildgenau ansteuern; ein Video muss man spulen und hoffen.</p>
+      </div>
+    </section>
+
+    <section id="werke">
+      <div class="wrap">
+        <h2>Werke</h2>
+        <p>Fünf Blätter auf fünf Bahnen. Jede Bahn hat ein Tempo und einen Vorlauf, die
+           Stelle darauf kommt allein aus dem Fortschritt. Deshalb fliegen sie rückwärts,
+           wenn du zurückscrollst — es ist ein Stapel, durch den man blättert, keine
+           Schleife, die nebenher läuft.</p>
+      </div>
+    </section>
+
+    <section id="schnitt">
+      <div class="wrap">
+        <h2>Schnitt</h2>
+        <p>Ab hier verliert die Seite die Fassung. Das ist eine Zahl in der Tabelle, kein
+           Effekt: <b>fassung</b> fällt von 1 auf 0, und alles Sichtbare wird daraus
+           abgeleitet. Die Tränen werden mehr, breiter, dunkler.</p>
+        <p class="mut klein">Wer einen Abschnitt einfügt, ändert eine Zeile in
+           <code>js/weltzustand.js</code>. Sonst nichts.</p>
+      </div>
+    </section>
+
+    <section id="fall">
+      <div class="wrap">
+        <h2>Fall</h2>
+        <p>Tiefster Punkt. Sechs Stränge laufen, der Hauptstrang zieht Spritzer hinter sich
+           her. Die bleiben liegen, wo sie sind — gezeichnet wird in Seitenkoordinaten,
+           nicht im Fenster. Scroll zurück, sie stehen noch da.</p>
+      </div>
+    </section>
+
+    <section id="ruhe">
+      <div class="wrap">
+        <h2>Ruhe</h2>
+        <p>Die Seite fasst sich wieder, nicht ganz. Was bleibt, ist die Spur.</p>
+        <p class="mut klein">Zurück zur <a href="index.html">Werkschau</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Die Anzeige. Das ist der Teil, den htmx 4 fährt: Die Ausdrücke stehen im Markup,
+       gelesen wird data-welt-* auf <html>, das der Weltzustand zehnmal die Sekunde setzt.
+       Für die Bewegung oben taugt das nicht (hx-live rechnet auf Mutationen, nicht im
+       Bildtakt) — für Zahlen, die man lesen können soll, genau richtig. -->
+  <div class="anzeige" aria-hidden="true">
+    <span>Abschnitt <b :text="document.documentElement.dataset.weltName || '—'"></b></span>
+    <span>Fassung <b :text="((+document.documentElement.dataset.weltFassung || 0) / 100).toFixed(2)"></b></span>
+    <span class="stufe"
+          :data-warn="(+document.documentElement.dataset.weltStufe || 0) >= 2 ? 'ja' : 'nein'"
+          :text="'Stufe ' + (document.documentElement.dataset.weltStufe || '0')"></span>
+    <span>Seite <b :text="(document.documentElement.dataset.weltP || '0') + ' %'"></b></span>
+    <span class="balken"><i :style="'width:' + (document.documentElement.dataset.weltP || 0) + '%'"></i></span>
+  </div>
+
+  <script src="js/works.js"></script>
+  <script src="js/weltzustand.js"></script>
+  <script src="js/skizze.js"></script>
+  <!-- htmx 4.0.0 und die hx-live-Erweiterung, lokal aus vendor/. Kein CDN: Die Seite
+       verspricht in der Datenschutzerklärung, dass sie nichts von Dritten nachlädt. -->
+  <script src="vendor/htmx/htmx-4.0.0.min.js" defer></script>
+  <script src="vendor/htmx/hx-live-4.0.0.min.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+/* Stile der Skizze. Eigene Datei, damit die Seite selbst unberührt bleibt:
+   Das hier ist ein Entwurf zum Ansehen, kein Ersatz für css/site.css. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; padding: 0; background: #FFFFFF; }
+img { display: block; max-width: 100%; }
+
+:root {
+  --ink: #141412;
+  --mut: #4A4945;
+  --line: #DCDCDA;
+  --red: #D1232A;
+  --red2: #7E141A;
+  --fd: 'Alegreya Sans', system-ui, sans-serif;
+  --fb: 'Alegreya', Georgia, serif;
+}
+
+body {
+  font-family: var(--fb);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.65;
+  /* Die Bühnen liegen hinter dem Text. Ohne diesen Stapelkontext klettern sie darüber. */
+  position: relative;
+  z-index: 0;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
+
+/* ---------------------------------------------------------------- Bühnen */
+/* Alle drei liegen fest im Fenster und nehmen keine Klicks an. Bewegt wird ausschließlich
+   transform und opacity: Alles andere zwingt den Browser, das Layout neu zu rechnen. */
+#flug-buehne, #weinen {
+  position: fixed; inset: 0; pointer-events: none;
+}
+#flug-buehne { z-index: -1; overflow: hidden; }
+#weinen { z-index: 3; }
+
+.fl-blatt {
+  position: absolute; top: 0; left: 0;
+  width: 260px; height: auto;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  mix-blend-mode: multiply;
+  opacity: 0;
+}
+
+#sprite-buehne {
+  position: relative;
+  width: min(460px, 82vw);
+  aspect-ratio: 160 / 260;
+  margin-left: auto;
+  /* Ohne den Beschnitt wandern die vergrößerten Tiefenebenen über die halbe Seite und
+     legen sich auf den Text. Die Parallaxe braucht einen Rahmen, sonst ist sie Unordnung. */
+  overflow: hidden;
+}
+.sp-ebene {
+  position: absolute; inset: 0;
+  /* Bild und Raster setzt js/skizze.js aus LUKE.GESTALTUNG; die Werte hier sind nur der
+     Rückfall, falls works.js fehlt. */
+  background-image: var(--sprite, url('../assets/img/zeichnung-sprite.webp'));
+  background-size: var(--sprite-raster, 800% 600%);
+  background-repeat: no-repeat;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  mix-blend-mode: multiply;
+}
+
+/* ---------------------------------------------------------------- Abschnitte */
+section { position: relative; z-index: 1; }
+#auftakt { min-height: 100svh; display: grid; align-items: center; }
+#zug, #werke, #schnitt, #fall, #ruhe { min-height: 150svh; padding: 14vh 0; }
+
+.kopf { display: grid; grid-template-columns: minmax(280px, 5fr) minmax(280px, 7fr); gap: 4vw; align-items: center; }
+@media (max-width: 800px) { .kopf { grid-template-columns: 1fr; } #sprite-buehne { margin: 0 auto; } }
+
+h1 { font-family: var(--fd); font-weight: 300; font-size: clamp(40px, 6.5vw, 88px); line-height: .95; margin: 0 0 16px; }
+h2 { font-family: var(--fd); font-weight: 300; font-size: clamp(28px, 4vw, 50px); line-height: 1; margin: 0 0 14px; }
+h2::after { content: ''; display: block; width: 58px; height: 3px; margin-top: 14px; background: var(--red); }
+p { max-width: 54ch; margin: 0 0 18px; text-wrap: pretty; }
+.mut { color: var(--mut); }
+.klein { font-size: 15.5px; }
+
+/* ---------------------------------------------------------------- Anzeige */
+/* Der einzige Teil, den htmx 4 fährt. Die Ausdrücke stehen im HTML, nicht hier;
+   was sie lesen, kommt aus data-welt-* auf <html>. */
+.anzeige {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: 0 26px;
+  padding: 9px clamp(16px, 4vw, 40px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+  font-family: var(--fd); font-size: 13.5px; letter-spacing: .04em;
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+.anzeige b { font-weight: 500; color: var(--ink); }
+.anzeige .stufe { color: var(--mut); }
+.anzeige .stufe[data-warn="ja"] { color: var(--red); }
+.balken { flex: 1 1 120px; align-self: center; height: 3px; background: var(--line); position: relative; min-width: 90px; }
+.balken i { position: absolute; inset: 0 auto 0 0; background: var(--red); display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-blatt, .sp-ebene { transition: none !important; }
+}

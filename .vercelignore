@@ -1,0 +1,6 @@
+video/node_modules
+video/out
+video/public
+.agents
+.claude
+assets/original
