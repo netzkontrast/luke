@@ -2,9 +2,9 @@
 
    Auf der Website lief bisher links eine gerade rote Linie als Scrollfortschritt mit. Sie
    war abstrakt und hatte mit den Arbeiten nichts zu tun. Diese Spur setzt stattdessen dort
-   an, wo der rote Strang in Werk I aus der Zeichnung austritt, und läuft von da die Seite
-   hinunter: Je weiter man liest, desto weiter ist sie gelaufen. Am unteren Ende hängt ein
-   Tropfen, unterwegs bleiben einzelne Spritzer stehen.
+   an, wo im Blatt des Auftakts die Tusche endet, und läuft von da die Seite hinunter: Je
+   weiter man liest, desto weiter ist sie gelaufen. Am unteren Ende hängt ein Tropfen,
+   unterwegs bleiben einzelne Spritzer stehen.
 
    Gezeichnet wird ein SVG in Seitenkoordinaten, kein festes Element: Die Spur gehört zur
    Seite, nicht zum Fenster. Bewegt wird nur stroke-dashoffset und ein Tropfen; beides ist
@@ -22,10 +22,13 @@
   const NS = 'http://www.w3.org/2000/svg';
   const prm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Der rote Strang sitzt in Werk I bei knapp 57 Prozent der Bildbreite und tritt bei
-     rund 62 Prozent der Bildhöhe aus der Figur aus. Von dort startet die Spur. */
-  const STRANG_X = 0.57;
-  const STRANG_Y = 0.62;
+  /* Ansatzpunkt: die unterste Stelle, an der im Blatt des Auftakts noch Tusche steht.
+     Im Bild liegt sie bei rund 44 Prozent der Breite und 93 Prozent der Höhe; weil die
+     Figur im Kopf der Seite rechtsbündig beschnitten wird (siehe .hero-still), sind das
+     hier gut 32 Prozent der sichtbaren Breite. Von dort läuft die Spur weiter, als
+     tropfte die Zeichnung ab. */
+  const STRANG_X = 0.32;
+  const STRANG_Y = 0.93;
   /* Ruhepunkte, an denen ein Spritzer hängen bleibt, als Anteil der Spurlänge. */
   const SPRITZER = [0.16, 0.34, 0.52, 0.71, 0.88];
 

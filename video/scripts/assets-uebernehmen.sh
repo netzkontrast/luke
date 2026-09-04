@@ -9,6 +9,7 @@ mkdir -p public/img public/video public/fonts
 
 cp ../assets/img/werk-1-profil-1900.jpg \
    ../assets/img/werk-1-profil-1200.jpg \
+   ../assets/img/werk-7-kniend-1200.jpg \
    ../assets/img/werk-2-auge-1800.jpg \
    ../assets/img/luke-atelier-1536.jpg \
    public/img/

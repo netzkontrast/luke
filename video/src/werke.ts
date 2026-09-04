@@ -62,6 +62,15 @@ export const WERKE: Werk[] = [
   },
   {
     "nr": "VII",
+    "titel": "Befreiung der Körperlichkeit, Werk VII",
+    "traeger": "papier",
+    "jahr": 2026,
+    "technik": "Tusche auf Papier",
+    "ort": null,
+    "serie": "Befreiung der Körperlichkeit"
+  },
+  {
+    "nr": "VIII",
     "titel": "Zwölf Köpfe",
     "traeger": "papier",
     "jahr": 2026,
@@ -70,7 +79,7 @@ export const WERKE: Werk[] = [
     "serie": "Tuschstudien"
   },
   {
-    "nr": "VIII",
+    "nr": "IX",
     "titel": "Schwarzdorn",
     "traeger": "haut",
     "jahr": 2025,
@@ -79,7 +88,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "IX",
+    "nr": "X",
     "titel": "Zugvogel",
     "traeger": "haut",
     "jahr": 2025,
@@ -88,7 +97,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "X",
+    "nr": "XI",
     "titel": "Doppelprofil",
     "traeger": "haut",
     "jahr": 2024,
@@ -97,7 +106,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XI",
+    "nr": "XII",
     "titel": "Nachtfalter",
     "traeger": "haut",
     "jahr": 2024,
@@ -106,7 +115,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XII",
+    "nr": "XIII",
     "titel": "Distelzweig",
     "traeger": "haut",
     "jahr": 2023,
@@ -115,7 +124,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XIII",
+    "nr": "XIV",
     "titel": "Bannerschrift",
     "traeger": "haut",
     "jahr": 2023,
@@ -124,7 +133,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XIV",
+    "nr": "XV",
     "titel": "Schwalbenpaar",
     "traeger": "haut",
     "jahr": 2022,

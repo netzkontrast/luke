@@ -105,8 +105,14 @@ Kopiere sie nach `video/public/`, referenziere mit `staticFile()`:
   Diese vier sind alle Hochformat, freigestellt und auf reinem Weiß: multiply zieht das
   Papier vollständig weg, die Figur steht frei. Zusammen die Serie „Befreiung der
   Körperlichkeit“ — sie lesen als Folge, nicht als Einzelbilder.
-- `assets/img/werk-7-koepfe-1600.jpg` — 1600×1790, zwölf kleine Blätter mit Köpfen, auf
-  schwarzem Holz ausgelegt und dort fotografiert. Werk VII. **Kein multiply**: Der Grund
+- `assets/img/werk-7-kniend-1900.jpg` — 1900×2536, kniende Figur im Profil, Kopf gesenkt,
+  dahinter ein offener Kreis. Werk VII, schwarze Tusche und graue Waschungen, kein Rot.
+  Das Blatt steht im Kopf der Website; im Film ist es noch nicht verwendet. Reinweißer
+  Grund, multiply zieht ihn vollständig weg. Links liegt ein breites leeres Drittel: Wer
+  es formatfüllend braucht, schneidet rechtsbündig (`objectFit: cover`, `objectPosition:
+  100% 50%`), so macht es die Seite auch.
+- `assets/img/werk-8-koepfe-1600.jpg` — 1600×1790, zwölf kleine Blätter mit Köpfen, auf
+  schwarzem Holz ausgelegt und dort fotografiert. Werk VIII. **Kein multiply**: Der Grund
   ist dunkel, multiply macht daraus eine schwarze Fläche. Wie das Porträt behandeln.
 
 **Zeichenanimationen** (das Entstehen, bestes Material für Schnitte)

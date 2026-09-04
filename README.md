@@ -89,8 +89,13 @@ einen Auftraggeber und einen Anlass statt Träger, Serie und Maße, und sie beha
 also nicht auf quadratisch gestutzt. Die Werkansicht ist dieselbe wie bei den Werken; geblättert wird innerhalb der
 Grafiken, nicht quer durch beides.
 
-- Auftakt: `assets/video/werk-1-profil-zeichnung.mp4` wird einmal abgespielt und blendet dann auf `werk-1-profil-*.jpg` über.
-  `werk-1-profil-zeichnung-alt.mp4` ist die frühere Fassung der Animation (August), derzeit nicht eingebunden.
+- Auftakt: `assets/video/werk-1-profil-zeichnung.mp4` wird einmal abgespielt; stehen bleibt danach `werk-7-kniend-*.jpg`.
+  Das sind zwei verschiedene Blätter, und so soll es auch gelesen werden: Eine Arbeit entsteht, eine andere steht.
+  Dazwischen liegt eine knappe Leerstelle, damit der Übergang als Schnitt liest und nicht als Verwandlung.
+  `werk-1-profil-zeichnung-alt.mp4` ist die frühere, längere Fassung der Animation (August), derzeit nicht eingebunden.
+- Das Blatt im Kopf hat links ein breites leeres Drittel. Standbild und Live-Auftakt schneiden es rechtsbündig weg
+  (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten.
+- Vorschaubild für soziale Netzwerke: `assets/img/og-bild.jpg`, 1200 × 630, dieselbe Zeichnung auf Weiß.
 - Handschrift: `assets/video/werk-2-auge-signatur.mp4` startet beim Scrollen und bleibt auf dem letzten Bild (Signatur) stehen.
 - Studio: `assets/img/luke-atelier-*.jpg`.
 

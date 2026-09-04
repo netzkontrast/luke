@@ -65,20 +65,26 @@ LUKE.WERKE = [
     src: 'assets/img/werk-6-schlinge-808.jpg',
     srcset: 'assets/img/werk-6-schlinge-480.jpg 480w, assets/img/werk-6-schlinge-808.jpg 808w',
     w: 808, h: 1350 },
+  /* Das Blatt im Kopf der Seite. Es kam als reinweiße Datei, ohne dunklen Rand und ohne
+     Papierton, und braucht deshalb weder Zuschnitt noch Pegel. */
+  { id: 'w7', nr: 'VII', t: 'Befreiung der Körperlichkeit, Werk VII', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
+    src: 'assets/img/werk-7-kniend-1200.jpg',
+    srcset: 'assets/img/werk-7-kniend-800.jpg 800w, assets/img/werk-7-kniend-1200.jpg 1200w, assets/img/werk-7-kniend-1900.jpg 1900w',
+    w: 1900, h: 2536 },
   /* Zwölf kleine Blätter, auf schwarzem Holz ausgelegt und dort fotografiert. Das Bild
      behält seinen dunklen Grund: `grund: 'foto'` nimmt es von der multiply-Behandlung aus
      und hält es aus der Blättersequenz heraus. */
-  { id: 'w7', nr: 'VII', t: 'Zwölf Köpfe', tr: 'papier', serie: 'Tuschstudien', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
-    src: 'assets/img/werk-7-koepfe-800.jpg',
-    srcset: 'assets/img/werk-7-koepfe-480.jpg 480w, assets/img/werk-7-koepfe-800.jpg 800w, assets/img/werk-7-koepfe-1600.jpg 1600w',
+  { id: 'w8', nr: 'VIII', t: 'Zwölf Köpfe', tr: 'papier', serie: 'Tuschstudien', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
+    src: 'assets/img/werk-8-koepfe-800.jpg',
+    srcset: 'assets/img/werk-8-koepfe-480.jpg 480w, assets/img/werk-8-koepfe-800.jpg 800w, assets/img/werk-8-koepfe-1600.jpg 1600w',
     w: 1600, h: 1790 },
-  { id: 'w8', nr: 'VIII', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 61 },
-  { id: 'w9', nr: 'IX', t: 'Zugvogel', tr: 'haut', ort: 'Schulter', ortKey: 'Arm', motiv: 'Tier', jahr: 2025, sitzungen: 1, zustand: 'frisch', vbW: 400, vbH: 500, seed: 67 },
-  { id: 'w10', nr: 'X', t: 'Doppelprofil', tr: 'haut', ort: 'Rücken', ortKey: 'Rücken', motiv: 'Figur', jahr: 2024, sitzungen: 4, zustand: 'abgeheilt', vbW: 600, vbH: 400, seed: 71 },
-  { id: 'w11', nr: 'XI', t: 'Nachtfalter', tr: 'haut', ort: 'Brust', ortKey: 'Brust', motiv: 'Tier', jahr: 2024, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 79 },
-  { id: 'w12', nr: 'XII', t: 'Distelzweig', tr: 'haut', ort: 'Wade', ortKey: 'Bein', motiv: 'Botanik', jahr: 2023, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 600, seed: 83 },
-  { id: 'w13', nr: 'XIII', t: 'Bannerschrift', tr: 'haut', ort: 'Handrücken', ortKey: 'Hand', motiv: 'Schrift', jahr: 2023, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 89 },
-  { id: 'w14', nr: 'XIV', t: 'Schwalbenpaar', tr: 'haut', ort: 'Oberschenkel', ortKey: 'Bein', motiv: 'Tier', jahr: 2022, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 97 }
+  { id: 'w9', nr: 'IX', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 61 },
+  { id: 'w10', nr: 'X', t: 'Zugvogel', tr: 'haut', ort: 'Schulter', ortKey: 'Arm', motiv: 'Tier', jahr: 2025, sitzungen: 1, zustand: 'frisch', vbW: 400, vbH: 500, seed: 67 },
+  { id: 'w11', nr: 'XI', t: 'Doppelprofil', tr: 'haut', ort: 'Rücken', ortKey: 'Rücken', motiv: 'Figur', jahr: 2024, sitzungen: 4, zustand: 'abgeheilt', vbW: 600, vbH: 400, seed: 71 },
+  { id: 'w12', nr: 'XII', t: 'Nachtfalter', tr: 'haut', ort: 'Brust', ortKey: 'Brust', motiv: 'Tier', jahr: 2024, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 79 },
+  { id: 'w13', nr: 'XIII', t: 'Distelzweig', tr: 'haut', ort: 'Wade', ortKey: 'Bein', motiv: 'Botanik', jahr: 2023, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 600, seed: 83 },
+  { id: 'w14', nr: 'XIV', t: 'Bannerschrift', tr: 'haut', ort: 'Handrücken', ortKey: 'Hand', motiv: 'Schrift', jahr: 2023, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 89 },
+  { id: 'w15', nr: 'XV', t: 'Schwalbenpaar', tr: 'haut', ort: 'Oberschenkel', ortKey: 'Bein', motiv: 'Tier', jahr: 2022, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 97 }
 ];
 
 /* Flash-Blätter. `src` (optional) für ein echtes Foto des Blatts, sonst Platzhalter. status: 'verfügbar' | 'vergeben' */

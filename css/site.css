@@ -111,10 +111,15 @@ html.has-stage body, html.has-stage .app { background: transparent; }
 .hero-text h1 { font-size: clamp(46px,7vw,96px); line-height: .95; margin: 0 0 18px; letter-spacing: -0.01em; }
 .hero-text p { margin: 0; max-width: 34ch; color: var(--mut); font-size: 20px; line-height: 1.55; text-wrap: pretty; }
 .hero-draw { will-change: transform; display: flex; justify-content: flex-end; }
-.hero-fig { position: relative; margin: 0; height: min(78vh, 150vw); aspect-ratio: 1900 / 3085; max-width: 100%; }
+/* Dasselbe Seitenverhältnis wie die Remotion-Komposition (1200 × 1948), damit Standbild,
+   Video und Live-Auftakt exakt übereinander liegen. */
+.hero-fig { position: relative; margin: 0; height: min(78vh, 150vw); aspect-ratio: 1200 / 1948; max-width: 100%; }
 .hero-fig > video, .hero-fig > img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hero-video { object-fit: cover; transition: opacity calc(var(--m)*1.2s) ease; }
-.hero-still { object-fit: contain; opacity: 0; transition: opacity calc(var(--m)*1.2s) ease; }
+/* Das Blatt im Kopf hat links ein breites leeres Drittel. Weiß verschwindet zwar durch
+   multiply, die Figur säße dadurch aber weit rechts in einer unsichtbaren Fläche. Der
+   Ausschnitt nimmt das leere Drittel weg und rückt sie an ihren Platz. */
+.hero-still { object-fit: cover; object-position: 100% 50%; opacity: 0; transition: opacity calc(var(--m)*1.2s) ease; }
 .hero-fig.done .hero-still { opacity: 1; }
 .hero-fig.done .hero-video { opacity: 0; }
 .hero-fig.still .hero-video { display: none; }

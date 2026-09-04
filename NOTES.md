@@ -6,10 +6,14 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
 - [ ] **Datenschutzerklärung** prüfen und ergänzen (`datenschutz.html`): Hoster, Formularweg, Speicherdauer, Datum.
 - [ ] **Urheberschaft Werk I / Werk II** klären (Beitrag laut Instagram geteilt mit @lmklvser). Die Zuordnung der beiden
       hochgeladenen Zeichnungen (Profil mit rotem Strang = Werk I, Auge mit Signatur = Werk II) ist eine Annahme.
-- [ ] **Titel, Reihenfolge und Jahr der Werke III bis VII** bestätigen. Die vier Blätter mit Strang laufen als
-      „Befreiung der Körperlichkeit, Werk III“ bis „Werk VI“ weiter, das Blatt mit den zwölf Köpfen heißt vorläufig
-      „Zwölf Köpfe“ und liegt unter „Tuschstudien“. Alle fünf stehen auf 2026. Reihenfolge, Titel und Jahr sind gesetzt,
-      nicht gewusst; Änderungen gehören in `js/works.js`, danach `node video/scripts/werke-uebernehmen.mjs`.
+- [ ] **Titel, Reihenfolge und Jahr der Werke III bis VIII** bestätigen. Die vier Blätter mit Strang laufen als
+      „Befreiung der Körperlichkeit, Werk III“ bis „Werk VI“ weiter, die kniende Figur aus dem Seitenkopf als „Werk VII“,
+      das Blatt mit den zwölf Köpfen heißt vorläufig „Zwölf Köpfe“ und liegt unter „Tuschstudien“. Alle stehen auf 2026.
+      Reihenfolge, Titel und Jahr sind gesetzt, nicht gewusst; Änderungen gehören in `js/works.js`, danach
+      `node video/scripts/werke-uebernehmen.mjs`.
+- [ ] **Werk VII: Serie und Technik prüfen.** Das Blatt hat weder Strang noch Rot und kam als reinweiße Datei, nicht als
+      Foto eines Blattes. Es steht trotzdem unter „Befreiung der Körperlichkeit“ und als „Tusche auf Papier“. Wenn es
+      eine eigene Serie ist oder digital entstanden, gehört beides geändert.
 - [ ] **Grafik: Auftraggeber und Jahre bestätigen.** Eingetragen ist, was auf den Blättern steht. Offen: der Name
       der Band zu „Requiem: Zerfall“ (das Logo ist nicht zu lesen), die Jahre von Signet und Clubnacht, und ob bei
       den Auftragsarbeiten jemand mitgenannt werden muss.
@@ -36,8 +40,10 @@ Bereits umgesetzt:
 - [x] Reduzierte Bewegung (Systemeinstellung) wird respektiert.
 - [x] Werkansicht mit Tastatur bedienbar (Escape, Pfeiltasten, Fokusfalle).
 - [x] Film zur Werkschau unter `video/`, in 16:9 und 9:16, mit denselben Werkdaten wie die Seite.
-- [x] Sieben Papierarbeiten liegen als Aufnahme vor: Werk I bis VI und die zwölf Köpfe.
+- [x] Acht Papierarbeiten liegen als Aufnahme vor: Werk I bis VII und die zwölf Köpfe.
 - [x] Abschnitt Grafik mit fünf Auftragsarbeiten: Podcast-Titelbild, Plakat, zwei Signets, ein Albumcover.
+- [x] Der Seitenkopf zeigt Werk VII. Das Video zeigt weiter, wie Werk I entsteht: Das sind zwei Blätter,
+      dazwischen liegt eine knappe Leerstelle, damit es als Schnitt gelesen wird und nicht als Verwandlung.
 
 Beim nächsten Durchgang anzusehen:
 

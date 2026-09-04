@@ -36,13 +36,18 @@ export type AuftaktProps = {
 
 export const auftaktStandard: AuftaktProps = { zeiger: { x: 0, y: 0 }, eigenerGrund: true, korn: true };
 
-/* Sekunden, an denen sich der Auftakt orientiert. */
+/* Sekunden, an denen sich der Auftakt orientiert.
+
+   Das Video zeigt, wie Werk I entsteht; stehen bleibt am Ende Werk VII. Das sind zwei
+   Blätter, und genau so soll es auch gelesen werden. Zwischen beiden liegt deshalb eine
+   knappe Leerstelle: Ohne sie sähe der Übergang aus, als verwandelte sich eine Zeichnung
+   in eine andere. Mit ihr ist es ein Schnitt. */
 const T = {
   fern: 0.15,
   zeichnen: 0.35,
   zeichnenEnde: 6.05,
-  blattFrei: 6.05,
-  gesamt: 9,
+  blattFrei: 6.75,
+  gesamt: 9.4,
 };
 
 /* Eine Ebene mit Tiefe. tiefe 0 steht still, tiefe 1 folgt dem Zeiger ganz. */
@@ -99,10 +104,13 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
       extrapolateRight: 'clamp',
     });
 
-  /* Die beiden fernen Blätter kommen zuerst und bleiben schwach: Sie sind Tiefe, kein Motiv. */
+  /* Die fernen Blätter kommen zuerst und bleiben schwach: Sie sind Tiefe, kein Motiv.
+     Dafür bleibt Werk I das Material — dünne Linien, viel Weiß, das liest sich als Dunst.
+     Das Blatt, das vorn steht, ist eine dichte schwarze Masse; vergrößert und multipliziert
+     ergäbe es keine Tiefe, sondern eine graue Wolke. */
   const fern = auf(T.fern, 1.6);
   /* Das Zeichenvideo läuft einmal durch, danach übernimmt das fertige Blatt. */
-  const videoWeg = auf(T.zeichnenEnde, 0.7);
+  const videoWeg = auf(T.zeichnenEnde, 0.5);
   const blatt = videoKaputt ? 1 : auf(T.blattFrei, 0.9);
   /* Ganz langsames Heranfahren über die volle Länge, wie Ken Burns, nur zurückhaltender. */
   const zoom = interpolate(bild, [0, s(T.gesamt)], [1.045, 1], {
@@ -128,6 +136,9 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
             objectFit: 'cover',
             objectPosition: '38% 30%',
             mixBlendMode: 'multiply',
+            /* Grau, nicht rot: Werk I trägt seinen roten Strang, und der würde als blasser
+               Fleck neben der schwarzen Zeichnung stehen. Rot gehört hier der Tropfspur. */
+            filter: 'grayscale(1)',
             opacity: fern * 0.1,
             transform: `scale(${1.55 * zoom})`,
           }}
@@ -144,6 +155,9 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
             objectFit: 'cover',
             objectPosition: '68% 62%',
             mixBlendMode: 'multiply',
+            /* Grau, nicht rot: Werk I trägt seinen roten Strang, und der würde als blasser
+               Fleck neben der schwarzen Zeichnung stehen. Rot gehört hier der Tropfspur. */
+            filter: 'grayscale(1)',
             opacity: fern * 0.16,
             transform: `scale(${1.22 * zoom}) translateX(-4%)`,
           }}
@@ -167,14 +181,17 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
         />
       </Ebene>
 
-      {/* Ebene 4: das fertige Blatt übernimmt, sobald die Zeichnung steht. */}
+      {/* Ebene 4: das Blatt, das am Ende steht. Ausschnitt wie das Standbild in der Seite
+          (cover, rechtsbündig), damit Live-Auftakt und Rückfallebene deckungsgleich sind:
+          Das Blatt hat links ein breites leeres Drittel, das hier wegfällt. */}
       <Ebene tiefe={0.48} zeiger={zeiger}>
         <Img
-          src={staticFile('img/werk-1-profil-1200.jpg')}
+          src={staticFile('img/werk-7-kniend-1200.jpg')}
           style={{
             width: '100%',
             height: '100%',
-            objectFit: 'contain',
+            objectFit: 'cover',
+            objectPosition: '100% 50%',
             mixBlendMode: 'multiply',
             opacity: blatt,
             transform: `scale(${zoom})`,
@@ -185,9 +202,9 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
       {/* Ebene 5, ganz vorn: ein Ausschnitt der Zeichnung, groß und blass, der dem Zeiger
           am deutlichsten folgt. Er gibt der Parallaxe ihre vorderste Kante.
 
-          Hier stand vorher ein roter Faden. Er ist raus: Die Zeichnung trägt ihren eigenen
-          roten Strang, und die Seite hat links schon ihre rote Linie. Ein drittes Rot im
-          selben Blickfeld nimmt beiden die Wirkung. */}
+          Hier stand vorher ein roter Faden. Er ist raus: Rot gehört auf dieser Seite der
+          Tropfspur, die unter dem Blatt weiterläuft. Ein zweites Rot im selben Blickfeld
+          nähme ihr die Wirkung. */}
       <Ebene tiefe={0.95} zeiger={zeiger} drift={0.4}>
         <Img
           src={staticFile('img/werk-1-profil-1200.jpg')}
@@ -197,6 +214,9 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
             objectFit: 'cover',
             objectPosition: '82% 88%',
             mixBlendMode: 'multiply',
+            /* Grau, nicht rot: Werk I trägt seinen roten Strang, und der würde als blasser
+               Fleck neben der schwarzen Zeichnung stehen. Rot gehört hier der Tropfspur. */
+            filter: 'grayscale(1)',
             opacity: fern * 0.09,
             transform: `scale(${2.1 * zoom})`,
           }}
