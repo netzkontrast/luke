@@ -16,9 +16,12 @@
   /* ---------- Zustand ---------- */
   const S = {
     richtung: pick(params.get('richtung'), ['a', 'b', 'c'], app.dataset.richtung || 'a'),
-    layout: pick(params.get('layout'), ['mauerwerk', 'buendig', 'schiene'], 'mauerwerk'),
+    /* Auf dem Telefon ist die Schiene die Voreinstellung: ein Blatt pro Bildschirm,
+       zum Wischen. Am großen Bildschirm bleibt es beim Mauerwerk. */
+    layout: pick(params.get('layout'), ['mauerwerk', 'buendig', 'schiene'],
+      matchMedia('(max-width: 700px)').matches ? 'schiene' : 'mauerwerk'),
     bewegung: prm ? 'aus' : pick(params.get('bewegung'), ['aus', 'dezent', 'voll'], app.dataset.bewegung || 'voll'),
-    dichte: 'luftig', rotspur: 'spur', sequenz: 'voll', korn: 'an',
+    dichte: 'luftig', rotspur: 'spur', sequenz: 'voll', korn: 'aus',
     panel: params.has('proto'), panelOpen: true,
     traeger: 'alles', fOrt: null, fMotiv: null, fSerie: null, fJahr: null,
     open: null
@@ -92,8 +95,22 @@
   }
   function renderTabs() {
     $('#tr-tabs').innerHTML = [['haut', 'Haut'], ['papier', 'Papier'], ['alles', 'Alles']]
-      .map(([k, label]) => `<button type="button" class="tr-tab" data-tr="${k}" aria-pressed="${S.traeger === k}">${label}</button>`).join('');
+      .map(([k, label]) => `<button type="button" class="tr-tab" data-tr="${k}" aria-pressed="${S.traeger === k}">${label}</button>`).join('')
+      + '<span class="tr-schiene" aria-hidden="true"></span>';
+    schieneSetzen();
   }
+
+  /* Die Linie unter den Reitern folgt dem gewählten Träger. Sie wird nach jedem Zeichnen
+     neu vermessen, weil sich die Wortbreiten mit der Schrift ändern. */
+  function schieneSetzen() {
+    const leiste = $('#tr-tabs'), schiene = $('.tr-schiene', leiste);
+    const aktiv = $('.tr-tab[aria-pressed="true"]', leiste);
+    if (!schiene || !aktiv) return;
+    schiene.style.width = aktiv.offsetWidth + 'px';
+    schiene.style.transform = `translateX(${aktiv.offsetLeft}px)`;
+  }
+  addEventListener('resize', schieneSetzen, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schieneSetzen);
   function renderChips() {
     const chip = (label, active, f, v) => `<button type="button" class="chip" data-f="${f}" data-v="${esc(v == null ? '' : v)}" aria-pressed="${active}">${esc(label)}</button>`;
     let html = '';
@@ -110,9 +127,37 @@
     const list = filtered();
     $('#werke-count').textContent = list.length === 1 ? 'Ein Werk.' : list.length + ' Werke.';
     const gl = $('#g-list'); gl.dataset.layout = S.layout;
+    const wall = gl.closest('.g-wall');
+    if (wall) wall.dataset.schiene = S.layout === 'schiene' ? 'an' : 'aus';
     gl.innerHTML = list.map(w => `<button type="button" class="g-item rv" data-fid="${w.id}" aria-label="${esc(altText(w))}"><span class="tin"><span class="cnr" aria-hidden="true">${w.nr}</span><span class="g-ph" style="aspect-ratio:${ratio(w)};">${bildHTML(w, 'f' + w.id, '(max-width: 540px) 92vw, (max-width: 900px) 46vw, 380px')}</span><span class="g-meta"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></span></span></button>`).join('');
   }
-  function renderWerke() { renderTabs(); renderChips(); renderGrid(); }
+  function renderWerke() { renderTabs(); renderChips(); renderGrid(); zaehlerNachfuehren(); }
+
+  /* Zeigt in der Schiene, das wievielte Blatt gerade in der Mitte steht. Ohne diesen
+     Hinweis weiß beim Wischen niemand, wie viel noch kommt. */
+  function zaehlerNachfuehren() {
+    const gl = $('#g-list'), z = $('#g-zaehler');
+    if (!gl || !z) return;
+    const items = $$('.g-item', gl);
+    if (S.layout !== 'schiene' || !items.length) { z.textContent = ''; return; }
+    const mitte = gl.scrollLeft + gl.clientWidth / 2;
+    let nah = 0, beste = Infinity;
+    items.forEach((el, i) => {
+      const c = el.offsetLeft + el.offsetWidth / 2;
+      const d = Math.abs(c - mitte);
+      if (d < beste) { beste = d; nah = i; }
+    });
+    z.textContent = `${nah + 1} von ${items.length}`;
+  }
+  (function schienenZaehler() {
+    const gl = $('#g-list'); if (!gl) return;
+    let warte = 0;
+    gl.addEventListener('scroll', () => {
+      if (warte) return;
+      warte = requestAnimationFrame(() => { warte = 0; zaehlerNachfuehren(); });
+    }, { passive: true });
+    addEventListener('resize', zaehlerNachfuehren, { passive: true });
+  })();
 
   /* Übergänge: FLIP beim Filtern / Layoutwechsel, Waschung beim Trägerwechsel */
   let rects = null;
@@ -172,16 +217,41 @@
   function renderOverlay() {
     const root = $('#ov-root'); const ow = W.find(w => w.id === S.open);
     if (!ow) { root.innerHTML = ''; return; }
+    const liste = filtered();
+    const stelle = liste.findIndex(w => w.id === ow.id);
     const rows = [{ k: 'Werknummer', v: 'Nr. ' + ow.nr }, { k: 'Träger', v: ow.tr === 'haut' ? 'Haut' : 'Papier' }, { k: 'Jahr', v: String(ow.jahr) }];
     if (ow.tr === 'haut') rows.push({ k: 'Körperstelle', v: ow.ort }, { k: 'Sitzungen', v: ow.sitzungen + (ow.sitzungen > 1 ? ' Sitzungen' : ' Sitzung') }, { k: 'Zustand', v: ow.zustand });
     else rows.push({ k: 'Technik', v: ow.technik }, { k: 'Maße', v: ow.masse }, { k: 'Serie', v: ow.serie });
-    const r = isReal(ow) ? ow.w / ow.h : ow.vbW / ow.vbH;
-    const figStyle = r < 1 ? `height:min(72vh,640px);aspect-ratio:${ratio(ow)};width:auto;max-width:100%;` : `width:100%;aspect-ratio:${ratio(ow)};max-height:min(72vh,640px);`;
+    /* Die Bildfläche hat eine feste Höhe und zeigt das Blatt vollständig. Ein gerechnetes
+       Seitenverhältnis brauchte für jedes Format eine Ausnahme und ergab auf dem Telefon
+       entweder einen Streifen oder eine Fläche, die nicht mehr aufs Bild passte. */
     const bild = isReal(ow)
-      ? `<img class="${ow.tr === 'papier' ? 'ink-img' : 'photo-img'}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 900px) 92vw, 600px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`
+      ? `<img class="${ow.tr === 'papier' ? 'ink-img' : 'photo-img'}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`
       : artSVG(art(ow.id, ow.seed, ow.vbW, ow.vbH, !!ow.red), ow.vbW, ow.vbH, ow.seed, 'fx' + ow.id);
-    root.innerHTML = `<div id="ov" role="dialog" aria-modal="true" aria-label="${esc(ow.t)}"><div id="ov-bg"></div><div class="ov-card"><figure id="ov-fig" class="ov-fig" style="${figStyle}">${bild}</figure><div class="ov-info"><h3 class="hd">${esc(ow.t)}</h3><div class="ov-rows">${rows.map(x => `<div class="ov-row"><div class="mut">${esc(x.k)}</div><div>${esc(x.v)}</div></div>`).join('')}</div><div class="ov-actions"><button type="button" id="ov-prev" class="btn">Zurück</button><button type="button" id="ov-next" class="btn">Weiter</button><span class="sp"></span><button type="button" id="ov-close" class="btn primary" style="padding:9px 18px;font-size:15px;">Schließen</button></div></div></div></div>`;
+    const zaehler = liste.length > 1 ? `<span class="ov-zaehler">${stelle + 1} von ${liste.length}</span>` : '';
+    root.innerHTML = `<div id="ov" role="dialog" aria-modal="true" aria-label="${esc(ow.t)}"><div id="ov-bg"></div><div class="ov-card"><figure id="ov-fig" class="ov-fig">${bild}</figure><div class="ov-info"><h3 class="hd">${esc(ow.t)}</h3><div class="ov-rows">${rows.map(x => `<div class="ov-row"><div class="mut">${esc(x.k)}</div><div>${esc(x.v)}</div></div>`).join('')}</div><div class="ov-actions">${zaehler}<button type="button" id="ov-prev" class="btn">Zurück</button><button type="button" id="ov-next" class="btn">Weiter</button><button type="button" id="ov-close" class="btn primary" style="padding:10px 20px;font-size:16px;">Schließen</button></div></div></div></div>`;
+    wischen($('#ov'));
   }
+
+  /* Wischen in der Werkansicht: seitwärts blättern, nach unten schließen. Auf dem Telefon
+     ist das die erwartete Bedienung; die Knöpfe bleiben trotzdem da. */
+  function wischen(ov) {
+    if (!ov) return;
+    let x0 = 0, y0 = 0, aktiv = false;
+    ov.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'mouse') return;
+      if (e.target.closest('button, a')) return;
+      aktiv = true; x0 = e.clientX; y0 = e.clientY;
+    }, { passive: true });
+    ov.addEventListener('pointerup', e => {
+      if (!aktiv) return;
+      aktiv = false;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) ovStep(dx < 0 ? 1 : -1);
+      else if (dy > 90 && Math.abs(dy) > Math.abs(dx)) closeOv();
+    }, { passive: true });
+  }
+
   function animateOvIn() {
     const m = mScale(); if (!m) return;
     const tp = tempo();
@@ -346,14 +416,7 @@
   if (L.motion) L.motion.on(revealScan); else addEventListener('scroll', revealScan, { passive: true });
 
   /* ---------- Scrollen, Zeiger, Tastatur ---------- */
-  const onScroll = () => {
-    const el = $('#thread'); if (!el) return;
-    const max = document.documentElement.scrollHeight - innerHeight;
-    const p = max > 0 ? scrollY / max : 0;
-    el.style.transform = `scaleY(${p})`;
-    el.style.opacity = scrollY > innerHeight * 0.45 ? '0.9' : '0';
-  };
-  if (L.motion) L.motion.on(onScroll); else addEventListener('scroll', onScroll, { passive: true });
+  /* Der Scrollfortschritt wird von js/tropfspur.js gezeichnet. */
   let xy = null, pmr = 0;
   addEventListener('pointermove', e => {
     xy = [e.clientX, e.clientY]; if (pmr) return;
@@ -384,13 +447,48 @@
   });
 
   /* ---------- Videos: Zeichnung im Auftakt, Signatur bei Handschrift ---------- */
-  (function hero() {
+  /* Der Live-Auftakt. assets/js/auftakt-player.js hängt eine Remotion-Komposition als
+     React in die Seite: dieselbe Zeichnung, aber in Ebenen mit Tiefe, die dem Zeiger
+     folgen. Das Bündel wiegt gezippt rund 150 kB, deshalb wird es erst nach dem Laden
+     der Seite geholt, nur wenn Bewegung erwünscht ist und der Anschluss nicht spart.
+     Kommt es nicht an, bleibt es beim Video und beim Standbild. */
+  const buehneGeplant = (() => {
+    const fig = $('.hero-fig');
+    if (!fig || mScale() === 0 || prm) return false;
+    const verbindung = navigator.connection;
+    if (verbindung && (verbindung.saveData || /2g/.test(verbindung.effectiveType || ''))) return false;
+    return true;
+  })();
+
+  (function buehne() {
+    if (!buehneGeplant) return;
+    const fig = $('.hero-fig');
+    const laden = () => {
+      /* Der Player löst staticFile() über diesen Wert auf. Ohne ihn läge er bei /img/...
+         Es muss ein Pfad sein, keine vollständige URL: staticFile kodiert den Doppelpunkt
+         und stellt einem Wert ohne führenden Schrägstrich einen voran, aus http://host
+         würde also /http%3A//host. */
+      window.remotion_staticBase = new URL('assets', document.baseURI).pathname.replace(/\/$/, '');
+      const skript = document.createElement('script');
+      skript.src = 'assets/js/auftakt-player.js';
+      skript.defer = true;
+      skript.addEventListener('error', () => heroOhneBuehne(true));
+      document.body.appendChild(skript);
+      /* Kommt die Bühne nicht binnen vier Sekunden, übernimmt der gewohnte Auftakt. */
+      setTimeout(() => { if (!fig.classList.contains('hat-buehne')) heroOhneBuehne(true); }, 4000);
+    };
+    if (document.readyState === 'complete') laden();
+    else addEventListener('load', laden, { once: true });
+  })();
+
+  function heroOhneBuehne(nurBildSofort) {
     const fig = $('.hero-fig'), v = $('.hero-video');
-    if (!fig) return;
+    if (!fig || fig.classList.contains('hat-buehne') || fig.dataset.auftakt === 'ab') return;
+    fig.dataset.auftakt = 'ab';
     let fertig = false;
     const still = () => { if (fertig) return; fertig = true; fig.classList.add('done'); };
     const nurBild = () => { fig.classList.add('still'); still(); };
-    if (!v || mScale() === 0) { nurBild(); return; }
+    if (!v || mScale() === 0 || nurBildSofort) { nurBild(); return; }
     /* Kann der Browser das Format nicht (fehlender Codec, gesperrte Wiedergabe), zeigen wir
        nach kurzer Frist das fertige Blatt statt einer leeren Fläche. */
     const wache = setTimeout(() => { if (v.readyState < 2 || !v.currentTime) nurBild(); }, 2200);
@@ -400,26 +498,48 @@
     v.addEventListener('error', () => { clearTimeout(wache); clearTimeout(sicherung); nurBild(); }, { once: true });
     v.addEventListener('timeupdate', () => { if (v.currentTime > 0) clearTimeout(wache); }, { once: true });
     const p = v.play(); if (p && p.catch) p.catch(() => { clearTimeout(wache); nurBild(); });
-  })();
+  }
+
+  /* Ohne geplante Bühne läuft der Auftakt sofort wie gewohnt. */
+  if (!buehneGeplant) heroOhneBuehne(false);
+
   (function band() {
-    const v = $('.band-video'); if (!v || mScale() === 0) return;
-    let ab = false;
-    const scan = () => {
-      if (ab) return;
+    const v = $('.band-video');
+    if (!v) return;
+    /* Bei ausgeschalteter Bewegung bleibt das Standbild stehen, das ist die Signatur. */
+    if (mScale() === 0) return;
+
+    /* Statt einmal abzuspielen folgt die Zeichnung dem Scrollen: Wer den Abschnitt
+       hinunterliest, zieht die Linie mit und sieht die Signatur am Ende entstehen.
+       Das ist dieselbe Bewegung, die Luke beim Zeichnen macht, nur vom Leser ausgelöst. */
+    let kaputt = false;
+    v.preload = 'auto';
+    v.pause();
+    /* Kann der Browser das Format nicht, bleibt das Standbild stehen. */
+    v.addEventListener('error', () => { kaputt = true; }, { once: true });
+    v.addEventListener('loadedmetadata', folgen);
+
+    function folgen() {
+      /* Die Dauer wird bei jedem Durchgang gelesen, nicht einmal beim Start. Sonst hängt
+         alles daran, ob loadedmetadata vor oder nach diesem Skript gefeuert hat. */
+      const dauer = v.duration;
+      if (kaputt || !dauer || !isFinite(dauer)) return;
       const r = v.getBoundingClientRect();
-      if (r.top > innerHeight * 0.8 || r.bottom < 0) return;
-      ab = true;
-      const p = v.play(); if (p && p.catch) p.catch(() => {});
-    };
-    if (L.motion) L.motion.on(scan); else addEventListener('scroll', scan, { passive: true });
-    scan();
+      if (r.bottom < -200 || r.top > innerHeight + 200) return;
+      /* Von „taucht unten auf" bis „ist oben durch": daraus wird die Zeit im Clip. */
+      const p = (innerHeight * 0.92 - r.top) / (innerHeight * 0.72 + r.height);
+      const ziel = Math.max(0, Math.min(1, p)) * (dauer - 0.05);
+      if (Math.abs(v.currentTime - ziel) < 0.04) return;
+      try { v.currentTime = ziel; } catch (e) { /* Spulen noch nicht möglich */ }
+    }
+    if (L.motion) L.motion.on(folgen); else addEventListener('scroll', folgen, { passive: true });
   })();
 
   /* ---------- Start ---------- */
   applyTheme();
   renderWerke();
   renderFlash();
+  schieneSetzen();
   renderPanel();
   observeNew();
-  onScroll();
 })();
