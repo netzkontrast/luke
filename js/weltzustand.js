@@ -23,7 +23,8 @@
 
    Auf <html> liegen außerdem ein paar gerundete Werte als data-Attribute. Die sind für
    deklarative Bindungen da (hx-live) und ändern sich absichtlich nur zehnmal die Sekunde:
-   Jede Änderung dort löst einen MutationObserver aus, und der soll nicht im Bildtakt feuern. */
+   Jede Änderung dort weckt den MutationObserver von hx-live, und der soll nicht im
+   Bildtakt feuern. */
 (function () {
   'use strict';
   const L = (window.LUKE = window.LUKE || {});
@@ -51,13 +52,14 @@
     /* Seite */
     y: 0,             // Scrollposition in Pixeln
     hoehe: 0,         // scrollbare Strecke
+    dokument: 0,      // ganze Seitenhöhe, damit sie niemand zweimal messen muss
     p: 0,             // Fortschritt der ganzen Seite, 0 bis 1
     fenster: { b: 0, h: 0 },
+    messung: 0,       // zählt hoch, wenn neu ausgemessen wurde
 
     /* Bewegung */
     v: 0,             // Geschwindigkeit, Pixel je Bild, geglättet
     zug: 0,           // Betrag davon, auf 0 bis 1 normiert. Wie hastig gerade gelesen wird.
-    richtung: 1,      // 1 nach unten, -1 nach oben
 
     /* Zeiger */
     zeiger: { x: 0, y: 0 },   // jeweils -0,5 bis 0,5, Mitte ist null
@@ -74,7 +76,6 @@
     blut: 0,          // 1 - fassung, weil die Seite damit blutet
 
     /* Betrieb */
-    takt: 0,          // Bildzähler
     ruhig: false,     // Systemeinstellung „reduzierte Bewegung"
     an: true          // läuft die Schleife
   };
@@ -94,6 +95,7 @@
   function messen() {
     messenGeplant = false;
     const doc = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    z.dokument = doc;
     z.hoehe = Math.max(1, doc - innerHeight);
     z.fenster.b = innerWidth;
     z.fenster.h = innerHeight;
@@ -103,6 +105,7 @@
       const r = el.getBoundingClientRect();
       return { oben: r.top + window.scrollY, hoehe: Math.max(1, r.height) };
     });
+    z.messung++;
   }
 
   /* Aus der Scrollposition wird der Abschnitt, aus dem Abschnitt die Fassung.
@@ -130,7 +133,7 @@
 
   /* Gerundete Werte für deklarative Bindungen. Absichtlich grob und selten:
      Jede Änderung hier ist eine DOM-Mutation, und daran hängt hx-live. */
-  let letzterStempel = '';
+  let letzterStempel = '', letzteAusgabe = 0;
   function veroeffentlichen() {
     const d = document.documentElement.dataset;
     const stempel = z.id + '|' + Math.round(z.p * 100) + '|' + Math.round(z.fassung * 100) + '|' + z.stufe;
@@ -156,12 +159,13 @@
     /* Geglättete Geschwindigkeit: Der Rohwert springt bei jedem Radschub und wäre als
        Antrieb für Bewegung unbrauchbar. */
     z.v = z.v + (dy - z.v) * 0.18;
-    if (Math.abs(z.v) > 0.05) z.richtung = z.v > 0 ? 1 : -1;
     z.zug = klemm(Math.abs(z.v) / 42, 0, 1);
-    z.takt++;
 
     abschnittBestimmen();
-    if ((z.takt & 5) === 0) veroeffentlichen();
+    /* Zehnmal die Sekunde, nach der Uhr. Ein Bildzähler wäre an die Bildrate gekoppelt
+       und auf einem schnellen Schirm doppelt so oft dran. */
+    const jetzt = performance.now();
+    if (jetzt - letzteAusgabe >= 100) { letzteAusgabe = jetzt; veroeffentlichen(); }
 
     for (const fn of hoerer) {
       try { fn(z); } catch (e) { /* ein kaputter Hörer legt die Welt nicht still */ }
@@ -176,11 +180,17 @@
 
   const neuMessen = () => { messenGeplant = true; };
   addEventListener('resize', neuMessen);
-  addEventListener('load', neuMessen);
   addEventListener('orientationchange', neuMessen);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(neuMessen);
-  /* Bilder laden nach, die Seite wird höher, die Abschnitte verschieben sich. */
-  new MutationObserver(neuMessen).observe(document.documentElement, { childList: true, subtree: true });
+  /* Bilder laden nach, die Seite wird höher, die Abschnitte verschieben sich. Ein
+     MutationObserver auf dem ganzen Dokument fing das zwar, aber auch jeden Textknoten,
+     den hx-live aus den veröffentlichten Werten baut — also einen Kreis: Zustand schreibt,
+     hx-live schreibt, der Observer lässt neu messen, und das erzwingt ein Reflow, fünfzehnmal
+     die Sekunde. Ein ResizeObserver sieht nur, was die Geometrie wirklich ändert.
+     `load` im Capture-Modus fängt zusätzlich einzelne Bilder, die fertig werden. */
+  if (typeof ResizeObserver === 'function') new ResizeObserver(neuMessen).observe(document.body);
+  else addEventListener('load', neuMessen);
+  addEventListener('load', neuMessen, true);
 
   addEventListener('pointermove', e => {
     z.zeiger.x = e.clientX / innerWidth - 0.5;

@@ -118,37 +118,44 @@
     const DIST = 10; camera.position.z = DIST;
     const visH = () => 2 * Math.tan(camera.fov * Math.PI / 360) * DIST;
     const unit = () => visH() / innerHeight;
-    const colors = () => { const cs = getComputedStyle(app); const g = n => cs.getPropertyValue(n).trim() || '#888'; return { bg: g('--bg'), ph: g('--phbg'), ink: g('--ink'), mut: g('--mut'), red: g('--red') }; };
+    const colors = () => { const cs = getComputedStyle(app); const g = n => cs.getPropertyValue(n).trim() || '#888'; return { bg: g('--bg'), red: g('--red') }; };
 
     /* Tuschblätter in der Tiefe */
     /* Nur echte Blätter. Vorher standen hier erzeugte Tuschflächen, wo die Aufnahmen nicht
        reichten — auf einer Werkschau haben erfundene Blätter nichts verloren, auch nicht
        blass im Hintergrund. Aufnahmen mit dunklem Grund bleiben draußen, sie wären hier
        schwarze Rechtecke. */
-    const real = (L.WERKE || [])
-      .filter(w => w.src && w.tr === 'papier' && w.grund !== 'foto')
-      .map(w => w.src);
+    const real = (L.helleAufnahmen ? L.helleAufnahmen('papier') : []).map(w => w.src);
     if (!real.length) { cv.remove(); return; }
     const N = Math.min(coarse ? 7 : 12, real.length * 3);
     const rnd = rng(7);
     const sheets = [];
     const loader = new T.TextureLoader();
+    /* Zwölf Blätter, fünf Bilder: Ohne diesen Zwischenspeicher lädt und lädt der Browser
+       dasselbe Bild mehrfach und legt für jedes eine eigene Textur auf der Grafikkarte an. */
+    const texturen = new Map();
+    function texHolen(url, fertig, schief) {
+      const da = texturen.get(url);
+      if (da) { da.then(fertig, schief); return; }
+      const p = new Promise((ok, nein) => loader.load(url, tex => {
+        tex.colorSpace = T.SRGBColorSpace; ok(tex);
+      }, undefined, nein));
+      texturen.set(url, p);
+      p.catch(() => texturen.delete(url));
+      p.then(fertig, schief);
+    }
     for (let i = 0; i < N; i++) {
       const mat = new T.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
       const m = new T.Mesh(new T.PlaneGeometry(2.2, 2.75), mat);
       const side = rnd() < 0.5 ? -1 : 1;
-      m.userData = { docP: (i + 0.3 + rnd() * 0.4) / N, xr: side * (0.4 + rnd() * 0.7), z: -2 - rnd() * 16, seed: 300 + i * 13, red: rnd() < 0.35, rz: (rnd() - 0.5) * 0.5, sp: 0.15 + rnd() * 0.2, ph: rnd() * 6.28, base: 0.26 + rnd() * 0.22, real: real[i % real.length], by: 0 };
+      m.userData = { docP: (i + 0.3 + rnd() * 0.4) / N, xr: side * (0.4 + rnd() * 0.7), z: -2 - rnd() * 16, rz: (rnd() - 0.5) * 0.5, sp: 0.15 + rnd() * 0.2, ph: rnd() * 6.28, base: 0.26 + rnd() * 0.22, by: 0 };
       m.position.z = m.userData.z; m.rotation.z = m.userData.rz;
-      {
-        loader.load(m.userData.real, tex => {
-          tex.colorSpace = T.SRGBColorSpace;
-          const asp = tex.image && tex.image.height ? tex.image.width / tex.image.height : 0.8;
-          const w = asp >= 1 ? Math.min(4.6, 2.6 * asp) : 2.2;
-          m.geometry.dispose(); m.geometry = new T.PlaneGeometry(w, w / asp);
-          if (m.material.map) m.material.map.dispose();
-          m.material.map = tex; m.material.needsUpdate = true;
-        }, undefined, () => { m.visible = false; });
-      }
+      texHolen(real[i % real.length], tex => {
+        const asp = tex.image && tex.image.height ? tex.image.width / tex.image.height : 0.8;
+        const w = asp >= 1 ? Math.min(4.6, 2.6 * asp) : 2.2;
+        m.geometry.dispose(); m.geometry = new T.PlaneGeometry(w, w / asp);
+        m.material.map = tex; m.material.needsUpdate = true;
+      }, () => { m.visible = false; });
       scene.add(m); sheets.push(m);
     }
     /* Rote Spur: treibende Punkte */

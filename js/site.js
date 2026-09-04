@@ -46,8 +46,8 @@
   const isReal = w => !!w.src;
   /* Tuscheblätter kommen mit multiply auf die Seite: Das Papier verschwindet, stehen
      bleibt nur die Zeichnung. Ein Foto mit dunklem Grund darf das nicht, sonst säuft
-     die ganze Fläche ab. Die zwölf Köpfe liegen auf schwarzem Holz und sind so ein Fall. */
-  const bildKlasse = w => (w.tr === 'papier' && w.grund !== 'foto' ? 'ink-img' : 'photo-img');
+     die ganze Fläche ab. Wann was gilt, steht in js/works.js. */
+  const bildKlasse = w => (L.istTuschblatt(w) ? 'ink-img' : 'photo-img');
   const ratio = w => `${w.w} / ${w.h}`;
   const meta = w => (w.tr === 'haut' ? `Nr. ${w.nr} — Haut, ${w.ort}, ${w.jahr}` : `Nr. ${w.nr} — ${w.technik}, ${w.jahr}`);
   const altText = w => (w.tr === 'haut' ? `${w.t}, Blackwork auf ${w.ort}, ${w.jahr}.` : `${w.t}, ${w.technik}, ${w.jahr}.`) + ' Werkansicht öffnen.';
@@ -94,28 +94,27 @@
     const da = new Set(W.filter(w => w.tr === S.traeger).map(w => w[feld]));
     return (liste || []).filter(v => da.has(v));
   }
+  /* Welche Filter es je Träger gibt. Ein dritter Träger wäre eine Zeile mehr, kein
+     dritter Zweig. */
+  const FILTERGRUPPEN = {
+    haut: [['Alle Stellen', 'orte', 'ortKey', 'fOrt'], ['Alle Motive', 'motive', 'motiv', 'fMotiv']],
+    papier: [['Alle Serien', 'serien', 'serie', 'fSerie'], ['Alle Jahre', 'jahre', 'jahr', 'fJahr']]
+  };
   function renderChips() {
     const chip = (label, active, f, v) => `<button type="button" class="chip" data-f="${f}" data-v="${esc(v == null ? '' : v)}" aria-pressed="${active}">${esc(label)}</button>`;
-    const gruppe = (alleLabel, werte, f, aktiv) => werte.length < 2 ? ''
-      : chip(alleLabel, !aktiv, f, '') + werte.map(o => chip(String(o), aktiv === o, f, o)).join('');
-    let html = '';
-    if (S.traeger === 'haut') {
-      const a = gruppe('Alle Stellen', vorhanden(FILTER.orte, 'ortKey'), 'fOrt', S.fOrt);
-      const b = gruppe('Alle Motive', vorhanden(FILTER.motive, 'motiv'), 'fMotiv', S.fMotiv);
-      html = a + (a && b ? '<span class="chip-gap"></span>' : '') + b;
-    } else if (S.traeger === 'papier') {
-      const a = gruppe('Alle Serien', vorhanden(FILTER.serien, 'serie'), 'fSerie', S.fSerie);
-      const b = gruppe('Alle Jahre', vorhanden(FILTER.jahre, 'jahr'), 'fJahr', S.fJahr);
-      html = a + (a && b ? '<span class="chip-gap"></span>' : '') + b;
-    }
-    const el = $('#werke-filter'); el.innerHTML = html; el.hidden = !html;
+    const teile = (FILTERGRUPPEN[S.traeger] || []).map(([label, liste, feld, f]) => {
+      const werte = vorhanden(FILTER[liste], feld);
+      return werte.length < 2 ? ''
+        : chip(label, !S[f], f, '') + werte.map(o => chip(String(o), S[f] === o, f, o)).join('');
+    }).filter(Boolean);
+    const el = $('#werke-filter');
+    el.innerHTML = teile.join('<span class="chip-gap"></span>');
+    el.hidden = !teile.length;
   }
   function renderGrid() {
     const list = filtered();
-    const vs = CFG.werkeVorspann || {};
-    const satz = einTraeger ? (vs.nurPapier || '') : (vs.beides || '');
     const lead = $('#werke-lead-text');
-    if (lead && satz) lead.textContent = satz;
+    if (lead && einTraeger && CFG.werkeVorspannEinTraeger) lead.textContent = CFG.werkeVorspannEinTraeger;
     $('#werke-count').textContent = list.length === 1 ? 'Ein Werk.' : list.length + ' Werke.';
     const gl = $('#g-list'); gl.dataset.layout = S.layout;
     const wall = gl.closest('.g-wall');
@@ -193,7 +192,7 @@
       };
     } else apply();
   }
-  $('#tr-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b && !einTraeger) setTraeger(b.dataset.tr); });
+  $('#tr-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) setTraeger(b.dataset.tr); });
   $('#werke-filter').addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const f = b.dataset.f, v = b.dataset.v;
@@ -233,7 +232,7 @@
     /* Die Bildfläche hat eine feste Höhe und zeigt das Blatt vollständig. Ein gerechnetes
        Seitenverhältnis brauchte für jedes Format eine Ausnahme und ergab auf dem Telefon
        entweder einen Streifen oder eine Fläche, die nicht mehr aufs Bild passte. */
-    const bild = `<img class="${istGrafik(ow) ? 'photo-img' : bildKlasse(ow)}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`;
+    const bild = `<img class="${bildKlasse(ow)}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`;
     const zaehler = liste.length > 1 ? `<span class="ov-zaehler">${stelle + 1} von ${liste.length}</span>` : '';
     root.innerHTML = `<div id="ov" role="dialog" aria-modal="true" aria-label="${esc(ow.t)}"><div id="ov-bg"></div><div class="ov-card"><figure id="ov-fig" class="ov-fig">${bild}</figure><div class="ov-info"><h3 class="hd">${esc(ow.t)}</h3><div class="ov-rows">${rows.map(x => `<div class="ov-row"><div class="mut">${esc(x.k)}</div><div>${esc(x.v)}</div></div>`).join('')}</div><div class="ov-actions">${zaehler}<button type="button" id="ov-prev" class="btn">Zurück</button><button type="button" id="ov-next" class="btn">Weiter</button><button type="button" id="ov-close" class="btn primary" style="padding:10px 20px;font-size:16px;">Schließen</button></div></div></div></div>`;
     wischen($('#ov'));
@@ -290,12 +289,23 @@
     else if (e.target.closest('#ov-next')) ovStep(1);
   });
 
+  /* Ein Abschnitt, hinter dem nichts steht, verschwindet — samt seinem Eintrag oben.
+     Eine Stelle für alle, damit der nächste nicht wieder vergessen wird; beim Abschnitt
+     Grafik war er es schon. */
+  function abschnittZeigen(id, da) {
+    const sec = document.getElementById(id);
+    if (sec) sec.hidden = !da;
+    const nav = document.querySelector('.top a[href="#' + id + '"], .top [data-nav="' + id + '"]');
+    if (nav) nav.hidden = !da;
+  }
+
   /* ---------- Grafik ---------- */
   /* Plakate, Cover und Signets. Sie behalten ihren dunklen Grund: multiply würde aus einem
      schwarzen Plakat ein Loch in der Seite machen. Jede Karte trägt ihr eigenes Format,
      ein Plakat wird also nicht auf quadratisch gestutzt. */
   function renderGrafik() {
-    const el = $('#grafik-list'); if (!el || !GRAFIK.length) return;
+    const el = $('#grafik-list'); if (!el) return;
+    abschnittZeigen('grafik', GRAFIK.length > 0);
     el.innerHTML = GRAFIK.map(g => {
       const zeile = [g.art, g.fuer, g.jahr].filter(Boolean).join(', ');
       const alt = `${g.t}, ${g.art}${g.fuer ? ' ' + g.fuer : ''}, ${g.jahr}. Größer ansehen.`;
@@ -315,18 +325,10 @@
   function renderFlash() {
     const el = $('#flash-list'); if (!el) return;
     /* Ohne Blätter kein Abschnitt. Erfundene Blätter wären das Gegenteil dessen, wofür
-       die Seite da ist. */
-    const abschnitt = document.getElementById('flash');
-    const navLink = document.querySelector('.top a[href="#flash"]');
-    if (!FLASH.length) {
-      if (abschnitt) abschnitt.hidden = true;
-      if (navLink) navLink.hidden = true;
-      el.innerHTML = '';
-      return;
-    }
-    if (abschnitt) abschnitt.hidden = false;
-    if (navLink) navLink.hidden = false;
-    el.innerHTML = FLASH.filter(f => f.src).map(f => {
+       die Seite da ist. Ein Eintrag ohne Aufnahme zählt dabei nicht als Blatt. */
+    const blaetter = FLASH.filter(f => f.src);
+    abschnittZeigen('flash', blaetter.length > 0);
+    el.innerHTML = blaetter.map(f => {
       const bild = `<img class="ink-img" src="${esc(f.src)}" alt="" loading="lazy" decoding="async">`;
       const vergeben = f.status === 'vergeben';
       return `<div class="sheet rv${vergeben ? ' vergeben' : ''}"><div class="sheet-head"><span class="sheet-n">Blatt ${f.n}</span><span class="sheet-f">${esc(f.format)}</span></div><div class="sheet-ph">${bild}</div><div class="sheet-m">${esc(f.motiv)}</div><div class="sheet-row"><span class="mut">${esc(f.preis || 'auf Anfrage')}</span><span class="sheet-status">${esc(f.status)}</span></div></div>`;
@@ -391,9 +393,9 @@
 
   /* ---------- Aktuell: Streifen nach Ausstellungsende ausblenden ---------- */
   (function aktuell() {
-    const s = $('#aktuell'); if (!s || !CFG.ausstellung || !CFG.ausstellung.bis) return;
+    if (!$('#aktuell') || !CFG.ausstellung || !CFG.ausstellung.bis) return;
     const ende = new Date(CFG.ausstellung.bis + 'T23:59:59');
-    if (!isNaN(ende.getTime()) && Date.now() > ende.getTime()) { s.hidden = true; const n = $('[data-nav="aktuell"]'); if (n) n.hidden = true; }
+    if (!isNaN(ende.getTime())) abschnittZeigen('aktuell', Date.now() <= ende.getTime());
   })();
 
   /* ---------- Thema / Bedienfeld ---------- */
@@ -475,8 +477,8 @@
   });
   document.addEventListener('sequenz-select', e => {
     const k = e.detail && e.detail.key;
-    const target = k === 'flash' && FLASH.length ? 'flash' : 'werke';
-    if (!einTraeger && (k === 'haut' || k === 'papier')) setTraeger(k, true);
+    const target = k === 'flash' ? 'flash' : 'werke';
+    if (k === 'haut' || k === 'papier') setTraeger(k, true);
     const el = document.getElementById(target);
     if (!el) return;
     const top = el.getBoundingClientRect().top + scrollY - 56;

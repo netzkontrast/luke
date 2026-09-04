@@ -57,9 +57,10 @@ body {
 }
 .sp-ebene {
   position: absolute; inset: 0;
-  background-image: url('../assets/img/zeichnung-sprite.webp');
-  /* 8 Spalten, 6 Zeilen: die Fläche ist achtmal so breit und sechsmal so hoch wie ein Feld. */
-  background-size: 800% 600%;
+  /* Bild und Raster setzt js/skizze.js aus LUKE.GESTALTUNG; die Werte hier sind nur der
+     Rückfall, falls works.js fehlt. */
+  background-image: var(--sprite, url('../assets/img/zeichnung-sprite.webp'));
+  background-size: var(--sprite-raster, 800% 600%);
   background-repeat: no-repeat;
   transform-origin: 50% 50%;
   will-change: transform;

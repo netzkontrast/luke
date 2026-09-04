@@ -21,13 +21,10 @@ LUKE.CONFIG = {
   /* Der Streifen „Aktuell“ wird nach diesem Datum automatisch ausgeblendet (einschließlich). */
   ausstellung: { bis: '2026-09-27' },
 
-  /* Vorspann der Galerie. Solange es nur Arbeiten auf Papier gibt, wäre der Satz über den
-     wechselnden Grund eine Behauptung ohne Beleg; sobald Hautfotos dazukommen, greift
-     wieder der erste. */
-  werkeVorspann: {
-    beides: 'Dieselbe Hand, dieselbe Linie — nur der Grund wechselt.',
-    nurPapier: 'Arbeiten auf Papier. Tusche und Farbe, jedes Blatt ein Original.'
-  }
+  /* Vorspann der Galerie, wenn es nur einen Träger gibt: Der Satz über den wechselnden
+     Grund wäre dann eine Behauptung ohne Beleg. Der Normalfall steht im Markup und muss
+     hier nicht doppelt stehen. */
+  werkeVorspannEinTraeger: 'Arbeiten auf Papier. Tusche und Farbe, jedes Blatt ein Original.'
 };
 
 /* Filterlisten in Anzeigereihenfolge. */
@@ -84,6 +81,16 @@ LUKE.WERKE = [
     srcset: 'assets/img/werk-6-koepfe-480.jpg 480w, assets/img/werk-6-koepfe-800.jpg 800w, assets/img/werk-6-koepfe-1600.jpg 1600w',
     w: 1600, h: 1790 }
 ];
+
+/* Wer Blätter zeigt, fragt hier — und schreibt die Regel nicht noch einmal auf.
+
+   Eine Aufnahme darf nur dann mit multiply auf den Papiergrund und nur dann durch die
+   Bewegungen fliegen, wenn ihr Grund hell ist. Ein Foto auf schwarzem Holz (`grund: 'foto'`)
+   wäre dort ein schwarzes Rechteck. Diese Regel stand zwischenzeitlich in vier Modulen,
+   und die vierte Fassung hatte den Träger schon vergessen. */
+LUKE.istTuschblatt = w => !!w && w.tr === 'papier' && w.grund !== 'foto';
+LUKE.helleAufnahmen = tr =>
+  (LUKE.WERKE || []).filter(w => w.src && w.grund !== 'foto' && (!tr || w.tr === tr));
 
 /* Gestaltung. Drei Blätter, die die Seite tragen, ohne im Verzeichnis zu stehen:
    Sie sind das Material der Bewegung, nicht der Gegenstand der Ausstellung.

@@ -11,10 +11,13 @@
      Seite nicht zu sehen sind. Sobald Fotos dazukommen, ist das Kapitel von selbst
      wieder da. */
   const ALLE_CH = [
-    { key: 'haut', t: 'Haut', sub: 'Blackwork auf Arm, Rücken, Brust — seit 2012.', red: [0] },
-    { key: 'papier', t: 'Papier', sub: 'Tusche, Originale — zuletzt „Befreiung der Körperlichkeit“.', red: [0, 3] },
-    { key: 'flash', t: 'Flash', sub: 'Fertige Blätter, jedes wird genau einmal gestochen.', red: [] }
+    { key: 'haut', t: 'Haut', sub: 'Blackwork auf Arm, Rücken, Brust — seit 2012.' },
+    { key: 'papier', t: 'Papier', sub: 'Tusche, Originale — zuletzt „Befreiung der Körperlichkeit“.' },
+    { key: 'flash', t: 'Flash', sub: 'Fertige Blätter, jedes wird genau einmal gestochen.' }
   ];
+  /* Abstand der Kapitel in der Tiefe. Steht an zwei Stellen dieselbe Zahl, wandert die
+     Kamera irgendwann an der letzten Gruppe vorbei, ohne dass es jemand merkt. */
+  const ABSTAND = 18;
   const DIR = {
     a: { rot: 1, sway: 0.12, lerp: 0.09, cam: 1, wob: 0.004, fog: [12, 26], h: '260svh' },
     b: { rot: 0.35, sway: 0.05, lerp: 0.05, cam: 0.4, wob: 0.002, fog: [7, 19], h: '300svh' },
@@ -26,14 +29,11 @@
   function realImages(key) {
     const L = window.LUKE || {};
     if (key === 'flash') return (L.FLASH || []).filter(f => f.src).map(f => f.src);
-    /* Aufnahmen mit dunklem Grund bleiben draußen: In der Sequenz liegen Blätter auf
-       hellem Grund, ein schwarzes Rechteck wäre dort ein Fremdkörper. */
-    return (L.WERKE || []).filter(w => w.tr === key && w.src && w.grund !== 'foto').map(w => w.src);
+    return (L.helleAufnahmen ? L.helleAufnahmen(key) : []).map(w => w.src);
   }
   const CH = ALLE_CH.filter(ch => realImages(ch.key).length);
-  /* Die Kamera fährt an jeder Gruppe vorbei und ein Stück darüber hinaus. Bei drei
-     Kapiteln sind das die 52 Einheiten, mit denen die Sequenz gebaut wurde. */
-  const REISE = 18 * Math.max(0, CH.length - 1) + 16;
+  /* Die Kamera fährt an jeder Gruppe vorbei und ein Stück darüber hinaus. */
+  const REISE = ABSTAND * Math.max(0, CH.length - 1) + 16;
   class WerkSequenz extends HTMLElement {
     static get observedAttributes() { return ['richtung', 'bewegung']; }
     connectedCallback() {
@@ -82,10 +82,10 @@
       if (this.m === 0) { this.style.height = '100svh'; return; }
       /* Weniger Kapitel, kürzere Strecke: Sonst scrollt man an leerer Tiefe vorbei. */
       const roh = parseFloat(this.P().h) || 260;
-      this.style.height = Math.max(140, Math.round(roh * CH.length / 3)) + 'svh';
+      this.style.height = Math.max(140, Math.round(roh * CH.length / ALLE_CH.length)) + 'svh';
     }
     css(n) { return getComputedStyle(this).getPropertyValue(n).trim() || '#888'; }
-    theme() { return { bg: this.css('--bg'), ph: this.css('--phbg'), ink: this.css('--ink'), mut: this.css('--mut'), red: this.css('--red') }; }
+    theme() { return { bg: this.css('--bg'), red: this.css('--red') }; }
     async boot() {
       /* Kein Kapitel, keine Sequenz. Der Abschnitt verschwindet, statt leer dazustehen. */
       if (!CH.length) {
@@ -113,8 +113,19 @@
       const T = this.T; this.groups = [];
       const per = this.mobile ? 5 : 7;
       const loader = new T.TextureLoader();
+      /* Sieben Blätter, fünf Bilder: eine Textur je Bild, nicht je Blatt. */
+      const texturen = new Map();
+      const texHolen = (url, fertig, schief) => {
+        let p = texturen.get(url);
+        if (!p) {
+          p = new Promise((ok, nein) => loader.load(url, tex => { tex.colorSpace = T.SRGBColorSpace; ok(tex); }, undefined, nein));
+          texturen.set(url, p);
+          p.catch(() => texturen.delete(url));
+        }
+        p.then(fertig, schief);
+      };
       CH.forEach((ch, gi) => {
-        const g = new T.Group(); g.position.z = -18 * gi;
+        const g = new T.Group(); g.position.z = -ABSTAND * gi;
         const r = rng(1000 + gi * 77);
         const imgs = realImages(ch.key);
         for (let i = 0; i < per; i++) {
@@ -123,19 +134,13 @@
           const mesh = new T.Mesh(geo, mat);
           const col = i % 3;
           mesh.position.set((col - 1) * (this.mobile ? 2.2 : 3.1) + (r() - 0.5) * 1.4, (r() - 0.5) * 4.2, (r() - 0.5) * 7);
-          mesh.userData = { seed: gi * 31 + i * 7 + 5, red: ch.red.includes(i), ph: r() * 6.28, sp: 0.25 + r() * 0.3, by: mesh.position.y, rz: (r() - 0.5) * 0.14, ry: (r() - 0.5) * 0.3, real: false };
-          const bild = imgs[i % imgs.length];
-          {
-            mesh.userData.real = true;
-            loader.load(bild, tex => {
-              tex.colorSpace = T.SRGBColorSpace;
-              const asp = tex.image && tex.image.height ? tex.image.width / tex.image.height : 0.8;
-              const w = asp >= 1 ? Math.min(3.6, 2.5 * asp) : 2, h = w / asp;
-              mesh.geometry.dispose(); mesh.geometry = new T.PlaneGeometry(w, h);
-              if (mesh.material.map) mesh.material.map.dispose();
-              mesh.material.map = tex; mesh.material.needsUpdate = true;
-            }, undefined, () => { mesh.userData.real = false; this.applyTheme(); });
-          }
+          mesh.userData = { ph: r() * 6.28, sp: 0.25 + r() * 0.3, by: mesh.position.y, rz: (r() - 0.5) * 0.14, ry: (r() - 0.5) * 0.3, real: true };
+          texHolen(imgs[i % imgs.length], tex => {
+            const asp = tex.image && tex.image.height ? tex.image.width / tex.image.height : 0.8;
+            const w = asp >= 1 ? Math.min(3.6, 2.5 * asp) : 2, h = w / asp;
+            mesh.geometry.dispose(); mesh.geometry = new T.PlaneGeometry(w, h);
+            mesh.material.map = tex; mesh.material.needsUpdate = true;
+          }, () => { mesh.userData.real = false; this.applyTheme(); });
           g.add(mesh);
         }
         this.scene.add(g); this.groups.push(g);

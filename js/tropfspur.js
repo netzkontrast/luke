@@ -33,8 +33,10 @@
   const SPRITZER = [0.16, 0.34, 0.52, 0.71, 0.88];
 
   let svg, pfad, tropfen, spritzer = [], laenge = 0, oben = 0, hoehe = 0, breite = 220;
-  let letzterStand = -1;
+  let letzterStand = -1, docHoehe = 0;
 
+  /* Die Seitenhöhe wird beim Ausmessen gelesen, nicht im Bildtakt: scrollHeight erzwingt
+     ein Layout, und zeichnen() lief damit auch auf Bildern, an denen es nichts zu tun gab. */
   const dokumentHoehe = () =>
     Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
 
@@ -74,8 +76,9 @@
       tr.setAttribute('fill-opacity', '0.8');
       g.appendChild(tr);
       svg.appendChild(g);
-      return { g, tr };
+      return { g, tr, bei: 0, deck: '' };
     });
+    spritzer.forEach((s, i) => { s.bei = SPRITZER[i]; });
 
     tropfen = document.createElementNS(NS, 'path');
     tropfen.setAttribute('fill', 'var(--red)');
@@ -93,7 +96,7 @@
 
   function messen() {
     const figur = document.querySelector('.hero-fig');
-    const doc = dokumentHoehe();
+    const doc = docHoehe = dokumentHoehe();
     if (!figur) return false;
     const r = figur.getBoundingClientRect();
     if (!r.width || !r.height) return false;
@@ -120,15 +123,14 @@
       const p = pfad.getPointAtLength(laenge * SPRITZER[i]);
       const gross = 2.4 + (i % 3) * 0.8;
       s.tr.setAttribute('d', tropfenForm(p.x + (i % 2 ? 3 : -3), p.y, gross));
-      s.g.dataset.bei = String(SPRITZER[i]);
     });
     letzterStand = -1;
     return true;
   }
 
   function zeichnen() {
-    if (!laenge) return;
-    const max = dokumentHoehe() - innerHeight;
+    if (!laenge || !docHoehe) return;
+    const max = docHoehe - innerHeight;
     const roh = max > 0 ? (window.scrollY - oben * 0.35) / (max - oben * 0.35 + 1) : 0;
     const stand = Math.max(0, Math.min(1, roh));
     if (Math.abs(stand - letzterStand) < 0.0008) return;
@@ -142,9 +144,10 @@
     tropfen.setAttribute('opacity', stand > 0.004 ? '1' : '0');
 
     spritzer.forEach((s) => {
-      const bei = Number(s.g.dataset.bei);
-      /* Ein Spritzer wird sichtbar, sobald die Spur an ihm vorbei ist, und bleibt stehen. */
-      s.g.setAttribute('opacity', stand > bei ? String(Math.min(1, (stand - bei) * 14) * 0.85) : '0');
+      /* Ein Spritzer wird sichtbar, sobald die Spur an ihm vorbei ist, und bleibt stehen.
+         Geschrieben wird nur, wenn sich der Wert wirklich ändert. */
+      const deck = stand > s.bei ? String(Math.min(1, (stand - s.bei) * 14) * 0.85) : '0';
+      if (deck !== s.deck) { s.deck = deck; s.g.setAttribute('opacity', deck); }
     });
   }
 

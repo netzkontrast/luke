@@ -21,7 +21,8 @@
      6 Zeilen, je 160 × 260. Klein gerechnet, damit die Parallaxe sofort steht: Das Bündel
      wiegt 283 kB statt der 1,8 MB des Videos, und ein Sprite lässt sich bildgenau
      ansteuern — ein Video nicht, das muss man spulen und hoffen. */
-  const SP = { spalten: 8, zeilen: 6, bilder: 48 };
+  const SP = (L.GESTALTUNG && L.GESTALTUNG.profil && L.GESTALTUNG.profil.sprite)
+    || { src: 'assets/img/zeichnung-sprite.webp', spalten: 8, zeilen: 6, bilder: 48 };
 
   function bildSetzen(el, nr) {
     const n = klemm(Math.round(nr), 0, SP.bilder - 1);
@@ -45,22 +46,25 @@
 
   function spriteBauen() {
     const halter = document.getElementById('sprite-buehne');
-    if (!halter) return null;
-    const teile = EBENEN.map(e => {
+    if (!halter) return [];
+    /* Bild und Raster stehen in works.js, nicht noch einmal im Stil. Der Pfad wird vorher
+       aufgelöst: Ein relativer url() in einer Custom Property zieht seinen Bezugspunkt aus
+       dem Stylesheet, in dem das var() steht — also aus css/, wo der Pfad ins Leere geht. */
+    halter.style.setProperty('--sprite', 'url("' + new URL(SP.src, document.baseURI).href + '")');
+    halter.style.setProperty('--sprite-raster', (SP.spalten * 100) + '% ' + (SP.zeilen * 100) + '%');
+    return EBENEN.map(e => {
       const el = document.createElement('div');
       el.className = 'sp-ebene';
       el.style.opacity = String(e.deck);
-      el.style.setProperty('--gross', String(e.gross));
       halter.appendChild(el);
       return { el, e };
     });
-    return teile;
   }
 
   const spriteTeile = spriteBauen();
 
   function spriteFuehren() {
-    if (!spriteTeile) return;
+    if (!spriteTeile.length) return;
     /* Die Zeichnung entsteht über die ersten zwei Drittel der Seite und bleibt dann
        stehen. Wer schnell scrollt, zeichnet schnell — das ist der ganze Reiz daran,
        dass es ein Sprite ist und kein Video. */
@@ -68,12 +72,12 @@
     for (const t of spriteTeile) {
       const { el, e } = t;
       bildSetzen(el, lauf * (SP.bilder - 1) + e.versatz * lauf);
-      if (z.ruhig) { el.style.transform = 'translate3d(0,0,0) scale(var(--gross))'; continue; }
+      if (z.ruhig) { el.style.transform = 'scale(' + e.gross + ')'; continue; }
       const x = e.x + z.zeiger.x * 110 * e.tiefe;
       const y = e.y + z.zeiger.y * 70 * e.tiefe - z.p * 130 * e.tiefe;
       const dreh = (z.v * 0.05 * e.tiefe).toFixed(3);
       el.style.transform =
-        'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) rotate(' + dreh + 'deg) scale(var(--gross))';
+        'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) rotate(' + dreh + 'deg) scale(' + e.gross + ')';
     }
   }
 
@@ -93,7 +97,7 @@
   function flugBauen() {
     const halter = document.getElementById('flug-buehne');
     if (!halter) return [];
-    const werke = (L.WERKE || []).filter(w => w.src && w.grund !== 'foto');
+    const werke = L.helleAufnahmen ? L.helleAufnahmen('papier') : [];
     if (!werke.length) return [];
     return BAHNEN.map((b, i) => {
       const w = werke[i % werke.length];
@@ -162,9 +166,21 @@
   const cv = document.getElementById('weinen');
   const ctx = cv ? cv.getContext('2d') : null;
   let dpr = 1, quelle = { x: 0, y: 0 }, docHoehe = 0;
+  /* Die beiden Rot der Seite stehen in css/skizze.css. Sie hier noch einmal als Zahlen
+     hinzuschreiben hieße, sie beim nächsten Farbwechsel zu vergessen. */
+  let ROT = '209,35,42', ROT2 = '126,20,26';
+  function rgbLesen(name, rueck) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const m = /^#([0-9a-f]{6})$/i.exec(v);
+    if (!m) return rueck;
+    const n = parseInt(m[1], 16);
+    return ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255);
+  }
 
   function weinenMessen() {
     if (!cv) return;
+    ROT = rgbLesen('--red', ROT);
+    ROT2 = rgbLesen('--red2', ROT2);
     dpr = Math.min(2, window.devicePixelRatio || 1);
     cv.width = Math.round(z.fenster.b * dpr);
     cv.height = Math.round(z.fenster.h * dpr);
@@ -184,7 +200,7 @@
     /* Auf schmalen Geräten steht die Zeichnung mittig, und die Tränen liefen mitten durch
        den Text. Sie rücken deshalb an den rechten Rand: Der Text ist die Hauptsache. */
     if (z.fenster.b < 760) quelle.x = Math.max(quelle.x, z.fenster.b * 0.84);
-    docHoehe = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    docHoehe = z.dokument;
   }
 
   /* Seitliches Wandern einer Träne an der Stelle y. An die Strecke gebunden, nicht an die
@@ -206,27 +222,35 @@
 
   /* Eine Träne als Fläche, nicht als Strich: linke Kante hinunter, rechte Kante hinauf.
      Nur so bekommt sie eine Breite, die sich ändert. */
+  /* Nur der Streifen, der gerade im Fenster steht. Vorher lief die Schleife über die ganze
+     Spur — bei einer Seite von zehntausend Pixeln also 260 Schritte, von denen der Browser
+     neun Zehntel wieder wegschnitt. Die Form ist ein senkrechtes Band; wer den Bereich in y
+     beschneidet, bekommt Pixel für Pixel dasselbe Bild. */
   function strang(s, laenge, blut) {
     const x0 = quelle.x + s.x * z.fenster.b;
-    const schritte = Math.max(10, Math.min(260, Math.round(laenge / 18)));
-    const links = [], rechts = [];
-    for (let i = 0; i <= schritte; i++) {
-      const f = i / schritte;
-      const y = quelle.y + laenge * f;
-      const x = x0 + ab(s, y);
-      const hw = halb(s, f, y, blut);
-      links.push([x - hw, y]);
-      rechts.push([x + hw, y]);
-    }
+    const vonY = Math.max(quelle.y, z.y - 80);
+    const bisY = Math.min(quelle.y + laenge, z.y + z.fenster.h + 80);
+    if (bisY <= vonY) return;
+    const schritte = Math.max(4, Math.min(260, Math.round((bisY - vonY) / 18)));
+    /* Erst die linke Kante hinunter, dann die rechte hinauf. Ohne Zwischenspeicher:
+       zwei Durchläufe kosten weniger als tausend kurzlebige Punktpaare je Bild. */
     ctx.beginPath();
-    ctx.moveTo(links[0][0], links[0][1]);
-    for (let i = 1; i < links.length; i++) ctx.lineTo(links[i][0], links[i][1]);
-    for (let i = rechts.length - 1; i >= 0; i--) ctx.lineTo(rechts[i][0], rechts[i][1]);
+    for (let i = 0; i <= schritte; i++) {
+      const y = vonY + (bisY - vonY) * (i / schritte);
+      const hw = halb(s, (y - quelle.y) / laenge, y, blut);
+      const x = x0 + ab(s, y) - hw;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    for (let i = schritte; i >= 0; i--) {
+      const y = vonY + (bisY - vonY) * (i / schritte);
+      ctx.lineTo(x0 + ab(s, y) + halb(s, (y - quelle.y) / laenge, y, blut), y);
+    }
     ctx.closePath();
     ctx.fill();
 
     /* Der Tropfen am unteren Ende. Er wächst mit dem Tempo: als hinge er und fiele gleich. */
     const ey = quelle.y + laenge;
+    if (ey < z.y - 40 || ey > z.y + z.fenster.h + 40) return;
     const ex = x0 + ab(s, ey);
     const r = (s.breite * 0.42 + z.zug * 3.4) * misch(0.75, 1.4, blut);
     ctx.beginPath();
@@ -234,7 +258,6 @@
     ctx.bezierCurveTo(ex + r, ey - r, ex + r, ey + r * 0.2, ex, ey + r);
     ctx.bezierCurveTo(ex - r, ey + r * 0.2, ex - r, ey - r, ex, ey - r * 2.3);
     ctx.fill();
-    return { x: ex, y: ey, r };
   }
 
   /* Spritzer bleiben liegen, wo eine Träne einmal war. Sie sind der Grund, warum die
@@ -274,12 +297,12 @@
       if (unten < z.y - 80 || oben > z.y + z.fenster.h + 80) continue;
 
       const deck = klemm(0.30 + blut * 0.55, 0, 0.9) * (i === 0 ? 1 : 0.72);
-      ctx.fillStyle = 'rgba(209,35,42,' + deck.toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(' + ROT + ',' + deck.toFixed(3) + ')';
       strang(s, laenge, blut);
 
       /* Spritzer nur für den Hauptstrang, sonst wird es Konfetti. */
       if (i === 0) {
-        ctx.fillStyle = 'rgba(126,20,26,' + (deck * 0.62).toFixed(3) + ')';
+        ctx.fillStyle = 'rgba(' + ROT2 + ',' + (deck * 0.62).toFixed(3) + ')';
         const x0 = quelle.x + s.x * z.fenster.b;
         for (const sp of SPRITZER) {
           if (roh <= sp.bei) continue;
@@ -294,19 +317,17 @@
   }
 
   /* ---------------------------------------------------------------------- Lauf */
-  let messenGeplant = true;
-  const neuMessen = () => { messenGeplant = true; };
-  addEventListener('resize', neuMessen);
-  addEventListener('load', neuMessen);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(neuMessen);
-
+  /* Der Weltzustand misst ohnehin schon aus und zählt dabei hoch. Ein eigener Satz
+     Zuhörer für resize, load und die Schriften wäre dieselbe Arbeit ein zweites Mal — und
+     die beiden Messungen fielen in verschiedene Bilder. */
+  let letzteMessung = -1, letzterSchlag = '';
   welt.an(function () {
-    if (messenGeplant) { messenGeplant = false; weinenMessen(); letzteLage = -1; }
-    spriteFuehren();
-    flugFuehren();
+    if (z.messung !== letzteMessung) { letzteMessung = z.messung; weinenMessen(); letzteLage = -1; }
+    /* Blätter und Sprite hängen an Fortschritt, Zeiger und Tempo. Ändert sich davon
+       nichts, gibt es auch nichts zu schreiben. */
+    const schlag = Math.round(z.y) + '|' + Math.round(z.zeiger.x * 400)
+      + '|' + Math.round(z.zeiger.y * 400) + '|' + Math.round(z.v * 4);
+    if (schlag !== letzterSchlag) { letzterSchlag = schlag; spriteFuehren(); flugFuehren(); }
     weinenZeichnen();
   });
-
-  /* Für die Konsole und für die Anzeige im Kopf der Skizze. */
-  L.skizze = { spriteTeile, flugTeile, weinenMessen };
 })();
