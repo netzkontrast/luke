@@ -20,8 +20,8 @@ auf demselben Papier. Deshalb wird jedes Werkbild und jedes Zeichenvideo mit
 `mixBlendMode: "multiply"` auf den Papiergrund gelegt:
 
 ```tsx
-<Img src={staticFile("img/werk-1-profil-1200.jpg")} style={{ mixBlendMode: "multiply" }} />
-<OffthreadVideo src={staticFile("video/werk-1-profil-zeichnung.mp4")} style={{ mixBlendMode: "multiply" }} />
+<Img src={staticFile("img/gestaltung-profil-1200.jpg")} style={{ mixBlendMode: "multiply" }} />
+<OffthreadVideo src={staticFile("video/gestaltung-profil-zeichnung.mp4")} style={{ mixBlendMode: "multiply" }} />
 ```
 
 Das Weiß des Papiers verschwindet, nur Tusche und Rot bleiben stehen. Ohne multiply
@@ -91,34 +91,37 @@ wenn Luke Ton ausdrücklich will.
 
 Kopiere sie nach `video/public/`, referenziere mit `staticFile()`:
 
-**Zeichnungen** (Tusche auf Papier, für multiply)
-- `assets/img/werk-1-profil-1900.jpg` — 1900×3085, Profil mit rotem Strang. Werk I.
-  Kleinere Fassungen `-1200`, `-800`.
-- `assets/img/werk-2-auge-1800.jpg` — 1800×480, Auge am Ende einer langen Linie, mit
-  Signatur. Werk II. Quer, gut für Bauchbinden und Abspann.
-- `assets/img/werk-3-strang-728.jpg` — 728×1350, Figur im Profil, schwarze Masse, Strang
-  nach oben. Werk III. Kleinere Fassung `-480`.
-- `assets/img/werk-4-beugung-822.jpg` — 822×1350, weit gebeugte Figur, viel Rot. Werk IV.
-- `assets/img/werk-5-fall-720.jpg` — 720×1350, hängende Figur mit Haar, Kopf gesenkt. Werk V.
-- `assets/img/werk-6-schlinge-808.jpg` — 808×1350, Schlinge und roter Kopf über einer
-  Waagerechten. Werk VI.
+**Gestaltung** (tragen die Seite, stehen nicht im Werkverzeichnis)
+- `assets/img/gestaltung-profil-1900.jpg` — 1900×3085, Profil mit rotem Strang.
+  Kleinere Fassungen `-1200`, `-800`. Material des Auftakts: Zeichenanimation,
+  Tiefenebenen, Sprite.
+- `assets/img/gestaltung-signatur-1800.jpg` — 1800×480, Auge am Ende einer langen Linie,
+  mit Signatur. Quer, gut für Bauchbinden und Abspann.
+- `assets/img/gestaltung-kniend-1900.jpg` — 1900×2536, kniende Figur im Profil, Kopf
+  gesenkt, dahinter ein offener Kreis. Steht im Kopf der Website. Reinweißer Grund,
+  multiply zieht ihn vollständig weg. Links ein breites leeres Drittel: Wer es
+  formatfüllend braucht, schneidet rechtsbündig.
+
+**Werke** (Tusche und Farbe auf Papier, für multiply)
+- `assets/img/werk-1-strang-728.jpg` — 728×1350, Figur im Profil, schwarze Masse, Strang
+  nach oben. Werk I. Kleinere Fassung `-480`.
+- `assets/img/werk-2-beugung-822.jpg` — 822×1350, weit gebeugte Figur, viel Rot. Werk II.
+- `assets/img/werk-3-fall-720.jpg` — 720×1350, hängende Figur mit Haar, Kopf gesenkt. Werk III.
+- `assets/img/werk-4-schlinge-808.jpg` — 808×1350, Schlinge und roter Kopf über einer
+  Waagerechten. Werk IV.
+- `assets/img/werk-5-kopf-828.jpg` — 828×1130, frontaler Kopf, breiter Pinsel, dunkles Rot.
+  Werk V. Keine Tusche, sondern Farbe; der cremefarbene Papierton ist auf Weiß gezogen.
   Diese vier sind alle Hochformat, freigestellt und auf reinem Weiß: multiply zieht das
   Papier vollständig weg, die Figur steht frei. Zusammen die Serie „Befreiung der
   Körperlichkeit“ — sie lesen als Folge, nicht als Einzelbilder.
-- `assets/img/werk-7-kniend-1900.jpg` — 1900×2536, kniende Figur im Profil, Kopf gesenkt,
-  dahinter ein offener Kreis. Werk VII, schwarze Tusche und graue Waschungen, kein Rot.
-  Das Blatt steht im Kopf der Website; im Film ist es noch nicht verwendet. Reinweißer
-  Grund, multiply zieht ihn vollständig weg. Links liegt ein breites leeres Drittel: Wer
-  es formatfüllend braucht, schneidet rechtsbündig (`objectFit: cover`, `objectPosition:
-  100% 50%`), so macht es die Seite auch.
-- `assets/img/werk-8-koepfe-1600.jpg` — 1600×1790, zwölf kleine Blätter mit Köpfen, auf
-  schwarzem Holz ausgelegt und dort fotografiert. Werk VIII. **Kein multiply**: Der Grund
+- `assets/img/werk-6-koepfe-1600.jpg` — 1600×1790, zwölf kleine Blätter mit Köpfen, auf
+  schwarzem Holz ausgelegt und dort fotografiert. Werk VI. **Kein multiply**: Der Grund
   ist dunkel, multiply macht daraus eine schwarze Fläche. Wie das Porträt behandeln.
 
 **Zeichenanimationen** (das Entstehen, bestes Material für Schnitte)
-- `assets/video/werk-1-profil-zeichnung.mp4` — 6,0 s, 432×704, Werk I baut sich auf.
+- `assets/video/gestaltung-profil-zeichnung.mp4` — 6,0 s, 432×704, das Profil baut sich auf.
   `.webm` daneben, `-alt.mp4` ist eine frühere, längere Fassung (8,6 s).
-- `assets/video/werk-2-auge-signatur.mp4` — 15,0 s, 1072×272, Auge und Signatur.
+- `assets/video/gestaltung-signatur.mp4` — 15,0 s, 1072×272, Auge und Signatur.
   Das Ende ist die Signatur — dorthin gehört der Abspann.
 
 **Porträt**
@@ -142,9 +145,9 @@ Titel im Film von dort übernehmen, nicht neu erfinden.
 - **16:9, 1920×1080** für die Schleife im Studio und für die Website.
 - 30 fps. Länge: Ankündigung 15 s, Werkschau 30–40 s, Studioschleife 60 s und nahtlos.
 
-Bei 9:16 die Zeichnungen nicht beschneiden: Werk I ist hochkant und passt, Werk II ist
-sehr breit und braucht eine eigene Einstellung, in der die Linie horizontal durchs Bild
-fährt.
+Bei 9:16 die Zeichnungen nicht beschneiden: Die Werke und das Profil sind hochkant und
+passen; das Auge mit der Signatur ist sehr breit und braucht eine eigene Einstellung, in
+der die Linie horizontal durchs Bild fährt.
 
 ## Ablauf
 

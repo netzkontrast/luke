@@ -26,8 +26,10 @@ LUKE.CONFIG = {
 LUKE.FILTER = {
   orte: ['Arm', 'Bein', 'Brust', 'Rücken', 'Hand'],
   motive: ['Botanik', 'Tier', 'Figur', 'Schrift'],
-  serien: ['Befreiung der Körperlichkeit', 'Tuschstudien'],
-  jahre: [2026, 2025, 2024]
+  serien: ['Befreiung der Körperlichkeit', 'Köpfe'],
+  /* Nur Jahre, in denen es Papierarbeiten gibt. Sonst führt ein Reiter ins Leere.
+     Kommen ältere Blätter dazu, gehören sie hier wieder hin. */
+  jahre: [2026]
 };
 
 /* Felder:
@@ -38,54 +40,84 @@ LUKE.FILTER = {
            grund: 'foto' für Aufnahmen mit dunklem Hintergrund, die nicht mit multiply
            auf die Seite gelegt werden dürfen
    Platzhalter: vbW, vbH (Seitenverhältnis), seed (Zufallsstartwert), red (roter Strang) */
+/* Nicht alles, was auf der Seite zu sehen ist, ist ein Werk. Das Profil mit dem roten
+   Strang, das Auge mit der Signatur und die kniende Figur tragen die Gestaltung: Sie stehen
+   im Kopf der Seite, im Auftaktvideo, in der Handschrift und im Sprite. Im Werkverzeichnis
+   stehen sie nicht — dort steht, was ausgestellt wird. Siehe LUKE.GESTALTUNG weiter unten. */
 LUKE.WERKE = [
-  { id: 'w1', nr: 'I', t: 'Befreiung der Körperlichkeit, Werk I', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true, vbW: 400, vbH: 500, seed: 11,
-    src: 'assets/img/werk-1-profil-1200.jpg',
-    srcset: 'assets/img/werk-1-profil-800.jpg 800w, assets/img/werk-1-profil-1200.jpg 1200w, assets/img/werk-1-profil-1900.jpg 1900w',
-    w: 1900, h: 3085,
-    video: 'assets/video/werk-1-profil-zeichnung.mp4' },
-  { id: 'w2', nr: 'II', t: 'Befreiung der Körperlichkeit, Werk II', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true, vbW: 400, vbH: 500, seed: 23,
-    src: 'assets/img/werk-2-auge-1200.jpg',
-    srcset: 'assets/img/werk-2-auge-1200.jpg 1200w, assets/img/werk-2-auge-1800.jpg 1800w',
-    w: 1800, h: 480,
-    video: 'assets/video/werk-2-auge-signatur.mp4' },
-  { id: 'w3', nr: 'III', t: 'Befreiung der Körperlichkeit, Werk III', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
-    src: 'assets/img/werk-3-strang-728.jpg',
-    srcset: 'assets/img/werk-3-strang-480.jpg 480w, assets/img/werk-3-strang-728.jpg 728w',
+  { id: 'w1', nr: 'I', t: 'Befreiung der Körperlichkeit, Werk I', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+    src: 'assets/img/werk-1-strang-728.jpg',
+    srcset: 'assets/img/werk-1-strang-480.jpg 480w, assets/img/werk-1-strang-728.jpg 728w',
     w: 728, h: 1350 },
-  { id: 'w4', nr: 'IV', t: 'Befreiung der Körperlichkeit, Werk IV', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
-    src: 'assets/img/werk-4-beugung-822.jpg',
-    srcset: 'assets/img/werk-4-beugung-480.jpg 480w, assets/img/werk-4-beugung-822.jpg 822w',
+  { id: 'w2', nr: 'II', t: 'Befreiung der Körperlichkeit, Werk II', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+    src: 'assets/img/werk-2-beugung-822.jpg',
+    srcset: 'assets/img/werk-2-beugung-480.jpg 480w, assets/img/werk-2-beugung-822.jpg 822w',
     w: 822, h: 1350 },
-  { id: 'w5', nr: 'V', t: 'Befreiung der Körperlichkeit, Werk V', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
-    src: 'assets/img/werk-5-fall-720.jpg',
-    srcset: 'assets/img/werk-5-fall-480.jpg 480w, assets/img/werk-5-fall-720.jpg 720w',
+  { id: 'w3', nr: 'III', t: 'Befreiung der Körperlichkeit, Werk III', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+    src: 'assets/img/werk-3-fall-720.jpg',
+    srcset: 'assets/img/werk-3-fall-480.jpg 480w, assets/img/werk-3-fall-720.jpg 720w',
     w: 720, h: 1350 },
-  { id: 'w6', nr: 'VI', t: 'Befreiung der Körperlichkeit, Werk VI', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
-    src: 'assets/img/werk-6-schlinge-808.jpg',
-    srcset: 'assets/img/werk-6-schlinge-480.jpg 480w, assets/img/werk-6-schlinge-808.jpg 808w',
+  { id: 'w4', nr: 'IV', t: 'Befreiung der Körperlichkeit, Werk IV', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+    src: 'assets/img/werk-4-schlinge-808.jpg',
+    srcset: 'assets/img/werk-4-schlinge-480.jpg 480w, assets/img/werk-4-schlinge-808.jpg 808w',
     w: 808, h: 1350 },
-  /* Das Blatt im Kopf der Seite. Es kam als reinweiße Datei, ohne dunklen Rand und ohne
-     Papierton, und braucht deshalb weder Zuschnitt noch Pegel. */
-  { id: 'w7', nr: 'VII', t: 'Befreiung der Körperlichkeit, Werk VII', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
-    src: 'assets/img/werk-7-kniend-1200.jpg',
-    srcset: 'assets/img/werk-7-kniend-800.jpg 800w, assets/img/werk-7-kniend-1200.jpg 1200w, assets/img/werk-7-kniend-1900.jpg 1900w',
-    w: 1900, h: 2536 },
+  /* Kein Tusche-, sondern ein Farbblatt: breiter Pinsel, dunkles Rot, cremefarbenes Papier.
+     Der Papierton ist beim Aufbereiten auf Weiß gezogen, damit multiply auch hier trägt. */
+  { id: 'w5', nr: 'V', t: 'Kopf', tr: 'papier', serie: 'Köpfe', jahr: 2026, technik: 'Farbe auf Papier', masse: 'Maße folgen',
+    src: 'assets/img/werk-5-kopf-828.jpg',
+    srcset: 'assets/img/werk-5-kopf-480.jpg 480w, assets/img/werk-5-kopf-828.jpg 828w',
+    w: 828, h: 1130 },
   /* Zwölf kleine Blätter, auf schwarzem Holz ausgelegt und dort fotografiert. Das Bild
      behält seinen dunklen Grund: `grund: 'foto'` nimmt es von der multiply-Behandlung aus
      und hält es aus der Blättersequenz heraus. */
-  { id: 'w8', nr: 'VIII', t: 'Zwölf Köpfe', tr: 'papier', serie: 'Tuschstudien', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
-    src: 'assets/img/werk-8-koepfe-800.jpg',
-    srcset: 'assets/img/werk-8-koepfe-480.jpg 480w, assets/img/werk-8-koepfe-800.jpg 800w, assets/img/werk-8-koepfe-1600.jpg 1600w',
+  { id: 'w6', nr: 'VI', t: 'Zwölf Köpfe', tr: 'papier', serie: 'Köpfe', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
+    src: 'assets/img/werk-6-koepfe-800.jpg',
+    srcset: 'assets/img/werk-6-koepfe-480.jpg 480w, assets/img/werk-6-koepfe-800.jpg 800w, assets/img/werk-6-koepfe-1600.jpg 1600w',
     w: 1600, h: 1790 },
-  { id: 'w9', nr: 'IX', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 61 },
-  { id: 'w10', nr: 'X', t: 'Zugvogel', tr: 'haut', ort: 'Schulter', ortKey: 'Arm', motiv: 'Tier', jahr: 2025, sitzungen: 1, zustand: 'frisch', vbW: 400, vbH: 500, seed: 67 },
-  { id: 'w11', nr: 'XI', t: 'Doppelprofil', tr: 'haut', ort: 'Rücken', ortKey: 'Rücken', motiv: 'Figur', jahr: 2024, sitzungen: 4, zustand: 'abgeheilt', vbW: 600, vbH: 400, seed: 71 },
-  { id: 'w12', nr: 'XII', t: 'Nachtfalter', tr: 'haut', ort: 'Brust', ortKey: 'Brust', motiv: 'Tier', jahr: 2024, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 79 },
-  { id: 'w13', nr: 'XIII', t: 'Distelzweig', tr: 'haut', ort: 'Wade', ortKey: 'Bein', motiv: 'Botanik', jahr: 2023, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 600, seed: 83 },
-  { id: 'w14', nr: 'XIV', t: 'Bannerschrift', tr: 'haut', ort: 'Handrücken', ortKey: 'Hand', motiv: 'Schrift', jahr: 2023, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 89 },
-  { id: 'w15', nr: 'XV', t: 'Schwalbenpaar', tr: 'haut', ort: 'Oberschenkel', ortKey: 'Bein', motiv: 'Tier', jahr: 2022, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 97 }
+  { id: 'w7', nr: 'VII', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 61 },
+  { id: 'w8', nr: 'VIII', t: 'Zugvogel', tr: 'haut', ort: 'Schulter', ortKey: 'Arm', motiv: 'Tier', jahr: 2025, sitzungen: 1, zustand: 'frisch', vbW: 400, vbH: 500, seed: 67 },
+  { id: 'w9', nr: 'IX', t: 'Doppelprofil', tr: 'haut', ort: 'Rücken', ortKey: 'Rücken', motiv: 'Figur', jahr: 2024, sitzungen: 4, zustand: 'abgeheilt', vbW: 600, vbH: 400, seed: 71 },
+  { id: 'w10', nr: 'X', t: 'Nachtfalter', tr: 'haut', ort: 'Brust', ortKey: 'Brust', motiv: 'Tier', jahr: 2024, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 79 },
+  { id: 'w11', nr: 'XI', t: 'Distelzweig', tr: 'haut', ort: 'Wade', ortKey: 'Bein', motiv: 'Botanik', jahr: 2023, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 600, seed: 83 },
+  { id: 'w12', nr: 'XII', t: 'Bannerschrift', tr: 'haut', ort: 'Handrücken', ortKey: 'Hand', motiv: 'Schrift', jahr: 2023, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 89 },
+  { id: 'w13', nr: 'XIII', t: 'Schwalbenpaar', tr: 'haut', ort: 'Oberschenkel', ortKey: 'Bein', motiv: 'Tier', jahr: 2022, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 97 }
 ];
+
+/* Gestaltung. Drei Blätter, die die Seite tragen, ohne im Verzeichnis zu stehen:
+   Sie sind das Material der Bewegung, nicht der Gegenstand der Ausstellung.
+
+   profil     Kopf im Profil mit rotem Strang. Läuft als Zeichenanimation im Auftakt,
+              liefert die Tiefenebenen des Live-Auftakts und die 48 Bilder des Sprites.
+   signatur   Auge am Ende einer langen Linie, mit Signatur. Quer. Trägt den Abschnitt
+              „Handschrift", scrollgeführt.
+   kniend     Kniende Figur. Das Blatt, das im Kopf der Seite steht.
+
+   Wer eines davon doch ausstellen will, verschiebt es nach LUKE.WERKE und gibt ihm eine
+   Nummer. Die Dateien heißen absichtlich nicht werk-*, damit die Rolle am Namen ablesbar
+   bleibt. */
+LUKE.GESTALTUNG = {
+  profil: {
+    t: 'Profil mit rotem Strang', technik: 'Tusche auf Papier', jahr: 2026,
+    src: 'assets/img/gestaltung-profil-1200.jpg',
+    srcset: 'assets/img/gestaltung-profil-800.jpg 800w, assets/img/gestaltung-profil-1200.jpg 1200w, assets/img/gestaltung-profil-1900.jpg 1900w',
+    w: 1900, h: 3085,
+    video: 'assets/video/gestaltung-profil-zeichnung.mp4',
+    sprite: { src: 'assets/img/zeichnung-sprite.webp', spalten: 8, zeilen: 6, bilder: 48 }
+  },
+  signatur: {
+    t: 'Auge mit Signatur', technik: 'Tusche auf Papier', jahr: 2026,
+    src: 'assets/img/gestaltung-signatur-1200.jpg',
+    srcset: 'assets/img/gestaltung-signatur-1200.jpg 1200w, assets/img/gestaltung-signatur-1800.jpg 1800w',
+    w: 1800, h: 480,
+    video: 'assets/video/gestaltung-signatur.mp4'
+  },
+  kniend: {
+    t: 'Kniende Figur', technik: 'Tusche auf Papier', jahr: 2026,
+    src: 'assets/img/gestaltung-kniend-1200.jpg',
+    srcset: 'assets/img/gestaltung-kniend-800.jpg 800w, assets/img/gestaltung-kniend-1200.jpg 1200w, assets/img/gestaltung-kniend-1900.jpg 1900w',
+    w: 1900, h: 2536
+  }
+};
 
 /* Flash-Blätter. `src` (optional) für ein echtes Foto des Blatts, sonst Platzhalter. status: 'verfügbar' | 'vergeben' */
 LUKE.FLASH = [

@@ -28,7 +28,7 @@ export const WerkEins: React.FC<{ ende: number }> = ({ ende }) => {
         }}
       >
         <BlattBild
-          datei="img/werk-1-profil-1900.jpg"
+          datei="img/gestaltung-profil-1900.jpg"
           ab={0}
           raus={ende - 0.5}
           weite={0.09}

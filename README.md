@@ -47,13 +47,21 @@ scripts/make-gifs.sh  Erzeugt GIF-Fassungen der Zeichenanimationen
 ## Bilder und Videos austauschen
 
 Werke stehen in `js/works.js` unter `LUKE.WERKE`. Ein Eintrag mit `src`, `w`, `h` zeigt ein echtes Bild,
-ohne `src` wird eine generierte Tuschzeichnung als Platzhalter angezeigt. Beispiel:
+ohne `src` wird eine generierte Tuschzeichnung als Platzhalter angezeigt.
+
+Nicht jedes Blatt auf der Seite ist ein Werk. Drei tragen die Gestaltung, ohne im Verzeichnis zu stehen:
+das Profil mit dem roten Strang (Auftaktvideo, Tiefenebenen, Sprite), das Auge mit der Signatur (Abschnitt
+„Handschrift“) und die kniende Figur (Kopf der Seite). Sie liegen unter `LUKE.GESTALTUNG` und heißen
+`assets/img/gestaltung-*`, damit die Rolle am Dateinamen ablesbar ist. Wer eines davon ausstellen will,
+verschiebt den Eintrag nach `LUKE.WERKE` und gibt ihm eine Nummer.
+
+Beispiel für einen Werkeintrag:
 
 ```js
-{ id: 'w8', nr: 'VIII', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025,
+{ id: 'w7', nr: 'VII', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025,
   sitzungen: 2, zustand: 'abgeheilt',
-  src: 'assets/img/werk-8-schwarzdorn-1200.jpg',
-  srcset: 'assets/img/werk-8-schwarzdorn-800.jpg 800w, assets/img/werk-8-schwarzdorn-1200.jpg 1200w',
+  src: 'assets/img/werk-7-schwarzdorn-1200.jpg',
+  srcset: 'assets/img/werk-7-schwarzdorn-800.jpg 800w, assets/img/werk-7-schwarzdorn-1200.jpg 1200w',
   w: 1200, h: 1500 }
 ```
 
@@ -76,7 +84,7 @@ scale=<Breite>:<Höhe>:flags=lanczos,setsar=1
 sind wichtig: Ohne sie schreibt ffmpeg eine Pixelseitenverhältnis-Korrektur in den JFIF-Kopf.
 
 Eine Aufnahme, die ihren dunklen Hintergrund behalten soll, bekommt stattdessen `grund: 'foto'`. Sie wird dann
-nicht multipliziert und bleibt aus der Blättersequenz heraus. Beispiel: Werk VII, die zwölf Köpfe auf schwarzem Holz.
+nicht multipliziert und bleibt aus der Blättersequenz heraus. Beispiel: Werk VI, die zwölf Köpfe auf schwarzem Holz.
 
 ### Grafik
 
@@ -95,18 +103,18 @@ einen Auftraggeber und einen Anlass statt Träger, Serie und Maße, und sie beha
 also nicht auf quadratisch gestutzt. Die Werkansicht ist dieselbe wie bei den Werken; geblättert wird innerhalb der
 Grafiken, nicht quer durch beides.
 
-- Auftakt: `assets/video/werk-1-profil-zeichnung.mp4` wird einmal abgespielt; stehen bleibt danach `werk-7-kniend-*.jpg`.
+- Auftakt: `assets/video/gestaltung-profil-zeichnung.mp4` wird einmal abgespielt; stehen bleibt danach `gestaltung-kniend-*.jpg`.
   Das sind zwei verschiedene Blätter, und so soll es auch gelesen werden: Eine Arbeit entsteht, eine andere steht.
   Dazwischen liegt eine knappe Leerstelle, damit der Übergang als Schnitt liest und nicht als Verwandlung.
-  `werk-1-profil-zeichnung-alt.mp4` ist die frühere, längere Fassung der Animation (August), derzeit nicht eingebunden.
+  `gestaltung-profil-zeichnung-alt.mp4` ist die frühere, längere Fassung der Animation (August), derzeit nicht eingebunden.
 - Das Blatt im Kopf hat links ein breites leeres Drittel. Standbild und Live-Auftakt schneiden es rechtsbündig weg
   (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten.
 - Vorschaubild für soziale Netzwerke: `assets/img/og-bild.jpg`, 1200 × 630, dieselbe Zeichnung auf Weiß.
 - Sprite für die Skizze: `assets/img/zeichnung-sprite.webp`, 48 Bilder der Zeichenanimation, 8 × 6 Kacheln zu
   160 × 260, 283 kB. Neu bauen mit ffmpeg:
-  `ffmpeg -i assets/video/werk-1-profil-zeichnung.mp4 -vf "fps=48/6.04,scale=160:-2" -frames:v 48 f-%03d.png`
+  `ffmpeg -i assets/video/gestaltung-profil-zeichnung.mp4 -vf "fps=48/6.04,scale=160:-2" -frames:v 48 f-%03d.png`
   und danach `ffmpeg -framerate 8 -i f-%03d.png -frames:v 48 -filter_complex "tile=8x6:color=white,format=rgb24" -c:v libwebp -quality 68 …`
-- Handschrift: `assets/video/werk-2-auge-signatur.mp4` startet beim Scrollen und bleibt auf dem letzten Bild (Signatur) stehen.
+- Handschrift: `assets/video/gestaltung-signatur.mp4` startet beim Scrollen und bleibt auf dem letzten Bild (Signatur) stehen.
 - Studio: `assets/img/luke-atelier-*.jpg`.
 
 ## Konfiguration (`js/works.js`, `LUKE.CONFIG`)

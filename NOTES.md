@@ -6,14 +6,15 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
 - [ ] **Datenschutzerklärung** prüfen und ergänzen (`datenschutz.html`): Hoster, Formularweg, Speicherdauer, Datum.
 - [ ] **Urheberschaft Werk I / Werk II** klären (Beitrag laut Instagram geteilt mit @lmklvser). Die Zuordnung der beiden
       hochgeladenen Zeichnungen (Profil mit rotem Strang = Werk I, Auge mit Signatur = Werk II) ist eine Annahme.
-- [ ] **Titel, Reihenfolge und Jahr der Werke III bis VIII** bestätigen. Die vier Blätter mit Strang laufen als
-      „Befreiung der Körperlichkeit, Werk III“ bis „Werk VI“ weiter, die kniende Figur aus dem Seitenkopf als „Werk VII“,
-      das Blatt mit den zwölf Köpfen heißt vorläufig „Zwölf Köpfe“ und liegt unter „Tuschstudien“. Alle stehen auf 2026.
-      Reihenfolge, Titel und Jahr sind gesetzt, nicht gewusst; Änderungen gehören in `js/works.js`, danach
+- [ ] **Titel, Reihenfolge und Jahr der Papierarbeiten bestätigen.** Die vier Blätter mit Strang laufen als
+      „Befreiung der Körperlichkeit, Werk I“ bis „Werk IV“, das Farbblatt als „Kopf“, das Blatt mit den zwölf Köpfen
+      als „Zwölf Köpfe“; die beiden letzten bilden die Serie „Köpfe“. Alle stehen auf 2026. Reihenfolge, Titel, Serie
+      und Jahr sind gesetzt, nicht gewusst; Änderungen gehören in `js/works.js`, danach
       `node video/scripts/werke-uebernehmen.mjs`.
-- [ ] **Werk VII: Serie und Technik prüfen.** Das Blatt hat weder Strang noch Rot und kam als reinweiße Datei, nicht als
-      Foto eines Blattes. Es steht trotzdem unter „Befreiung der Körperlichkeit“ und als „Tusche auf Papier“. Wenn es
-      eine eigene Serie ist oder digital entstanden, gehört beides geändert.
+- [ ] **Technik von „Kopf“ prüfen.** Eingetragen ist „Farbe auf Papier“, weil sich Acryl und Gouache auf dem Foto nicht
+      unterscheiden lassen. Wenn es feststeht, genauer eintragen.
+- [ ] **Auflösung von „Kopf“.** Die Vorlage kam mit 896 × 1195 Bildpunkten, nach dem Zuschnitt bleiben 828 × 1130. Das
+      reicht für die Galerie, nicht für Druck. Bei Gelegenheit eine größere Aufnahme nachreichen.
 - [ ] **Grafik: Auftraggeber und Jahre bestätigen.** Eingetragen ist, was auf den Blättern steht. Offen: der Name
       der Band zu „Requiem: Zerfall“ (das Logo ist nicht zu lesen), die Jahre von Signet und Clubnacht, und ob bei
       den Auftragsarbeiten jemand mitgenannt werden muss.
@@ -40,10 +41,15 @@ Bereits umgesetzt:
 - [x] Reduzierte Bewegung (Systemeinstellung) wird respektiert.
 - [x] Werkansicht mit Tastatur bedienbar (Escape, Pfeiltasten, Fokusfalle).
 - [x] Film zur Werkschau unter `video/`, in 16:9 und 9:16, mit denselben Werkdaten wie die Seite.
-- [x] Acht Papierarbeiten liegen als Aufnahme vor: Werk I bis VII und die zwölf Köpfe.
+- [x] Sechs Papierarbeiten im Verzeichnis: vier Blätter der Serie „Befreiung der Körperlichkeit“, „Kopf“ und
+      „Zwölf Köpfe“.
+- [x] Drei Blätter tragen die Gestaltung, ohne im Verzeichnis zu stehen: das Profil mit dem roten Strang, das
+      Auge mit der Signatur und die kniende Figur. Sie liegen unter `LUKE.GESTALTUNG` und heißen `gestaltung-*`,
+      damit die Rolle am Dateinamen ablesbar ist.
 - [x] Abschnitt Grafik mit fünf Auftragsarbeiten: Podcast-Titelbild, Plakat, zwei Signets, ein Albumcover.
-- [x] Der Seitenkopf zeigt Werk VII. Das Video zeigt weiter, wie Werk I entsteht: Das sind zwei Blätter,
-      dazwischen liegt eine knappe Leerstelle, damit es als Schnitt gelesen wird und nicht als Verwandlung.
+- [x] Der Seitenkopf zeigt die kniende Figur. Das Video zeigt weiter, wie das Profil entsteht: Das sind zwei Blätter,
+      dazwischen liegt eine knappe Leerstelle, damit es als Schnitt gelesen wird und nicht als Verwandlung. Beide sind
+      Gestaltung, keine Werke.
 
 Beim nächsten Durchgang anzusehen:
 

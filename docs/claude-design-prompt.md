@@ -22,6 +22,13 @@ Haut und auf Papier. Tusche, Schwarz und ein Rot. Die Zeichnungen sind Figuren u
 Zwang: Stränge, Schlingen, gebeugte Körper. Kein Horror, keine Effekthascherei — die
 Blätter sind ernst, und die Seite muss das aushalten, ohne es zu illustrieren.
 
+Wichtig für die Bildauswahl: Ausgestellt werden sechs Papierarbeiten — vier Blätter der
+Serie „Befreiung der Körperlichkeit“, dazu zwei Köpfe. Drei weitere Blätter tragen die
+Gestaltung, ohne im Verzeichnis zu stehen: ein Profil mit rotem Strang (Zeichenanimation,
+Tiefenebenen, Sprite), ein Auge mit Signatur (der Abschnitt zur Handschrift) und eine
+kniende Figur (der Kopf der Seite). Diese Trennung ist keine Kleinigkeit: Was ausgestellt
+wird und was die Seite trägt, sind zwei verschiedene Fragen.
+
 ### Der Weltzustand
 
 Eine Schleife liest einmal pro Bild die Seite und rechnet daraus:

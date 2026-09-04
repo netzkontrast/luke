@@ -79,7 +79,7 @@
   const isReal = w => !!w.src;
   /* Tuscheblätter kommen mit multiply auf die Seite: Das Papier verschwindet, stehen
      bleibt nur die Zeichnung. Ein Foto mit dunklem Grund darf das nicht, sonst säuft
-     die ganze Fläche ab. Werk VII liegt auf schwarzem Holz und ist so ein Fall. */
+     die ganze Fläche ab. Die zwölf Köpfe liegen auf schwarzem Holz und sind so ein Fall. */
   const bildKlasse = w => (w.tr === 'papier' && w.grund !== 'foto' ? 'ink-img' : 'photo-img');
   const ratio = w => (isReal(w) ? `${w.w} / ${w.h}` : `${w.vbW} / ${w.vbH}`);
   const meta = w => (w.tr === 'haut' ? `Nr. ${w.nr} — Haut, ${w.ort}, ${w.jahr}` : `Nr. ${w.nr} — ${w.technik}, ${w.jahr}`);

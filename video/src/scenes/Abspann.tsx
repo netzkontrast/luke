@@ -95,7 +95,7 @@ export const Abspann: React.FC<{ ende: number }> = ({ ende }) => {
         </Eintritt>
 
         <BlattBild
-          datei="img/werk-2-auge-1800.jpg"
+          datei="img/gestaltung-signatur-1800.jpg"
           ab={2.1}
           weite={0.04}
           richtung={-1}

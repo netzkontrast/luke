@@ -44,42 +44,24 @@ export const WERKE: Werk[] = [
   },
   {
     "nr": "V",
-    "titel": "Befreiung der Körperlichkeit, Werk V",
+    "titel": "Kopf",
     "traeger": "papier",
     "jahr": 2026,
-    "technik": "Tusche auf Papier",
+    "technik": "Farbe auf Papier",
     "ort": null,
-    "serie": "Befreiung der Körperlichkeit"
+    "serie": "Köpfe"
   },
   {
     "nr": "VI",
-    "titel": "Befreiung der Körperlichkeit, Werk VI",
-    "traeger": "papier",
-    "jahr": 2026,
-    "technik": "Tusche auf Papier",
-    "ort": null,
-    "serie": "Befreiung der Körperlichkeit"
-  },
-  {
-    "nr": "VII",
-    "titel": "Befreiung der Körperlichkeit, Werk VII",
-    "traeger": "papier",
-    "jahr": 2026,
-    "technik": "Tusche auf Papier",
-    "ort": null,
-    "serie": "Befreiung der Körperlichkeit"
-  },
-  {
-    "nr": "VIII",
     "titel": "Zwölf Köpfe",
     "traeger": "papier",
     "jahr": 2026,
     "technik": "Tusche auf Papier, zwölf Blätter",
     "ort": null,
-    "serie": "Tuschstudien"
+    "serie": "Köpfe"
   },
   {
-    "nr": "IX",
+    "nr": "VII",
     "titel": "Schwarzdorn",
     "traeger": "haut",
     "jahr": 2025,
@@ -88,7 +70,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "X",
+    "nr": "VIII",
     "titel": "Zugvogel",
     "traeger": "haut",
     "jahr": 2025,
@@ -97,7 +79,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XI",
+    "nr": "IX",
     "titel": "Doppelprofil",
     "traeger": "haut",
     "jahr": 2024,
@@ -106,7 +88,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XII",
+    "nr": "X",
     "titel": "Nachtfalter",
     "traeger": "haut",
     "jahr": 2024,
@@ -115,7 +97,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XIII",
+    "nr": "XI",
     "titel": "Distelzweig",
     "traeger": "haut",
     "jahr": 2023,
@@ -124,7 +106,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XIV",
+    "nr": "XII",
     "titel": "Bannerschrift",
     "traeger": "haut",
     "jahr": 2023,
@@ -133,7 +115,7 @@ export const WERKE: Werk[] = [
     "serie": null
   },
   {
-    "nr": "XV",
+    "nr": "XIII",
     "titel": "Schwalbenpaar",
     "traeger": "haut",
     "jahr": 2022,

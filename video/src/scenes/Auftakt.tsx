@@ -68,7 +68,7 @@ export const Auftakt: React.FC<{ ende: number }> = ({ ende }) => {
         </div>
 
         <BlattVideo
-          datei="video/werk-1-profil-zeichnung.mp4"
+          datei="video/gestaltung-profil-zeichnung.mp4"
           ab={0.2}
           raus={ende - 0.5}
           style={{

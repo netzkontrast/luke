@@ -76,8 +76,8 @@ if [ $# -gt 0 ]; then
 fi
 
 # Standardlauf. Hochformat schmaler, Querformat breiter — die Pixel sollen dorthin, wo Linien sind.
-make_gif assets/video/werk-1-profil-zeichnung.mp4 "${BREITE:-400}"
-make_gif assets/video/werk-2-auge-signatur.mp4    "${BREITE:-800}"
+make_gif assets/video/gestaltung-profil-zeichnung.mp4 "${BREITE:-400}"
+make_gif assets/video/gestaltung-signatur.mp4    "${BREITE:-800}"
 echo
 echo "Die frühere Fassung der Profil-Animation ist nicht im Standardlauf:"
-echo "  scripts/make-gifs.sh assets/video/werk-1-profil-zeichnung-alt.mp4"
+echo "  scripts/make-gifs.sh assets/video/gestaltung-profil-zeichnung-alt.mp4"

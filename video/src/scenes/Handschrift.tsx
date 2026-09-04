@@ -10,7 +10,7 @@ import { BlattVideo } from '../components/Blatt';
 import { WortWeise } from '../components/Typo';
 import { Faden } from '../components/Faden';
 
-/* Seitenverhältnis von werk-2-auge-signatur.mp4: 1072 zu 272. */
+/* Seitenverhältnis von gestaltung-signatur.mp4: 1072 zu 272. */
 const SEITE = 1072 / 272;
 
 export const Handschrift: React.FC<{ ende: number }> = ({ ende }) => {
@@ -70,7 +70,7 @@ export const Handschrift: React.FC<{ ende: number }> = ({ ende }) => {
       {/* Randabfallend: Die Linie der Zeichnung soll das Bild durchqueren, nicht in einem
           Kasten mit Rand sitzen. */}
       <BlattVideo
-        datei="video/werk-2-auge-signatur.mp4"
+        datei="video/gestaltung-signatur.mp4"
         ab={1.5}
         raus={ende - 0.5}
         passform="contain"

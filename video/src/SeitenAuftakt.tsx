@@ -38,10 +38,13 @@ export const auftaktStandard: AuftaktProps = { zeiger: { x: 0, y: 0 }, eigenerGr
 
 /* Sekunden, an denen sich der Auftakt orientiert.
 
-   Das Video zeigt, wie Werk I entsteht; stehen bleibt am Ende Werk VII. Das sind zwei
-   Blätter, und genau so soll es auch gelesen werden. Zwischen beiden liegt deshalb eine
-   knappe Leerstelle: Ohne sie sähe der Übergang aus, als verwandelte sich eine Zeichnung
-   in eine andere. Mit ihr ist es ein Schnitt. */
+   Das Video zeigt, wie das Profil entsteht; stehen bleibt am Ende die kniende Figur. Das
+   sind zwei Blätter, und genau so soll es auch gelesen werden. Zwischen beiden liegt
+   deshalb eine knappe Leerstelle: Ohne sie sähe der Übergang aus, als verwandelte sich
+   eine Zeichnung in eine andere. Mit ihr ist es ein Schnitt.
+
+   Beide sind Gestaltung, keine Werke: Sie tragen die Seite, stehen aber nicht im
+   Werkverzeichnis. Siehe LUKE.GESTALTUNG in js/works.js. */
 const T = {
   fern: 0.15,
   zeichnen: 0.35,
@@ -88,11 +91,11 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
   /* Die Zeichenanimation liegt als WebM und als MP4 vor. Welche der Browser nehmen kann,
      entscheidet er selbst; ohne diese Wahl bleibt die Fläche in Browsern ohne H.264 leer. */
   const quelle = useMemo(() => {
-    if (typeof document === 'undefined') return 'video/werk-1-profil-zeichnung.mp4';
+    if (typeof document === 'undefined') return 'video/gestaltung-profil-zeichnung.mp4';
     const probe = document.createElement('video');
     return probe.canPlayType('video/webm; codecs="vp9"')
-      ? 'video/werk-1-profil-zeichnung.webm'
-      : 'video/werk-1-profil-zeichnung.mp4';
+      ? 'video/gestaltung-profil-zeichnung.webm'
+      : 'video/gestaltung-profil-zeichnung.mp4';
   }, []);
   /* Klappt die Wiedergabe trotzdem nicht, tritt sofort das fertige Blatt an ihre Stelle. */
   const [videoKaputt, setVideoKaputt] = useState(false);
@@ -129,7 +132,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
       {/* Ebene 1, ganz hinten: ein großes, sehr blasses Blatt. */}
       <Ebene tiefe={0.14} zeiger={zeiger} drift={0.6}>
         <Img
-          src={staticFile('img/werk-1-profil-1200.jpg')}
+          src={staticFile('img/gestaltung-profil-1200.jpg')}
           style={{
             width: '100%',
             height: '100%',
@@ -148,7 +151,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
       {/* Ebene 2: dasselbe Blatt näher, seitlich versetzt, immer noch blass. */}
       <Ebene tiefe={0.3} zeiger={zeiger} drift={0.8}>
         <Img
-          src={staticFile('img/werk-1-profil-1200.jpg')}
+          src={staticFile('img/gestaltung-profil-1200.jpg')}
           style={{
             width: '100%',
             height: '100%',
@@ -186,7 +189,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
           Das Blatt hat links ein breites leeres Drittel, das hier wegfällt. */}
       <Ebene tiefe={0.48} zeiger={zeiger}>
         <Img
-          src={staticFile('img/werk-7-kniend-1200.jpg')}
+          src={staticFile('img/gestaltung-kniend-1200.jpg')}
           style={{
             width: '100%',
             height: '100%',
@@ -207,7 +210,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
           nähme ihr die Wirkung. */}
       <Ebene tiefe={0.95} zeiger={zeiger} drift={0.4}>
         <Img
-          src={staticFile('img/werk-1-profil-1200.jpg')}
+          src={staticFile('img/gestaltung-profil-1200.jpg')}
           style={{
             width: '100%',
             height: '100%',
