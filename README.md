@@ -36,7 +36,7 @@ vendor/htmx/          htmx 4.0.0 und hx-live, lokal (nur für die Anzeige der Sk
 vendor/               three.js 0.161.0, lokal gehostet
 assets/fonts/         Alegreya, Alegreya Sans, Big Shoulders als woff2 (latin, latin-ext) plus fonts.css
 assets/img/           Werkbilder, Atelierfoto, Poster, Favicon
-assets/original/      Die Aufnahmen der Papierarbeiten, unbearbeitet (wird nicht ausgeliefert)
+assets/original/      Jede Aufnahme, wie sie kam, unbearbeitet (wird nicht ausgeliefert)
 assets/video/         Zeichenanimationen (H.264, ohne Ton)
 NOTES.md              Offene Punkte aus dem Prototyp
 video/                Der Film zur Werkschau, gebaut mit Remotion (eigene README)
