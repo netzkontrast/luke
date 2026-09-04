@@ -27,6 +27,12 @@ js/site.js            Seitenlogik: Galerie, Filter, Werkansicht, Formular, Über
 js/werk-sequenz.js    <werk-sequenz>, scrollgetriebene 3D-Sequenz (three.js)
 js/motion.js          Sanftes Scrollen, Parallaxe, Hintergrundbühne (three.js)
 js/tropfspur.js       Die rote Spur, die aus Werk I austritt und mit dem Lesen mitläuft
+skizze.html           Entwurf: ein Weltzustand fährt fliegende Blätter, Sprite und Tränen
+js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand, alle lesen daraus
+js/skizze.js          Die drei Systeme der Skizze
+css/skizze.css        Stile nur für die Skizze
+docs/                 Der Claude-Design-Prompt zu diesem Entwurf
+vendor/htmx/          htmx 4.0.0 und hx-live, lokal (nur für die Anzeige der Skizze)
 vendor/               three.js 0.161.0, lokal gehostet
 assets/fonts/         Alegreya, Alegreya Sans, Big Shoulders als woff2 (latin, latin-ext) plus fonts.css
 assets/img/           Werkbilder, Atelierfoto, Poster, Favicon
@@ -96,6 +102,10 @@ Grafiken, nicht quer durch beides.
 - Das Blatt im Kopf hat links ein breites leeres Drittel. Standbild und Live-Auftakt schneiden es rechtsbündig weg
   (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten.
 - Vorschaubild für soziale Netzwerke: `assets/img/og-bild.jpg`, 1200 × 630, dieselbe Zeichnung auf Weiß.
+- Sprite für die Skizze: `assets/img/zeichnung-sprite.webp`, 48 Bilder der Zeichenanimation, 8 × 6 Kacheln zu
+  160 × 260, 283 kB. Neu bauen mit ffmpeg:
+  `ffmpeg -i assets/video/werk-1-profil-zeichnung.mp4 -vf "fps=48/6.04,scale=160:-2" -frames:v 48 f-%03d.png`
+  und danach `ffmpeg -framerate 8 -i f-%03d.png -frames:v 48 -filter_complex "tile=8x6:color=white,format=rgb24" -c:v libwebp -quality 68 …`
 - Handschrift: `assets/video/werk-2-auge-signatur.mp4` startet beim Scrollen und bleibt auf dem letzten Bild (Signatur) stehen.
 - Studio: `assets/img/luke-atelier-*.jpg`.
 
