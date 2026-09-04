@@ -26,9 +26,9 @@ js/works.js           Werkdaten, Flash-Blätter, Filterlisten, Konfiguration
 js/site.js            Seitenlogik: Galerie, Filter, Werkansicht, Formular, Übergänge
 js/werk-sequenz.js    <werk-sequenz>, scrollgetriebene 3D-Sequenz (three.js)
 js/motion.js          Sanftes Scrollen, Parallaxe, Hintergrundbühne aus echten Blättern (three.js)
-js/tropfspur.js       Die rote Spur, die aus Werk I austritt und mit dem Lesen mitläuft
+js/tropfspur.js       Die Tropfspur: Der rote Strang des Auftakts läuft auf der Seite weiter, dem Lesen nach
+js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand, alle lesen daraus (Seite und Skizze)
 skizze.html           Entwurf: ein Weltzustand fährt fliegende Blätter, Sprite und Tränen
-js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand, alle lesen daraus
 js/skizze.js          Die drei Systeme der Skizze
 css/skizze.css        Stile nur für die Skizze
 docs/                 Der Claude-Design-Prompt zu diesem Entwurf
@@ -123,6 +123,22 @@ Grafiken, nicht quer durch beides.
   und danach `ffmpeg -framerate 8 -i f-%03d.png -frames:v 48 -filter_complex "tile=8x6:color=white,format=rgb24" -c:v libwebp -quality 68 …`
 - Handschrift: `assets/video/gestaltung-signatur.mp4` startet beim Scrollen und bleibt auf dem letzten Bild (Signatur) stehen.
 - Studio: `assets/img/luke-atelier-*.jpg`.
+
+## Die Tropfspur
+
+Im Blatt des Auftakts läuft der rote Strang unten aus dem Bild. Auf der Seite läuft er weiter (`js/tropfspur.js`):
+Der Tropfen folgt dem Lesen mit Verzögerung, zieht bei schnellem Scrollen eine dünne Bahn, staut sich, wo man
+stehen bleibt, und lässt dort eine Verdickung zurück, manchmal einen Spritzer. Zurück läuft er nie; wer
+hochscrollt, sieht, was schon gelaufen ist. Die Spur liegt mit `multiply` auf dem Papier, über Tusche wird sie
+dunkel. Was auf dem Papier liegt, deckt sie zu: der Streifen „Aktuell“, Plakate, Fotos, Formularfelder
+(`z-index: 2` in `css/site.css`).
+
+Wie viel an einer Stelle läuft, steht in der Tabelle `LUKE.ABSCHNITTE` in `index.html`, die der Weltzustand
+(`js/weltzustand.js`) liest: ein Eintrag je Abschnitt mit `fassung` (1 beisammen, 0 gar nicht). Oben, bei den
+Zeichnungen, blutet die Seite; vor dem Formular ist die Spur trocken. `schmal` ist der Wert auf Schirmen unter
+760 Pixeln: Dort endet die Spur schon an der Oberkante von „Aktuell“, weil der Text die Hauptsache ist. Wer einen
+Abschnitt einfügt, trägt ihn in diese Tabelle ein, sonst nirgends. Bei reduzierter Bewegung steht die Spur
+fertig da, der Endzustand statt der Reise; „Rotspur: Aus“ im Bedienfeld nimmt sie ganz weg.
 
 ## Konfiguration (`js/works.js`, `LUKE.CONFIG`)
 

@@ -52,6 +52,10 @@ button { font: inherit; color: inherit; }
 .app .rv.on { opacity: 1; transform: none; filter: none; }
 /* Links großzügig über den Rand hinaus, sonst schneidet der Effekt Listenziffern ab. */
 .app[data-richtung="a"] .rv.on { clip-path: inset(-2% -2% -2% -40px); }
+/* Ist das Einblenden durch, fällt der Beschnitt weg: Mit ihm wäre jedes Element ein eigener
+   Stapelkontext, und Plakate und Fotos darin lägen nie über der Tropfspur. Sichtbar ändert
+   sich nichts, der Beschnitt lag ohnehin außerhalb des Kastens. */
+.app[data-richtung="a"] .rv.on.fertig { clip-path: none; }
 .app[data-richtung="a"] h2.rv::after { content: ''; display: block; width: 0; height: 3px; margin-top: 14px; background: var(--red); transition: width calc(var(--m)*.9s) var(--e) 0.25s; }
 .app[data-richtung="a"] h2.rv.on::after { width: 64px; }
 .app[data-richtung="c"] h2.rv { background-image: linear-gradient(rgba(212,160,23,0.4), rgba(212,160,23,0.4)); background-repeat: no-repeat; background-size: 0% 42%; background-position: 0 88%; }
@@ -67,12 +71,13 @@ button { font: inherit; color: inherit; }
 .app[data-richtung="c"] .top { border-bottom: 2px dashed var(--line); }
 .app[data-richtung="c"] .top a { text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--fd); font-weight: 500; }
 
-/* Die Tropfspur. Sie steht in Seitenkoordinaten, nicht im Fenster: Sie gehört zur Seite
-   und läuft mit ihr, statt am Rand zu kleben. */
-#tropfspur { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; }
-#tropfspur svg { display: block; overflow: visible; }
-/* Bei reduzierter Bewegung bleibt die Spur stehen, statt mitzulaufen. */
-#tropfspur[data-ruhig="an"] path { transition: none; }
+/* Die Tropfspur (js/tropfspur.js). Ein Canvas im Fenster, gezeichnet in Seitenkoordinaten.
+   Sie liegt mit multiply auf dem Papier: über Weiß rot, über Tusche dunkel, über Text
+   darunter. Was auf dem Papier liegt, deckt sie zu: Der Streifen „Aktuell“, Plakate,
+   Fotos und Formularfelder stehen mit z-index über ihr (siehe die jeweiligen Regeln).
+   Auf dunklem Grund (Richtung B) würde multiply sie schlucken, dort wird gerastert. */
+#tropfspur { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; mix-blend-mode: multiply; }
+.app[data-richtung="b"] #tropfspur { mix-blend-mode: screen; }
 .app[data-rot="aus"] #tropfspur { display: none; }
 
 /* ---------- Layout-Helfer ---------- */
@@ -137,7 +142,9 @@ html.has-stage body, html.has-stage .app { background: transparent; }
 werk-sequenz { display: block; }
 
 /* ---------- Aktuell ---------- */
-#aktuell { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+/* Der Streifen liegt auf dem Papier: Die Tropfspur läuft unter ihm durch. Auf dem Telefon
+   endet sie an seiner Oberkante. */
+#aktuell { position: relative; z-index: 2; background: var(--bg); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .aktuell-row { padding-top: 22px; padding-bottom: 22px; display: flex; flex-wrap: wrap; gap: 12px 40px; align-items: baseline; }
 .aktuell-row .a { font-size: 16px; flex: 0 0 auto; }
 .aktuell-row .b { flex: 1 1 380px; font-size: 17.5px; }
@@ -179,6 +186,8 @@ werk-sequenz { display: block; }
    die Zeichnung steht frei. Der graue Grund, der die generierten Platzhalter
    zusammenhält, würde daraus wieder ein Rechteck machen, also fällt er hier weg. */
 .g-ph:has(> .ink-img) { background: transparent; }
+/* Ein Foto liegt auf dem Papier und deckt die Tropfspur; ein Tuscheblatt lässt sie durch. */
+.g-ph:has(> .photo-img) { position: relative; z-index: 2; }
 .g-ph > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .g-meta { display: block; padding: 10px 2px 0; }
 .g-t { display: block; font-weight: 500; }
@@ -226,7 +235,9 @@ werk-sequenz { display: block; }
 .app[data-richtung="b"] .band-video { opacity: .9; }
 
 /* ---------- Flash ---------- */
-.flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px,100%),1fr)); gap: calc(var(--gg) * 0.8); }
+/* Die Blätter liegen auf dem Papier, über der Tropfspur; das Raster trägt den z-index, weil
+   es als Parallaxe-Ebene der Stapelkontext ist. */
+.flash-grid { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px,100%),1fr)); gap: calc(var(--gg) * 0.8); }
 /* Die Blätter legen sich leicht schräg ab und richten sich beim Ankommen gerade, so wie
    man Papier auf einen Tisch legt. In Richtung A ersetzt das den Streifeneffekt. */
 .app[data-richtung="a"] .sheet.rv { clip-path: none; transform: translateY(24px) rotate(var(--dreh, -1.1deg)) scale(0.985); }
@@ -259,7 +270,7 @@ werk-sequenz { display: block; }
 .gr-item { display: block; width: 100%; border: 0; background: none; padding: 0;
   margin: 0 0 var(--gg); break-inside: avoid;
   text-align: left; color: inherit; font: inherit; cursor: pointer; }
-.gr-ph { display: block; overflow: hidden; border: 1px solid var(--line); background: var(--bg2); }
+.gr-ph { display: block; position: relative; z-index: 2; overflow: hidden; border: 1px solid var(--line); background: var(--bg2); }
 .gr-ph > img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .gr-meta { display: block; padding: 12px 2px 0; }
 .gr-t { display: block; font-weight: 500; }
@@ -277,7 +288,7 @@ werk-sequenz { display: block; }
 .field label { display: block; }
 .field label > span { display: block; margin-bottom: 6px; font-size: 16px; }
 .field .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 14px; }
-.field input, .field select, .field textarea { width: 100%; box-sizing: border-box; background: var(--bg2); color: var(--ink); border: 1px solid #C9C9C6; padding: 11px 13px; font-family: var(--fb); font-size: 17px; border-radius: 0; }
+.field input, .field select, .field textarea { position: relative; z-index: 2; width: 100%; box-sizing: border-box; background: var(--bg2); color: var(--ink); border: 1px solid #C9C9C6; padding: 11px 13px; font-family: var(--fb); font-size: 17px; border-radius: 0; }
 .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
 .field input[type="file"] { padding: 8px; }
 .field .check { display: flex; gap: 10px; align-items: flex-start; font-size: 16px; cursor: pointer; }
@@ -296,6 +307,10 @@ werk-sequenz { display: block; }
 .team .who { font-weight: 500; }
 .team .what { color: var(--mut); font-size: 16px; }
 .studio-fig { margin: 0 0 22px; }
+/* Das Foto liegt auf dem Papier, über der Tropfspur. Der z-index steht auf der Figur, nicht
+   auf dem Bild: Die Parallaxe macht die Figur zum Stapelkontext, ein z-index am Bild darin
+   käme nicht nach außen. */
+.studio-fig { position: relative; z-index: 2; }
 .studio-fig img { width: 100%; height: auto; }
 .studio-fig figcaption { color: var(--mut); font-size: 15px; margin-top: 10px; }
 .app[data-richtung="b"] .studio-fig img { opacity: .9; }
@@ -385,6 +400,11 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
   .app { --cols: 1 !important; --sp: clamp(44px, 11vw, 64px) !important; font-size: 17px; }
   .app[data-richtung="c"] { --cols: 2 !important; }
   .hero-fig, .app[data-richtung="b"] .hero-fig { height: min(52vh, 150vw); }
+  /* Das Blatt sitzt rechts, der Text darunter bleibt schmal: Dazwischen läuft die
+     Tropfspur am Text vorbei statt hindurch. */
+  .hero-draw { justify-content: flex-end; }
+  .app[data-richtung="c"] .hero-draw { margin-right: 0; }
+  .hero-text p { max-width: 24ch; }
   .ov-card { padding: 14px !important; }
   .ov-row { grid-template-columns: 96px 1fr; }
   .g-list[data-layout="schiene"] .g-item { flex-basis: 78vw !important; }

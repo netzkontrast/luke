@@ -61,7 +61,15 @@ Bereits umgesetzt:
       dazwischen liegt eine knappe Leerstelle, damit es als Schnitt gelesen wird und nicht als Verwandlung. Beide sind
       Gestaltung, keine Werke.
 
+- [x] Die Tropfspur neu: Sie setzt dort an, wo der rote Strang im Auftakt das Blatt verlässt, läuft als Fläche
+      mit wechselnder Breite statt als Strich, folgt dem Lesen mit Verzögerung, staut sich, wo man steht, und
+      trocknet vor dem Formular (auf dem Telefon an der Kante von „Aktuell“). Der Zickzackfaden der Sequenz und
+      die roten Punkte der Hintergrundbühne sind raus: ein Rot auf der Seite. Die Spur liest vom Weltzustand.
+
 Beim nächsten Durchgang anzusehen:
+
+- Der Weltzustand fährt auf der Seite bislang nur die Tropfspur. `js/motion.js` und `js/werk-sequenz.js` lesen
+  die Scrollposition weiter selbst; der nächste Schritt wäre, auch sie auf `LUKE.welt` zu setzen.
 
 - Zwischen Kapitel 1 und 2 sowie zwischen 2 und 3 steht die Blättersequenz (`js/werk-sequenz.js`) kurz leer:
   Die Gruppen liegen 18 Einheiten auseinander, sichtbar ist ein Fenster von ±7,5. Wer langsam scrollt, sieht
