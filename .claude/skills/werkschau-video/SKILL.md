@@ -156,6 +156,17 @@ Worauf es hier besonders ankommt, zusätzlich zur Liste im allgemeinen Skill:
 6. Für Instagram-Stories und Presse eine GIF-Fassung: `scripts/make-gifs.sh` im
    Wurzelverzeichnis nimmt jede Videodatei entgegen und legt sie nach `assets/gif/`.
 
+## Dateigröße: die Körnung im Auge behalten
+
+Papier plus Körnung sieht ruhig aus, ist für den Encoder aber teuer. Wandert die Körnung in
+jedem Bild, muss jedes Pixel neu kodiert werden, und aus 32 Sekunden werden schnell 30 MB.
+Deshalb springt sie in `Papier.tsx` nur jedes dritte Bild weiter; man sieht keinen
+Unterschied, die Datei wird um ein Vielfaches kleiner. Beim Rendern reicht `--crf 19`: Bei
+so wenig Farbe im Bild ist der Unterschied zu `--crf 17` nicht zu sehen.
+
+Wenn eine Datei trotzdem zu groß wird, zuerst die Körnung prüfen, nicht die Auflösung
+senken. Die Zeichnungen leben von den feinen Linien.
+
 ## Wenn ein bestehendes Video angepasst wird
 
 `video/src/` ganz lesen, `src/theme.ts` ist die einzige Quelle für Farben und Kurven.
