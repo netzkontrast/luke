@@ -1,0 +1,26 @@
+{
+  "name": "luke-werkschau-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bewegtbild zur Werkschau von Luke WTF, gebaut mit Remotion",
+  "scripts": {
+    "assets": "bash scripts/assets-uebernehmen.sh",
+    "werke": "node scripts/werke-uebernehmen.mjs",
+    "prestudio": "npm run assets",
+    "studio": "remotion studio src/index.ts",
+    "prerender": "npm run assets",
+    "render": "remotion render src/index.ts Werkschau out/werkschau.mp4 --codec h264 --crf 17",
+    "render:hoch": "remotion render src/index.ts WerkschauHoch out/werkschau-hoch.mp4 --codec h264 --crf 17"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.520",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.520"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "typescript": "^5.9.3"
+  }
+}

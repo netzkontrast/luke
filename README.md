@@ -30,6 +30,9 @@ assets/fonts/         Alegreya, Alegreya Sans, Big Shoulders als woff2 (latin, l
 assets/img/           Werkbilder, Atelierfoto, Poster, Favicon
 assets/video/         Zeichenanimationen (H.264, ohne Ton)
 NOTES.md              Offene Punkte aus dem Prototyp
+video/                Der Film zur Werkschau, gebaut mit Remotion (eigene README)
+.claude/skills/       Skills: werkschau-video und remotion-motion-graphics
+scripts/make-gifs.sh  Erzeugt GIF-Fassungen der Zeichenanimationen
 ```
 
 ## Bilder und Videos austauschen
@@ -69,6 +72,12 @@ Der Prototyp hatte drei Gestaltungsrichtungen. Alle drei sind enthalten, Standar
 - Weitere URL-Parameter: `layout=mauerwerk|buendig|schiene`, `bewegung=aus|dezent|voll`
 
 Bei aktivierter Systemeinstellung „reduzierte Bewegung“ starten alle Animationen ausgeschaltet.
+
+## Bewegtbild
+
+Unter `video/` liegt der Film zur Werkschau: dieselben Farben, Schriften und Arbeiten,
+gebaut mit Remotion, in 16:9 für die Schleife im Studio und in 9:16 für Story und Reel.
+Wie er gebaut und gerendert wird, steht in `video/README.md`.
 
 ## Veröffentlichen
 

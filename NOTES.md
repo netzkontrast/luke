@@ -13,6 +13,8 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
 - [ ] **Formularversand** festlegen (`formEndpoint` oder `formEmail` in `js/works.js`); bis dahin zeigt die Seite den
       Anfragetext zum Kopieren für die Instagram-DM.
 - [ ] **Team-Profile** (Kiya Noir, Jonas Dreyer, Kate Velvet, Stefan Gepting): „Profil folgt“.
+- [ ] **Ton für den Film** entscheiden: derzeit stumm. Wenn Ton, dann Raumton aus dem Atelier
+      und Stiftgeräusche, kein Standard-Whoosh.
 - [ ] **Richtung festlegen**: A, B oder C (siehe README, Bedienfeld mit Shift + B). Standard ist A.
 
 Bereits umgesetzt:
@@ -23,3 +25,4 @@ Bereits umgesetzt:
 - [x] three.js lokal aus `vendor/`, CDN nur als Rückfallebene.
 - [x] Reduzierte Bewegung (Systemeinstellung) wird respektiert.
 - [x] Werkansicht mit Tastatur bedienbar (Escape, Pfeiltasten, Fokusfalle).
+- [x] Film zur Werkschau unter `video/`, in 16:9 und 9:16, mit denselben Werkdaten wie die Seite.
