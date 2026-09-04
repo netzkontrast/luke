@@ -1,6 +1,12 @@
+<!-- Das Zeichen der Seite: schwarze Tusche, ein roter Strang, der durchläuft und unten
+     austritt. Reinweißer Grund wie die Seite selbst. Bewusst grob — bei 16 Pixeln bleibt
+     von Feinheiten nichts übrig, von einer Masse und einer Linie schon. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#E8E8E6"/>
-  <path d="M34 8 C30 20 36 30 31 42 C28 50 33 56 31 62" fill="none" stroke="#D1232A" stroke-width="5" stroke-linecap="round"/>
-  <path d="M14 26 C22 14 44 12 52 24 C58 33 50 46 38 48 C26 50 12 40 14 26 Z" fill="#0D0D0D" fill-opacity="0.18"/>
-  <path d="M12 30 C24 22 40 22 54 30 M16 36 C26 30 40 30 50 36" fill="none" stroke="#0D0D0D" stroke-width="2.2" stroke-linecap="round"/>
+  <rect width="64" height="64" fill="#FFFFFF"/>
+  <path d="M18 20 C26 12 44 14 48 24 C51 32 44 40 34 41 C24 42 15 34 18 20 Z"
+        fill="#141412" fill-opacity="0.92"/>
+  <path d="M22 44 C28 46 38 46 45 43" fill="none" stroke="#141412" stroke-width="4"
+        stroke-linecap="round" stroke-opacity="0.8"/>
+  <path d="M33 4 C31 18 35 26 32 38 C30 48 34 54 32 62" fill="none" stroke="#D1232A"
+        stroke-width="6" stroke-linecap="round"/>
 </svg>

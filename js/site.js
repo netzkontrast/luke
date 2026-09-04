@@ -34,47 +34,6 @@
   const tempo = () => TEMPO[S.richtung] || TEMPO.a;
   const mScale = () => ({ aus: 0, dezent: 0.55, voll: 1 })[S.bewegung];
 
-  /* ---------- Generierte Tuschplatzhalter (deterministisch aus seed) ---------- */
-  function genArt(seed, Wd, Hd, red) {
-    let a = seed >>> 0;
-    const rnd = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-    const F = n => n.toFixed(1);
-    const blob = (cx, cy, r) => {
-      const n = 7, pts = [];
-      for (let i = 0; i < n; i++) { const an = i / n * Math.PI * 2; const rr = r * (0.65 + rnd() * 0.7); pts.push([cx + Math.cos(an) * rr, cy + Math.sin(an) * rr * 1.15]); }
-      let d = `M ${F((pts[n - 1][0] + pts[0][0]) / 2)} ${F((pts[n - 1][1] + pts[0][1]) / 2)}`;
-      for (let i = 0; i < n; i++) { const p = pts[i], q = pts[(i + 1) % n]; d += ` Q ${F(p[0])} ${F(p[1])} ${F((p[0] + q[0]) / 2)} ${F((p[1] + q[1]) / 2)}`; }
-      return d + ' Z';
-    };
-    const fills = ['var(--mut)', 'var(--ink)', 'var(--fnt)'];
-    const washes = [];
-    const wn = 2 + (rnd() * 2 | 0);
-    for (let i = 0; i < wn; i++) {
-      const f = fills[(rnd() * 3) | 0];
-      washes.push({ d: blob(Wd * (0.3 + rnd() * 0.4), Hd * (0.25 + rnd() * 0.5), Math.min(Wd, Hd) * (0.16 + rnd() * 0.22)), f, o: (f === 'var(--fnt)' ? 0.5 + rnd() * 0.3 : 0.1 + rnd() * 0.16).toFixed(2) });
-    }
-    const lines = [];
-    const ln = 6 + (rnd() * 5 | 0);
-    for (let i = 0; i < ln; i++) {
-      const x0 = Wd * (0.1 + rnd() * 0.8), y0 = Hd * (0.08 + rnd() * 0.7);
-      const dx = (rnd() - 0.5) * Wd * 0.8, dy = (rnd() * 0.5 + 0.1) * Hd * (rnd() < 0.4 ? -1 : 1);
-      const j = () => (rnd() - 0.5) * Wd * 0.3;
-      lines.push({ d: `M ${F(x0)} ${F(y0)} C ${F(x0 + j())} ${F(y0 + dy * 0.3)} ${F(x0 + dx + j())} ${F(y0 + dy * 0.7)} ${F(x0 + dx)} ${F(y0 + dy)}`, w: F(0.8 + rnd() * 1.6), o: (0.3 + rnd() * 0.45).toFixed(2) });
-    }
-    let redD = '';
-    if (red) { const x = Wd * (0.35 + rnd() * 0.3); const jj = () => (rnd() - 0.5) * Wd * 0.12; redD = `M ${F(x)} -8 C ${F(x + jj())} ${F(Hd * 0.3)} ${F(x + jj())} ${F(Hd * 0.6)} ${F(x + jj())} ${F(Hd + 8)}`; }
-    return { washes, lines, redD };
-  }
-  const artCache = {};
-  const art = (key, seed, w, h, red) => artCache[key] || (artCache[key] = genArt(seed, w, h, red));
-  function artSVG(a, w, h, seed, fid, opts) {
-    const o = Object.assign({ freq: '0.014 0.02', scale: 9, washes: a.washes, lines: a.lines, red: a.redD }, opts || {});
-    const washes = o.washes.map(p => `<path d="${p.d}" fill="${p.f}" fill-opacity="${p.o}"/>`).join('');
-    const lines = o.lines.map(p => `<path d="${p.d}" fill="none" stroke="var(--ink)" stroke-width="${p.w}" stroke-opacity="${p.o}" stroke-linecap="round"/>`).join('');
-    const red = o.red ? `<path d="${o.red}" fill="none" stroke="var(--red)" stroke-width="4" stroke-opacity="0.92" stroke-linecap="round"/>` : '';
-    return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><filter id="${fid}" x="-15%" y="-15%" width="130%" height="130%"><feTurbulence type="fractalNoise" baseFrequency="${o.freq}" numOctaves="2" seed="${seed}"/><feDisplacementMap in="SourceGraphic" scale="${o.scale}"/></filter></defs><g filter="url(#${fid})">${washes}${lines}${red}</g></svg>`;
-  }
-
   /* ---------- Werke ---------- */
   /* Welche Träger es gibt, entscheidet sich an den Daten, nicht am Markup. Solange es nur
      Arbeiten auf Papier gibt, wären Reiter für „Haut“ und „Alles“ drei Knöpfe, von denen
@@ -82,22 +41,21 @@
   const traegerDa = ['haut', 'papier'].filter(t => W.some(w => w.tr === t));
   const einTraeger = traegerDa.length < 2;
   if (einTraeger && traegerDa.length) S.traeger = traegerDa[0];
+  /* Ein Eintrag ohne Bild wird übergangen. Früher stand an seiner Stelle eine erzeugte
+     Tuschzeichnung; die ist raus, weil auf dieser Seite nur stehen soll, was es gibt. */
   const isReal = w => !!w.src;
   /* Tuscheblätter kommen mit multiply auf die Seite: Das Papier verschwindet, stehen
      bleibt nur die Zeichnung. Ein Foto mit dunklem Grund darf das nicht, sonst säuft
      die ganze Fläche ab. Die zwölf Köpfe liegen auf schwarzem Holz und sind so ein Fall. */
   const bildKlasse = w => (w.tr === 'papier' && w.grund !== 'foto' ? 'ink-img' : 'photo-img');
-  const ratio = w => (isReal(w) ? `${w.w} / ${w.h}` : `${w.vbW} / ${w.vbH}`);
+  const ratio = w => `${w.w} / ${w.h}`;
   const meta = w => (w.tr === 'haut' ? `Nr. ${w.nr} — Haut, ${w.ort}, ${w.jahr}` : `Nr. ${w.nr} — ${w.technik}, ${w.jahr}`);
-  const altText = w => (w.tr === 'haut' ? `${w.t}, Blackwork auf ${w.ort}, ${w.jahr}.` : `${w.t}, ${w.technik}, ${w.jahr}.`) + (isReal(w) ? '' : ' Platzhalterzeichnung.') + ' Werkansicht öffnen.';
-  function bildHTML(w, fid, sizes, alt) {
-    if (isReal(w)) {
-      return `<img class="${bildKlasse(w)}" src="${esc(w.src)}"${w.srcset ? ` srcset="${esc(w.srcset)}"` : ''} sizes="${sizes}" width="${w.w}" height="${w.h}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
-    }
-    return artSVG(art(w.id, w.seed, w.vbW, w.vbH, !!w.red), w.vbW, w.vbH, w.seed, fid);
+  const altText = w => (w.tr === 'haut' ? `${w.t}, Blackwork auf ${w.ort}, ${w.jahr}.` : `${w.t}, ${w.technik}, ${w.jahr}.`) + ' Werkansicht öffnen.';
+  function bildHTML(w, sizes, alt) {
+    return `<img class="${bildKlasse(w)}" src="${esc(w.src)}"${w.srcset ? ` srcset="${esc(w.srcset)}"` : ''} sizes="${sizes}" width="${w.w}" height="${w.h}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
   }
   function filtered() {
-    let list = W;
+    let list = W.filter(isReal);
     if (S.traeger !== 'alles') list = list.filter(w => w.tr === S.traeger);
     if (S.traeger === 'haut') { if (S.fOrt) list = list.filter(w => w.ortKey === S.fOrt); if (S.fMotiv) list = list.filter(w => w.motiv === S.fMotiv); }
     if (S.traeger === 'papier') { if (S.fSerie) list = list.filter(w => w.serie === S.fSerie); if (S.fJahr) list = list.filter(w => w.jahr === S.fJahr); }
@@ -162,7 +120,7 @@
     const gl = $('#g-list'); gl.dataset.layout = S.layout;
     const wall = gl.closest('.g-wall');
     if (wall) wall.dataset.schiene = S.layout === 'schiene' ? 'an' : 'aus';
-    gl.innerHTML = list.map(w => `<button type="button" class="g-item rv" data-fid="${w.id}" aria-label="${esc(altText(w))}"><span class="tin"><span class="cnr" aria-hidden="true">${w.nr}</span><span class="g-ph" style="aspect-ratio:${ratio(w)};">${bildHTML(w, 'f' + w.id, '(max-width: 540px) 92vw, (max-width: 900px) 46vw, 380px')}</span><span class="g-meta"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></span></span></button>`).join('');
+    gl.innerHTML = list.map(w => `<button type="button" class="g-item rv" data-fid="${w.id}" aria-label="${esc(altText(w))}"><span class="tin"><span class="cnr" aria-hidden="true">${w.nr}</span><span class="g-ph" style="aspect-ratio:${ratio(w)};">${bildHTML(w, '(max-width: 540px) 92vw, (max-width: 900px) 46vw, 380px')}</span><span class="g-meta"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></span></span></button>`).join('');
   }
   function renderWerke() { renderTabs(); renderChips(); renderGrid(); zaehlerNachfuehren(); }
 
@@ -275,9 +233,7 @@
     /* Die Bildfläche hat eine feste Höhe und zeigt das Blatt vollständig. Ein gerechnetes
        Seitenverhältnis brauchte für jedes Format eine Ausnahme und ergab auf dem Telefon
        entweder einen Streifen oder eine Fläche, die nicht mehr aufs Bild passte. */
-    const bild = isReal(ow)
-      ? `<img class="${istGrafik(ow) ? 'photo-img' : bildKlasse(ow)}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`
-      : artSVG(art(ow.id, ow.seed, ow.vbW, ow.vbH, !!ow.red), ow.vbW, ow.vbH, ow.seed, 'fx' + ow.id);
+    const bild = `<img class="${istGrafik(ow) ? 'photo-img' : bildKlasse(ow)}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`;
     const zaehler = liste.length > 1 ? `<span class="ov-zaehler">${stelle + 1} von ${liste.length}</span>` : '';
     root.innerHTML = `<div id="ov" role="dialog" aria-modal="true" aria-label="${esc(ow.t)}"><div id="ov-bg"></div><div class="ov-card"><figure id="ov-fig" class="ov-fig">${bild}</figure><div class="ov-info"><h3 class="hd">${esc(ow.t)}</h3><div class="ov-rows">${rows.map(x => `<div class="ov-row"><div class="mut">${esc(x.k)}</div><div>${esc(x.v)}</div></div>`).join('')}</div><div class="ov-actions">${zaehler}<button type="button" id="ov-prev" class="btn">Zurück</button><button type="button" id="ov-next" class="btn">Weiter</button><button type="button" id="ov-close" class="btn primary" style="padding:10px 20px;font-size:16px;">Schließen</button></div></div></div></div>`;
     wischen($('#ov'));
@@ -370,10 +326,8 @@
     }
     if (abschnitt) abschnitt.hidden = false;
     if (navLink) navLink.hidden = false;
-    el.innerHTML = FLASH.map(f => {
-      const bild = f.src
-        ? `<img class="ink-img" src="${esc(f.src)}" alt="" loading="lazy" decoding="async">`
-        : (() => { const a = art('fl' + f.n, f.seed, 220, 280, false); return artSVG(a, 220, 280, f.seed, 'ff' + f.n, { freq: '0.02 0.03', scale: 7, washes: a.washes.slice(0, 1), lines: a.lines.slice(0, 6), red: '' }); })();
+    el.innerHTML = FLASH.filter(f => f.src).map(f => {
+      const bild = `<img class="ink-img" src="${esc(f.src)}" alt="" loading="lazy" decoding="async">`;
       const vergeben = f.status === 'vergeben';
       return `<div class="sheet rv${vergeben ? ' vergeben' : ''}"><div class="sheet-head"><span class="sheet-n">Blatt ${f.n}</span><span class="sheet-f">${esc(f.format)}</span></div><div class="sheet-ph">${bild}</div><div class="sheet-m">${esc(f.motiv)}</div><div class="sheet-row"><span class="mut">${esc(f.preis || 'auf Anfrage')}</span><span class="sheet-status">${esc(f.status)}</span></div></div>`;
     }).join('');

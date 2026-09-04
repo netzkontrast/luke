@@ -47,25 +47,26 @@ LUKE.FILTER = {
    Bild:   src, srcset (optional), w, h (Pixelmaße), video (optional, Zeichenanimation)
            grund: 'foto' für Aufnahmen mit dunklem Hintergrund, die nicht mit multiply
            auf die Seite gelegt werden dürfen
-   Platzhalter: vbW, vbH (Seitenverhältnis), seed (Zufallsstartwert), red (roter Strang) */
+   Ein Eintrag ohne `src` wird übergangen. Erzeugte Platzhalterzeichnungen gibt es nicht
+   mehr: Auf dieser Seite steht nur, was es gibt. */
 /* Nicht alles, was auf der Seite zu sehen ist, ist ein Werk. Das Profil mit dem roten
    Strang, das Auge mit der Signatur und die kniende Figur tragen die Gestaltung: Sie stehen
    im Kopf der Seite, im Auftaktvideo, in der Handschrift und im Sprite. Im Werkverzeichnis
    stehen sie nicht — dort steht, was ausgestellt wird. Siehe LUKE.GESTALTUNG weiter unten. */
 LUKE.WERKE = [
-  { id: 'w1', nr: 'I', t: 'Befreiung der Körperlichkeit, Werk I', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+  { id: 'w1', nr: 'I', t: 'Befreiung der Körperlichkeit, Werk I', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
     src: 'assets/img/werk-1-strang-728.jpg',
     srcset: 'assets/img/werk-1-strang-480.jpg 480w, assets/img/werk-1-strang-728.jpg 728w',
     w: 728, h: 1350 },
-  { id: 'w2', nr: 'II', t: 'Befreiung der Körperlichkeit, Werk II', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+  { id: 'w2', nr: 'II', t: 'Befreiung der Körperlichkeit, Werk II', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
     src: 'assets/img/werk-2-beugung-822.jpg',
     srcset: 'assets/img/werk-2-beugung-480.jpg 480w, assets/img/werk-2-beugung-822.jpg 822w',
     w: 822, h: 1350 },
-  { id: 'w3', nr: 'III', t: 'Befreiung der Körperlichkeit, Werk III', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+  { id: 'w3', nr: 'III', t: 'Befreiung der Körperlichkeit, Werk III', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
     src: 'assets/img/werk-3-fall-720.jpg',
     srcset: 'assets/img/werk-3-fall-480.jpg 480w, assets/img/werk-3-fall-720.jpg 720w',
     w: 720, h: 1350 },
-  { id: 'w4', nr: 'IV', t: 'Befreiung der Körperlichkeit, Werk IV', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen', red: true,
+  { id: 'w4', nr: 'IV', t: 'Befreiung der Körperlichkeit, Werk IV', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
     src: 'assets/img/werk-4-schlinge-808.jpg',
     srcset: 'assets/img/werk-4-schlinge-480.jpg 480w, assets/img/werk-4-schlinge-808.jpg 808w',
     w: 808, h: 1350 },

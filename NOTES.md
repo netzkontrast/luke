@@ -52,6 +52,11 @@ Bereits umgesetzt:
 - [x] Abschnitt Grafik mit fünf Auftragsarbeiten: Podcast-Titelbild, Plakat, zwei Signets, ein Albumcover.
 - [x] Keine erfundenen Inhalte mehr auf der Seite. Reiter, Filter, Sequenzkapitel und Abschnitte richten sich nach den
       Daten: Was leer ist, erscheint nicht.
+- [x] Auch die Erzeuger sind raus. Aus dem Prototyp kamen drei: erzeugte Tuschzeichnungen für Werke und Flash
+      (`js/site.js`), Tuschtexturen für die Sequenz (`js/werk-sequenz.js`) und dieselben für die Hintergrundbühne
+      (`js/motion.js`). Die Bühne zeigt jetzt echte Blätter, die Sequenz auch. Rund achtzig Zeilen weniger.
+- [x] Das Zeichen der Seite (`assets/img/favicon.svg`) ist neu: schwarze Tusche, roter Strang, weißer Grund. Das alte
+      stammte aus dem Prototyp und trug noch dessen Papierton.
 - [x] Der Seitenkopf zeigt die kniende Figur. Das Video zeigt weiter, wie das Profil entsteht: Das sind zwei Blätter,
       dazwischen liegt eine knappe Leerstelle, damit es als Schnitt gelesen wird und nicht als Verwandlung. Beide sind
       Gestaltung, keine Werke.

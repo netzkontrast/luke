@@ -25,7 +25,7 @@ css/site.css          Alle Stile, drei Richtungen über .app[data-richtung]
 js/works.js           Werkdaten, Flash-Blätter, Filterlisten, Konfiguration
 js/site.js            Seitenlogik: Galerie, Filter, Werkansicht, Formular, Übergänge
 js/werk-sequenz.js    <werk-sequenz>, scrollgetriebene 3D-Sequenz (three.js)
-js/motion.js          Sanftes Scrollen, Parallaxe, Hintergrundbühne (three.js)
+js/motion.js          Sanftes Scrollen, Parallaxe, Hintergrundbühne aus echten Blättern (three.js)
 js/tropfspur.js       Die rote Spur, die aus Werk I austritt und mit dem Lesen mitläuft
 skizze.html           Entwurf: ein Weltzustand fährt fliegende Blätter, Sprite und Tränen
 js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand, alle lesen daraus
@@ -46,9 +46,9 @@ scripts/make-gifs.sh  Erzeugt GIF-Fassungen der Zeichenanimationen
 
 ## Bilder und Videos austauschen
 
-Werke stehen in `js/works.js` unter `LUKE.WERKE`. Ein Eintrag braucht `src`, `w` und `h`. Einträge ohne `src`
-bekämen eine generierte Tuschzeichnung als Platzhalter — der Erzeuger steht noch in `js/site.js`, benutzt wird er
-nicht: Auf der Seite steht nur, was es gibt.
+Werke stehen in `js/works.js` unter `LUKE.WERKE`. Ein Eintrag braucht `src`, `w` und `h`; ohne `src` wird er
+übergangen. Erzeugte Tuschzeichnungen als Platzhalter gibt es nicht mehr — auch nicht im Hintergrund, auch nicht
+in der Sequenz. Auf der Seite steht nur, was es gibt.
 
 Die Seite richtet sich nach den Daten. Gibt es nur einen Träger, verschwinden die Reiter „Haut / Papier / Alles"
 und der Abschnitt bekommt stattdessen eine gewöhnliche Überschrift. Ein Filter erscheint nur, wenn es darin mehr als

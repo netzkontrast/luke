@@ -23,31 +23,6 @@
   function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   /* Tuschtextur für Blätter ohne echtes Foto: nur Striche, keine Flächen — breite Striche mit
      wenig Deckkraft lesen sich als Waschung, ohne harte Polygonkanten zu zeigen. */
-  function inkTex(seed, c, red) {
-    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 320;
-    const x = cv.getContext('2d'); const r = rng(seed);
-    x.fillStyle = c.ph; x.fillRect(0, 0, 256, 320);
-    x.lineCap = 'round'; x.lineJoin = 'round';
-    const strich = (breite, deckung, farbe, spanne) => {
-      x.globalAlpha = deckung; x.strokeStyle = farbe; x.lineWidth = breite;
-      const x0 = 40 + r() * 176, y0 = 30 + r() * 170;
-      const dx = (r() - 0.5) * 150 * spanne, dy = (40 + r() * 150) * spanne;
-      x.beginPath(); x.moveTo(x0, y0);
-      x.bezierCurveTo(x0 + (r() - 0.5) * 60, y0 + dy * 0.35, x0 + dx + (r() - 0.5) * 60, y0 + dy * 0.72, x0 + dx, y0 + dy);
-      x.stroke();
-    };
-    for (let i = 0; i < 5; i++) strich(26 + r() * 34, 0.05 + r() * 0.07, r() < 0.5 ? c.mut : c.ink, 0.9);
-    for (let i = 0; i < 7; i++) strich(5 + r() * 9, 0.1 + r() * 0.12, c.ink, 1);
-    for (let i = 0; i < 11; i++) strich(0.8 + r() * 2, 0.3 + r() * 0.45, c.ink, 1.1);
-    if (red) {
-      x.globalAlpha = 0.9; x.strokeStyle = c.red; x.lineWidth = 5;
-      const rx = 90 + r() * 80;
-      x.beginPath(); x.moveTo(rx, -5);
-      x.bezierCurveTo(rx + (r() - 0.5) * 26, 110, rx + (r() - 0.5) * 26, 210, rx + (r() - 0.5) * 26, 326);
-      x.stroke();
-    }
-    x.globalAlpha = 1; return cv;
-  }
   function realImages(key) {
     const L = window.LUKE || {};
     if (key === 'flash') return (L.FLASH || []).filter(f => f.src).map(f => f.src);
@@ -149,8 +124,8 @@
           const col = i % 3;
           mesh.position.set((col - 1) * (this.mobile ? 2.2 : 3.1) + (r() - 0.5) * 1.4, (r() - 0.5) * 4.2, (r() - 0.5) * 7);
           mesh.userData = { seed: gi * 31 + i * 7 + 5, red: ch.red.includes(i), ph: r() * 6.28, sp: 0.25 + r() * 0.3, by: mesh.position.y, rz: (r() - 0.5) * 0.14, ry: (r() - 0.5) * 0.3, real: false };
-          const bild = imgs.length ? imgs[i % imgs.length] : null;
-          if (bild) {
+          const bild = imgs[i % imgs.length];
+          {
             mesh.userData.real = true;
             loader.load(bild, tex => {
               tex.colorSpace = T.SRGBColorSpace;
@@ -175,14 +150,10 @@
       this.scene.background = new T.Color(t.bg);
       this.scene.fog = new T.Fog(new T.Color(t.bg), P.fog[0], P.fog[1]);
       this.thread.material.color = new T.Color(t.red);
+      /* Blätter, deren Aufnahme nicht lädt, bleiben leer statt erfunden. */
       this.groups.forEach(g => g.children.forEach(m => {
         m.rotation.z = m.userData.rz * P.rot; m.rotation.y = m.userData.ry * P.rot;
-        if (m.userData.real) return;
-        if (m.material.map) m.material.map.dispose();
-        const tex = new T.CanvasTexture(inkTex(m.userData.seed, t, m.userData.red));
-        tex.colorSpace = T.SRGBColorSpace;
-        m.material.map = tex;
-        m.material.needsUpdate = true;
+        m.visible = !!m.userData.real;
       }));
       this.draw(performance.now() / 1000);
     }
@@ -246,6 +217,5 @@
       this._raf = 0; this.vis = false;
     }
   }
-  window.LUKE = window.LUKE || {}; window.LUKE.inkTex = inkTex;
   if (!customElements.get('werk-sequenz')) customElements.define('werk-sequenz', WerkSequenz);
 })();
