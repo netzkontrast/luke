@@ -444,7 +444,10 @@
       if (el.getBoundingClientRect().top < trigger) {
         el.style.transitionDelay = Math.min(i * 70, 280) * mScale() + 'ms';
         el.classList.add('on'); i++;
-        setTimeout(() => { el.style.transitionDelay = ''; }, 1400);
+        /* Nach dem Einblenden fällt der Beschnitt weg (`fertig`, css/site.css). Solange er
+           steht, bildet jedes eingeblendete Element einen eigenen Stapelkontext, und ein
+           Plakat darin käme nie über die Tropfspur, egal welchen z-index es hat. */
+        setTimeout(() => { el.style.transitionDelay = ''; el.classList.add('fertig'); }, 1400);
       } else rest.push(el);
     }
     rvList = rest;

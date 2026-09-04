@@ -1,7 +1,8 @@
 /* LUKE.motion — Bewegungs-Renderer für die Seite.
    1. Sanftes Scrollen: Mausrad-Eingaben werden geglättet (Lerp), Touch, Tastatur und Anker bleiben nativ.
-   2. 3D-Parallaxe: eine three.js-Bühne hinter der Seite (Tuschblätter in der Tiefe, rote Spur aus Punkten),
-      Kamera folgt dem geglätteten Scrollwert, Zeiger neigt die Kamera.
+   2. 3D-Parallaxe: eine three.js-Bühne hinter der Seite (echte Tuschblätter in der Tiefe),
+      Kamera folgt dem geglätteten Scrollwert, Zeiger neigt die Kamera. Rote Punkte trieben
+      hier früher mit; sie sind raus, das Rot der Seite ist die Tropfspur.
    3. DOM-Parallaxe: Elemente mit data-depth (Tiefe, z. B. 0.1) bewegen sich relativ zur Bildmitte,
       Elemente mit data-tilt (Grad) neigen sich zum Zeiger.
    Respektiert „reduzierte Bewegung“ und das Bedienfeld (bewegung: aus / dezent / voll). */
@@ -118,7 +119,7 @@
     const DIST = 10; camera.position.z = DIST;
     const visH = () => 2 * Math.tan(camera.fov * Math.PI / 360) * DIST;
     const unit = () => visH() / innerHeight;
-    const colors = () => { const cs = getComputedStyle(app); const g = n => cs.getPropertyValue(n).trim() || '#888'; return { bg: g('--bg'), red: g('--red') }; };
+    const colors = () => { const cs = getComputedStyle(app); const g = n => cs.getPropertyValue(n).trim() || '#888'; return { bg: g('--bg') }; };
 
     /* Tuschblätter in der Tiefe */
     /* Nur echte Blätter. Vorher standen hier erzeugte Tuschflächen, wo die Aufnahmen nicht
@@ -158,20 +159,12 @@
       }, () => { m.visible = false; });
       scene.add(m); sheets.push(m);
     }
-    /* Rote Spur: treibende Punkte */
-    const PN = coarse ? 60 : 140;
-    const pos = new Float32Array(PN * 3); const pdata = [];
-    for (let i = 0; i < PN; i++) pdata.push({ p: rnd(), x: (rnd() - 0.5) * 2.4, z: -1 - rnd() * 14, sp: 0.2 + rnd() * 0.4, ph: rnd() * 6.28, by: 0 });
-    const pgeo = new T.BufferGeometry(); pgeo.setAttribute('position', new T.BufferAttribute(pos, 3));
-    const pmat = new T.PointsMaterial({ size: 0.07, transparent: true, opacity: 0.7, depthWrite: false, sizeAttenuation: true });
-    scene.add(new T.Points(pgeo, pmat));
 
     function theme() {
       const c = colors();
       renderer.setClearColor(new T.Color(c.bg));
       cv.style.background = c.bg;
       scene.fog = new T.Fog(new T.Color(c.bg), 6, 26);
-      pmat.color = new T.Color(c.red === 'transparent' ? c.bg : c.red);
       const on = strength() > 0;
       cv.hidden = !on;
       document.documentElement.classList.toggle('has-stage', on);
@@ -180,8 +173,6 @@
     function layout() {
       const u = unit(), docH = maxScroll() + innerHeight, halfW = visH() * camera.aspect / 2;
       sheets.forEach(m => { const d = m.userData; m.position.x = d.xr * halfW * ((DIST - d.z) / DIST); d.by = -d.docP * docH * u; });
-      pdata.forEach((d, i) => { d.by = -d.p * docH * u; pos[i * 3] = d.x * halfW * ((DIST - d.z) / DIST); pos[i * 3 + 1] = d.by; pos[i * 3 + 2] = d.z; });
-      pgeo.attributes.position.needsUpdate = true;
     }
     function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); layout(); }
     function render(y, t, force) {
@@ -197,8 +188,6 @@
         const dy = Math.abs(m.position.y - camera.position.y) / ((DIST - d.z) / DIST);
         m.material.opacity = d.base * clamp(1 - dy / (vh * 0.9), 0, 1);
       });
-      for (let i = 0; i < PN; i++) { const d = pdata[i]; pos[i * 3 + 1] = d.by + Math.sin(t * d.sp + d.ph) * 0.3 * s; }
-      pgeo.attributes.position.needsUpdate = true;
       renderer.render(scene, camera);
     }
     resize(); theme();

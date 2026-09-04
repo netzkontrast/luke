@@ -12,14 +12,24 @@
    Das Vorbild ist das Kohärenzprotokoll aus dem Schwesterprojekt: Dort steht eine Tabelle
    mit einem Wert je Abschnitt, und alles Sichtbare — Farbe, Glitch, Partikel — wird daraus
    abgeleitet, statt für sich zu animieren. Hier heißt der Wert `fassung`: wie beisammen
-   die Seite gerade ist. Oben ist sie es ganz, unten nicht mehr. Was daraus wird, entscheidet
-   jedes System für sich; woher die Zahl kommt, entscheidet es nicht mehr.
+   die Seite gerade ist. Was daraus wird, entscheidet jedes System für sich; woher die Zahl
+   kommt, entscheidet es nicht mehr.
 
    Benutzung:
      LUKE.welt.z                 der Zustand, immer aktuell, nie ersetzt
      LUKE.welt.an(fn)            fn(z) läuft einmal pro Bild, nach dem Rechnen
      LUKE.welt.ab(fn)            abmelden
      LUKE.welt.abschnitte        die Tabelle
+     LUKE.welt.lagen             die Tabelle, ausgemessen: nur Abschnitte, die es gibt,
+                                 je mit oben und hoehe in Seitenpixeln
+     LUKE.welt.fassungBei(y)     die Fassung an einer beliebigen Stelle der Seite, nicht
+                                 nur am Blick — für alles, was in Seitenkoordinaten
+                                 zeichnet, etwa die Tropfspur
+
+   Die Tabelle bringt jede Seite selbst mit (LUKE.ABSCHNITTE, gesetzt bevor dieses Skript
+   läuft; auf der Werkschau steht sie in index.html direkt unter den Abschnitten). Ohne
+   eigene Tabelle gilt die der Skizze. Ein Eintrag darf zusätzlich `schmal` tragen: die
+   Fassung auf schmalen Schirmen, wo der Text die Hauptsache ist.
 
    Auf <html> liegen außerdem ein paar gerundete Werte als data-Attribute. Die sind für
    deklarative Bindungen da (hx-live) und ändern sich absichtlich nur zehnmal die Sekunde:
@@ -30,11 +40,11 @@
   const L = (window.LUKE = window.LUKE || {});
   if (L.welt) return;
 
-  /* Die Tabelle. Ein Eintrag je Abschnitt, in der Reihenfolge der Seite.
+  /* Die Tabelle der Skizze. Ein Eintrag je Abschnitt, in der Reihenfolge der Seite.
      `stufe` ist die grobe Lage (0 ruhig bis 3 offen), `fassung` der genaue Wert am
      Anfang des Abschnitts. Zwischen zwei Abschnitten wird interpoliert, damit nichts
      springt. Wer einen Abschnitt einfügt, ändert nur diese Tabelle. */
-  const ABSCHNITTE = [
+  const SKIZZE = [
     { id: 'auftakt', name: 'Auftakt',    stufe: 0, fassung: 1.00 },
     { id: 'zug',     name: 'Der Zug',    stufe: 1, fassung: 0.86 },
     { id: 'werke',   name: 'Werke',      stufe: 1, fassung: 0.72 },
@@ -42,6 +52,9 @@
     { id: 'fall',    name: 'Fall',       stufe: 3, fassung: 0.18 },
     { id: 'ruhe',    name: 'Ruhe',       stufe: 1, fassung: 0.64 }
   ];
+  const ABSCHNITTE = Array.isArray(L.ABSCHNITTE) && L.ABSCHNITTE.length ? L.ABSCHNITTE : SKIZZE;
+  /* Unterhalb dieser Breite gilt `schmal`, wo ein Eintrag es hat. */
+  const SCHMAL = 760;
 
   const klemm = (v, a, b) => (v < a ? a : v > b ? b : v);
   const misch = (a, b, t) => a + (b - a) * t;
@@ -55,6 +68,7 @@
     dokument: 0,      // ganze Seitenhöhe, damit sie niemand zweimal messen muss
     p: 0,             // Fortschritt der ganzen Seite, 0 bis 1
     fenster: { b: 0, h: 0 },
+    schmal: false,    // schmaler Schirm
     messung: 0,       // zählt hoch, wenn neu ausgemessen wurde
 
     /* Bewegung */
@@ -65,9 +79,9 @@
     zeiger: { x: 0, y: 0 },   // jeweils -0,5 bis 0,5, Mitte ist null
 
     /* Abschnitt */
-    i: 0,             // Index in der Tabelle
-    id: 'auftakt',
-    name: 'Auftakt',
+    i: 0,             // Index in den Lagen
+    id: '',
+    name: '',
     lokal: 0,         // Fortschritt im Abschnitt, 0 bis 1
     stufe: 0,
 
@@ -85,13 +99,15 @@
   if (prm && prm.addEventListener) prm.addEventListener('change', e => { z.ruhig = e.matches; });
 
   const hoerer = new Set();
-  let kasten = [];      // gemessene Lage der Abschnitte auf der Seite
+  let lagen = [];       // gemessene Lage der Abschnitte, die es auf der Seite gibt
   let letztesY = 0;
   let raf = 0;
   let messenGeplant = true;
 
   /* Die Abschnitte einmal ausmessen. Das kostet Layout und passiert deshalb nur bei
-     Größenänderung, nach dem Laden und wenn sich die Seitenhöhe ändert, nie im Bildtakt. */
+     Größenänderung, nach dem Laden und wenn sich die Seitenhöhe ändert, nie im Bildtakt.
+     Abschnitte, die es nicht gibt oder die ausgeblendet sind (etwa „Flash" ohne Blätter),
+     fallen dabei heraus: Zwischen ihren Nachbarn wird dann direkt überblendet. */
   function messen() {
     messenGeplant = false;
     const doc = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
@@ -99,35 +115,50 @@
     z.hoehe = Math.max(1, doc - innerHeight);
     z.fenster.b = innerWidth;
     z.fenster.h = innerHeight;
-    kasten = ABSCHNITTE.map(a => {
+    z.schmal = innerWidth < SCHMAL;
+    lagen = [];
+    for (const a of ABSCHNITTE) {
       const el = document.getElementById(a.id);
-      if (!el) return null;
+      if (!el || el.hidden) continue;
       const r = el.getBoundingClientRect();
-      return { oben: r.top + window.scrollY, hoehe: Math.max(1, r.height) };
-    });
+      if (!(r.height > 0)) continue;
+      const wert = z.schmal && typeof a.schmal === 'number' ? a.schmal : a.fassung;
+      lagen.push({
+        id: a.id, name: a.name || a.id, stufe: a.stufe || 0,
+        fassung: klemm(typeof wert === 'number' ? wert : 1, 0, 1),
+        oben: r.top + window.scrollY, hoehe: Math.max(1, r.height)
+      });
+    }
     z.messung++;
+  }
+
+  /* Die Fassung an einer Stelle der Seite: der Wert des Abschnitts, in dem sie liegt,
+     überblendet zum nächsten. Vor dem ersten Abschnitt gilt dessen Wert, hinter dem
+     letzten seiner. Ein Sprung wäre auf der Seite sofort als Ruck zu sehen. */
+  function fassungBei(y) {
+    if (!lagen.length) return 1;
+    let i = 0;
+    for (let k = 0; k < lagen.length; k++) if (y >= lagen[k].oben) i = k;
+    const a = lagen[i], b = lagen[i + 1];
+    if (y < a.oben) return a.fassung;
+    const lokal = klemm((y - a.oben) / a.hoehe, 0, 1);
+    return klemm(misch(a.fassung, b ? b.fassung : a.fassung, lokal), 0, 1);
   }
 
   /* Aus der Scrollposition wird der Abschnitt, aus dem Abschnitt die Fassung.
      Gemessen wird an der Mitte des Fensters: Was dort steht, ist das, was gelesen wird. */
   function abschnittBestimmen() {
+    if (!lagen.length) return;
     const blick = z.y + innerHeight * 0.5;
-    let i = 0, lokal = 0;
-    for (let k = 0; k < kasten.length; k++) {
-      const b = kasten[k];
-      if (!b) continue;
-      if (blick >= b.oben) { i = k; lokal = klemm((blick - b.oben) / b.hoehe, 0, 1); }
-    }
+    let i = 0;
+    for (let k = 0; k < lagen.length; k++) if (blick >= lagen[k].oben) i = k;
+    const a = lagen[i];
     z.i = i;
-    z.id = ABSCHNITTE[i].id;
-    z.name = ABSCHNITTE[i].name;
-    z.lokal = lokal;
-    z.stufe = ABSCHNITTE[i].stufe;
-    /* Fassung zwischen diesem und dem nächsten Abschnitt überblenden, damit der Wert
-       läuft und nicht springt. Ein Sprung wäre auf der Seite sofort als Ruck zu sehen. */
-    const jetzt = ABSCHNITTE[i].fassung;
-    const naechst = ABSCHNITTE[i + 1] ? ABSCHNITTE[i + 1].fassung : jetzt;
-    z.fassung = klemm(misch(jetzt, naechst, lokal), 0, 1);
+    z.id = a.id;
+    z.name = a.name;
+    z.stufe = a.stufe;
+    z.lokal = klemm((blick - a.oben) / a.hoehe, 0, 1);
+    z.fassung = fassungBei(blick);
     z.blut = 1 - z.fassung;
   }
 
@@ -206,6 +237,8 @@
   L.welt = {
     z,
     abschnitte: ABSCHNITTE,
+    get lagen() { return lagen; },
+    fassungBei,
     an(fn) { hoerer.add(fn); return () => hoerer.delete(fn); },
     ab(fn) { hoerer.delete(fn); },
     messen: neuMessen,

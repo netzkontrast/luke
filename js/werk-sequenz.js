@@ -32,13 +32,15 @@
     return (L.helleAufnahmen ? L.helleAufnahmen(key) : []).map(w => w.src);
   }
   const CH = ALLE_CH.filter(ch => realImages(ch.key).length);
-  /* Die Kamera fährt an jeder Gruppe vorbei und ein Stück darüber hinaus. */
-  const REISE = ABSTAND * Math.max(0, CH.length - 1) + 16;
+  /* Die Kamera fährt an jeder Gruppe vorbei und so weit darüber hinaus, dass die letzte
+     genau am Ende der Strecke verblasst ist. Vorher fuhr sie sechs Einheiten weiter, und
+     das letzte Stück des Abschnitts war leeres Weiß; bei einem einzigen Kapitel fast die
+     Hälfte davon. */
+  const REISE = ABSTAND * Math.max(0, CH.length - 1) + 10;
   class WerkSequenz extends HTMLElement {
     static get observedAttributes() { return ['richtung', 'bewegung']; }
     connectedCallback() {
       if (this._init) {
-        addEventListener('scroll', this.onScroll, { passive: true });
         addEventListener('pointermove', this.onMove, { passive: true });
         if (this.io) this.io.observe(this);
         this.calc(); this.loop();
@@ -66,8 +68,6 @@
       this.hint.style.cssText = 'position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--mut);font-size:13px;transition:opacity .5s;';
       this.hint.innerHTML = '<span>Scrollen</span><span style="display:block;width:1px;height:26px;background:var(--mut);"></span>';
       this.stick.appendChild(this.hint);
-      this.onScroll = () => { this.calc(); if (this.m === 0) this.draw(0); };
-      addEventListener('scroll', this.onScroll, { passive: true });
       addEventListener('resize', () => this.resize(), { passive: true });
       this.onMove = e => { this.tx = (e.clientX / innerWidth - 0.5); this.ty = (e.clientY / innerHeight - 0.5); };
       addEventListener('pointermove', this.onMove, { passive: true });
@@ -85,7 +85,7 @@
       this.style.height = Math.max(140, Math.round(roh * CH.length / ALLE_CH.length)) + 'svh';
     }
     css(n) { return getComputedStyle(this).getPropertyValue(n).trim() || '#888'; }
-    theme() { return { bg: this.css('--bg'), red: this.css('--red') }; }
+    theme() { return { bg: this.css('--bg') }; }
     async boot() {
       /* Kein Kapitel, keine Sequenz. Der Abschnitt verschwindet, statt leer dazustehen. */
       if (!CH.length) {
@@ -145,16 +145,14 @@
         }
         this.scene.add(g); this.groups.push(g);
       });
-      const pts = []; const r2 = rng(9);
-      for (let z = 8; z >= -46; z -= 1.5) pts.push(new T.Vector3((r2() - 0.5) * 0.8, 6 - (8 - z) * 0.22, z));
-      this.thread = new T.Line(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({ transparent: true, opacity: 0.85 }));
-      this.scene.add(this.thread);
+      /* Hier lief früher ein roter Faden als Zickzacklinie durch die Tiefe. Er ist raus:
+         Das Rot in der Sequenz ist die Tropfspur, die von der Seite her darüberläuft.
+         Zwei rote Linien im selben Blick nähmen einander die Wirkung. */
     }
     applyTheme() {
       const t = this.theme(); const T = this.T; const P = this.P();
       this.scene.background = new T.Color(t.bg);
       this.scene.fog = new T.Fog(new T.Color(t.bg), P.fog[0], P.fog[1]);
-      this.thread.material.color = new T.Color(t.red);
       /* Blätter, deren Aufnahme nicht lädt, bleiben leer statt erfunden. */
       this.groups.forEach(g => g.children.forEach(m => {
         m.rotation.z = m.userData.rz * P.rot; m.rotation.y = m.userData.ry * P.rot;
@@ -169,10 +167,26 @@
       this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
       this.draw(performance.now() / 1000);
     }
+    /* Wo auf der Strecke die Kamera steht. Die Scrollposition kommt vom Weltzustand
+       (js/weltzustand.js), die eigene Lage wird nur neu gemessen, wenn der die Seite neu
+       ausgemessen hat. Vorher las die Sequenz bei jedem Bild ihr Rechteck aus, und weil
+       die Parallaxe kurz davor Transformationen schreibt, zwang das den Browser jedes Mal
+       zum Nachrechnen. Ohne Weltzustand bleibt es beim alten Weg. */
     calc() {
-      const r = this.getBoundingClientRect();
-      const total = r.height - innerHeight;
-      this.p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+      const w = window.LUKE && window.LUKE.welt;
+      if (w) {
+        if (w.z.messung !== this._messung) {
+          this._messung = w.z.messung;
+          const r = this.getBoundingClientRect();
+          this.oben = r.top + scrollY; this.hoehe = r.height;
+        }
+        const total = this.hoehe - w.z.fenster.h;
+        this.p = total > 0 ? Math.min(1, Math.max(0, (w.z.y - this.oben) / total)) : 0;
+      } else {
+        const r = this.getBoundingClientRect();
+        const total = r.height - innerHeight;
+        this.p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+      }
       if (this.hint) this.hint.style.opacity = (this.p > 0.04 || this.m === 0) ? '0' : '1';
     }
     draw(t) {
@@ -182,10 +196,8 @@
         this.camera.position.set(0, 0, 12); this.camera.lookAt(0, 0, 0);
         this.groups.forEach((g, i) => { g.position.set((i - 1) * 7.4, 0, 0); g.children.forEach(c => { c.material.opacity = 1; c.position.y = c.userData.by * 0.5; }); });
         this.labels.forEach((el, i) => { el.style.opacity = i === 1 ? 1 : 0; el.style.pointerEvents = i === 1 ? '' : 'none'; });
-        this.thread.visible = false;
         this.renderer.render(this.scene, this.camera); return;
       }
-      this.thread.visible = true;
       const P = this.P();
       this.groups.forEach((g, i) => g.position.set(0, 0, -18 * i));
       this._sp += (p - this._sp) * P.lerp;
@@ -216,7 +228,7 @@
       this._raf = requestAnimationFrame(step);
     }
     disconnectedCallback() {
-      removeEventListener('scroll', this.onScroll); removeEventListener('pointermove', this.onMove);
+      removeEventListener('pointermove', this.onMove);
       if (this.io) this.io.unobserve(this);
       if (this._raf) cancelAnimationFrame(this._raf);
       this._raf = 0; this.vis = false;
