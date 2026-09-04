@@ -21,8 +21,11 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
 - [ ] **Podcast verlinken.** Der Fuß nennt „Bluthandwerk — Nicht noch ein Tattoo-Podcast!“, im Abschnitt Grafik steht
       das Titelbild. Sobald es eine Adresse gibt, gehört sie an beide Stellen.
 - [ ] **Einwilligung** der tätowierten Personen schriftlich einholen, bevor Werkfotos (Haut) eingesetzt werden.
-- [ ] **Echte Werkfotos** für die Platzhalter VIII bis XIV (Arbeiten auf Haut) und die Flash-Blätter einsetzen
-      (siehe README). Auf Papier gibt es keine Platzhalter mehr.
+- [ ] **Hautarbeiten und Flash fehlen ganz.** Die erfundenen Platzhalter sind raus: Die Seite zeigt nur noch, was es
+      gibt. Damit sind auch die Reiter „Haut / Papier / Alles", die Filter nach Körperstelle und Motiv und der ganze
+      Abschnitt „Flash" verschwunden — nicht gelöscht, sondern ausgeblendet. Sobald Einträge mit `src` in
+      `LUKE.WERKE` (`tr: 'haut'`) oder in `LUKE.FLASH` stehen, kommt alles von selbst zurück, samt Kapitel in der
+      Sequenz und Eintrag in der Navigation. Nichts davon muss von Hand wieder eingeschaltet werden.
 - [ ] **Maße** der Papierarbeiten eintragen (`masse: 'Maße folgen'`).
 - [ ] **Öffnungszeiten und Anfahrt** im Studio-Block ergänzen („Anfahrt: Angabe folgt“).
 - [ ] **Formularversand** festlegen (`formEndpoint` oder `formEmail` in `js/works.js`); bis dahin zeigt die Seite den
@@ -47,6 +50,8 @@ Bereits umgesetzt:
       Auge mit der Signatur und die kniende Figur. Sie liegen unter `LUKE.GESTALTUNG` und heißen `gestaltung-*`,
       damit die Rolle am Dateinamen ablesbar ist.
 - [x] Abschnitt Grafik mit fünf Auftragsarbeiten: Podcast-Titelbild, Plakat, zwei Signets, ein Albumcover.
+- [x] Keine erfundenen Inhalte mehr auf der Seite. Reiter, Filter, Sequenzkapitel und Abschnitte richten sich nach den
+      Daten: Was leer ist, erscheint nicht.
 - [x] Der Seitenkopf zeigt die kniende Figur. Das Video zeigt weiter, wie das Profil entsteht: Das sind zwei Blätter,
       dazwischen liegt eine knappe Leerstelle, damit es als Schnitt gelesen wird und nicht als Verwandlung. Beide sind
       Gestaltung, keine Werke.

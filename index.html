@@ -83,8 +83,11 @@
 
     <section id="werke" class="pad">
       <div class="wrap">
+        <!-- Gibt es nur einen Träger, tragen die Reiter nichts bei und weichen einer
+             gewöhnlichen Überschrift. js/site.js entscheidet das anhand der Daten. -->
+        <h2 class="hd rv" id="werke-titel" hidden>Werke</h2>
         <div id="tr-tabs" class="tr-tabs rv" role="group" aria-label="Träger wählen"></div>
-        <p class="werke-lead rv">Dieselbe Hand, dieselbe Linie — nur der Grund wechselt. <span id="werke-count"></span></p>
+        <p class="werke-lead rv"><span id="werke-lead-text">Dieselbe Hand, dieselbe Linie — nur der Grund wechselt.</span> <span id="werke-count"></span></p>
         <div id="werke-filter" class="chips" hidden></div>
         <noscript><p class="mut">Für die Werkübersicht bitte JavaScript aktivieren.</p></noscript>
         <div class="g-wall">

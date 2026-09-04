@@ -46,8 +46,15 @@ scripts/make-gifs.sh  Erzeugt GIF-Fassungen der Zeichenanimationen
 
 ## Bilder und Videos austauschen
 
-Werke stehen in `js/works.js` unter `LUKE.WERKE`. Ein Eintrag mit `src`, `w`, `h` zeigt ein echtes Bild,
-ohne `src` wird eine generierte Tuschzeichnung als Platzhalter angezeigt.
+Werke stehen in `js/works.js` unter `LUKE.WERKE`. Ein Eintrag braucht `src`, `w` und `h`. Einträge ohne `src`
+bekämen eine generierte Tuschzeichnung als Platzhalter — der Erzeuger steht noch in `js/site.js`, benutzt wird er
+nicht: Auf der Seite steht nur, was es gibt.
+
+Die Seite richtet sich nach den Daten. Gibt es nur einen Träger, verschwinden die Reiter „Haut / Papier / Alles"
+und der Abschnitt bekommt stattdessen eine gewöhnliche Überschrift. Ein Filter erscheint nur, wenn es darin mehr als
+eine Möglichkeit gibt. Ist `LUKE.FLASH` leer, verschwindet der Abschnitt „Flash" samt Eintrag in der Navigation. Ein
+Kapitel der 3D-Sequenz erscheint nur, wenn es dafür Aufnahmen gibt; bleibt keines übrig, entfällt der ganze
+Abschnitt. Nichts davon muss von Hand geschaltet werden — Einträge ergänzen genügt.
 
 Nicht jedes Blatt auf der Seite ist ein Werk. Drei tragen die Gestaltung, ohne im Verzeichnis zu stehen:
 das Profil mit dem roten Strang (Auftaktvideo, Tiefenebenen, Sprite), das Auge mit der Signatur (Abschnitt

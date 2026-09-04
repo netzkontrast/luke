@@ -19,7 +19,15 @@ LUKE.CONFIG = {
   formEmail: '',
 
   /* Der Streifen „Aktuell“ wird nach diesem Datum automatisch ausgeblendet (einschließlich). */
-  ausstellung: { bis: '2026-09-27' }
+  ausstellung: { bis: '2026-09-27' },
+
+  /* Vorspann der Galerie. Solange es nur Arbeiten auf Papier gibt, wäre der Satz über den
+     wechselnden Grund eine Behauptung ohne Beleg; sobald Hautfotos dazukommen, greift
+     wieder der erste. */
+  werkeVorspann: {
+    beides: 'Dieselbe Hand, dieselbe Linie — nur der Grund wechselt.',
+    nurPapier: 'Arbeiten auf Papier. Tusche und Farbe, jedes Blatt ein Original.'
+  }
 };
 
 /* Filterlisten in Anzeigereihenfolge. */
@@ -73,14 +81,7 @@ LUKE.WERKE = [
   { id: 'w6', nr: 'VI', t: 'Zwölf Köpfe', tr: 'papier', serie: 'Köpfe', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
     src: 'assets/img/werk-6-koepfe-800.jpg',
     srcset: 'assets/img/werk-6-koepfe-480.jpg 480w, assets/img/werk-6-koepfe-800.jpg 800w, assets/img/werk-6-koepfe-1600.jpg 1600w',
-    w: 1600, h: 1790 },
-  { id: 'w7', nr: 'VII', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 61 },
-  { id: 'w8', nr: 'VIII', t: 'Zugvogel', tr: 'haut', ort: 'Schulter', ortKey: 'Arm', motiv: 'Tier', jahr: 2025, sitzungen: 1, zustand: 'frisch', vbW: 400, vbH: 500, seed: 67 },
-  { id: 'w9', nr: 'IX', t: 'Doppelprofil', tr: 'haut', ort: 'Rücken', ortKey: 'Rücken', motiv: 'Figur', jahr: 2024, sitzungen: 4, zustand: 'abgeheilt', vbW: 600, vbH: 400, seed: 71 },
-  { id: 'w10', nr: 'X', t: 'Nachtfalter', tr: 'haut', ort: 'Brust', ortKey: 'Brust', motiv: 'Tier', jahr: 2024, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 79 },
-  { id: 'w11', nr: 'XI', t: 'Distelzweig', tr: 'haut', ort: 'Wade', ortKey: 'Bein', motiv: 'Botanik', jahr: 2023, sitzungen: 2, zustand: 'abgeheilt', vbW: 400, vbH: 600, seed: 83 },
-  { id: 'w12', nr: 'XII', t: 'Bannerschrift', tr: 'haut', ort: 'Handrücken', ortKey: 'Hand', motiv: 'Schrift', jahr: 2023, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 89 },
-  { id: 'w13', nr: 'XIII', t: 'Schwalbenpaar', tr: 'haut', ort: 'Oberschenkel', ortKey: 'Bein', motiv: 'Tier', jahr: 2022, sitzungen: 1, zustand: 'abgeheilt', vbW: 400, vbH: 500, seed: 97 }
+    w: 1600, h: 1790 }
 ];
 
 /* Gestaltung. Drei Blätter, die die Seite tragen, ohne im Verzeichnis zu stehen:
@@ -119,15 +120,10 @@ LUKE.GESTALTUNG = {
   }
 };
 
-/* Flash-Blätter. `src` (optional) für ein echtes Foto des Blatts, sonst Platzhalter. status: 'verfügbar' | 'vergeben' */
-LUKE.FLASH = [
-  { n: 1, format: 'A5', motiv: 'Schwalbe mit Banner', status: 'verfügbar', seed: 101 },
-  { n: 2, format: 'A5', motiv: 'Distel und Dolch', status: 'vergeben', seed: 103 },
-  { n: 3, format: 'A4', motiv: 'Falter, offen', status: 'verfügbar', seed: 107 },
-  { n: 4, format: 'A5', motiv: 'Rose, schwarz', status: 'verfügbar', seed: 109 },
-  { n: 5, format: 'A4', motiv: 'Zwei Hände, haltend', status: 'vergeben', seed: 113 },
-  { n: 6, format: 'A5', motiv: 'Anker mit Tau', status: 'verfügbar', seed: 127 }
-];
+/* Flash-Blätter. Leer, bis es Aufnahmen gibt: Der Abschnitt „Flash" blendet sich dann
+   von selbst aus, samt Eintrag in der Navigation. Ein Eintrag braucht `n`, `format`,
+   `motiv`, `status` ('verfügbar' | 'vergeben'), optional `preis` und `src`. */
+LUKE.FLASH = [];
 
 /* Grafik. Auftragsarbeiten neben dem Tätowieren: Plakate, Cover, Signets. Anders als die
    Werke haben sie einen Anlass und einen Auftraggeber, deshalb eigene Felder statt Träger,

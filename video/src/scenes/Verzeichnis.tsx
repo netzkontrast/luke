@@ -121,9 +121,15 @@ export const Verzeichnis: React.FC<{ ende: number }> = ({ ende }) => {
                 lineHeight: 1.45,
               }}
             >
-              Dazu {hautZahl} Arbeiten auf Haut.
-              <br />
-              Beides Originale, beides aus der Hand gegeben.
+              {haut.length > 0 ? (
+                <>
+                  Dazu {hautZahl} Arbeiten auf Haut.
+                  <br />
+                  Beides Originale, beides aus der Hand gegeben.
+                </>
+              ) : (
+                <>Originale, aus der Hand gegeben.</>
+              )}
             </div>
           </Eintritt>
         </div>

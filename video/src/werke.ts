@@ -59,69 +59,6 @@ export const WERKE: Werk[] = [
     "technik": "Tusche auf Papier, zwölf Blätter",
     "ort": null,
     "serie": "Köpfe"
-  },
-  {
-    "nr": "VII",
-    "titel": "Schwarzdorn",
-    "traeger": "haut",
-    "jahr": 2025,
-    "technik": null,
-    "ort": "Unterarm",
-    "serie": null
-  },
-  {
-    "nr": "VIII",
-    "titel": "Zugvogel",
-    "traeger": "haut",
-    "jahr": 2025,
-    "technik": null,
-    "ort": "Schulter",
-    "serie": null
-  },
-  {
-    "nr": "IX",
-    "titel": "Doppelprofil",
-    "traeger": "haut",
-    "jahr": 2024,
-    "technik": null,
-    "ort": "Rücken",
-    "serie": null
-  },
-  {
-    "nr": "X",
-    "titel": "Nachtfalter",
-    "traeger": "haut",
-    "jahr": 2024,
-    "technik": null,
-    "ort": "Brust",
-    "serie": null
-  },
-  {
-    "nr": "XI",
-    "titel": "Distelzweig",
-    "traeger": "haut",
-    "jahr": 2023,
-    "technik": null,
-    "ort": "Wade",
-    "serie": null
-  },
-  {
-    "nr": "XII",
-    "titel": "Bannerschrift",
-    "traeger": "haut",
-    "jahr": 2023,
-    "technik": null,
-    "ort": "Handrücken",
-    "serie": null
-  },
-  {
-    "nr": "XIII",
-    "titel": "Schwalbenpaar",
-    "traeger": "haut",
-    "jahr": 2022,
-    "technik": null,
-    "ort": "Oberschenkel",
-    "serie": null
   }
 ];
 

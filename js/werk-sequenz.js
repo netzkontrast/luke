@@ -6,7 +6,11 @@
   const SELF = document.currentScript && document.currentScript.src;
   const LOCAL = SELF ? new URL('../vendor/three.module.min.js', SELF).href : 'vendor/three.module.min.js';
   const CDN = 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
-  const CH = [
+  /* Alle Kapitel, die die Sequenz kennt. Gezeigt wird nur, wofür es Aufnahmen gibt:
+     Ein Kapitel „Haut“ über generierten Tuschflächen behauptete Arbeiten, die auf der
+     Seite nicht zu sehen sind. Sobald Fotos dazukommen, ist das Kapitel von selbst
+     wieder da. */
+  const ALLE_CH = [
     { key: 'haut', t: 'Haut', sub: 'Blackwork auf Arm, Rücken, Brust — seit 2012.', red: [0] },
     { key: 'papier', t: 'Papier', sub: 'Tusche, Originale — zuletzt „Befreiung der Körperlichkeit“.', red: [0, 3] },
     { key: 'flash', t: 'Flash', sub: 'Fertige Blätter, jedes wird genau einmal gestochen.', red: [] }
@@ -51,6 +55,10 @@
        hellem Grund, ein schwarzes Rechteck wäre dort ein Fremdkörper. */
     return (L.WERKE || []).filter(w => w.tr === key && w.src && w.grund !== 'foto').map(w => w.src);
   }
+  const CH = ALLE_CH.filter(ch => realImages(ch.key).length);
+  /* Die Kamera fährt an jeder Gruppe vorbei und ein Stück darüber hinaus. Bei drei
+     Kapiteln sind das die 52 Einheiten, mit denen die Sequenz gebaut wurde. */
+  const REISE = 18 * Math.max(0, CH.length - 1) + 16;
   class WerkSequenz extends HTMLElement {
     static get observedAttributes() { return ['richtung', 'bewegung']; }
     connectedCallback() {
@@ -94,10 +102,23 @@
     attributeChangedCallback() { if (this.scene) this.applyTheme(); this.applyMode(); }
     mVal() { return { aus: 0, dezent: 0.55, voll: 1 }[this.getAttribute('bewegung') || 'voll'] ?? 1; }
     P() { return DIR[this.getAttribute('richtung') || 'a'] || DIR.a; }
-    applyMode() { this.m = this.mVal(); this.style.height = this.m === 0 ? '100svh' : this.P().h; }
+    applyMode() {
+      this.m = this.mVal();
+      if (this.m === 0) { this.style.height = '100svh'; return; }
+      /* Weniger Kapitel, kürzere Strecke: Sonst scrollt man an leerer Tiefe vorbei. */
+      const roh = parseFloat(this.P().h) || 260;
+      this.style.height = Math.max(140, Math.round(roh * CH.length / 3)) + 'svh';
+    }
     css(n) { return getComputedStyle(this).getPropertyValue(n).trim() || '#888'; }
     theme() { return { bg: this.css('--bg'), ph: this.css('--phbg'), ink: this.css('--ink'), mut: this.css('--mut'), red: this.css('--red') }; }
     async boot() {
+      /* Kein Kapitel, keine Sequenz. Der Abschnitt verschwindet, statt leer dazustehen. */
+      if (!CH.length) {
+        this.style.display = 'none';
+        const sec = this.closest('section');
+        if (sec) sec.hidden = true;
+        return;
+      }
       this.applyMode();
       let T = null;
       try { T = await import(LOCAL); } catch (e) { try { T = await import(CDN); } catch (e2) { T = null; } }
@@ -193,7 +214,7 @@
       this.groups.forEach((g, i) => g.position.set(0, 0, -18 * i));
       this._sp += (p - this._sp) * P.lerp;
       const sp = Math.abs(p - this._sp) < 0.0004 ? p : this._sp;
-      const camZ = 10 - sp * 52;
+      const camZ = 10 - sp * REISE;
       this._cx = (this._cx ?? 0) + ((this.tx * 1.4 * m * P.cam + Math.sin(this._sp * 9.4) * 0.5 * m * P.cam) - (this._cx ?? 0)) * 0.06;
       this._cy = (this._cy ?? 0) + ((-this.ty * 0.9 * m * P.cam) - (this._cy ?? 0)) * 0.06;
       this.camera.position.set(this._cx, this._cy, camZ);

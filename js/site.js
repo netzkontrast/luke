@@ -76,6 +76,12 @@
   }
 
   /* ---------- Werke ---------- */
+  /* Welche Träger es gibt, entscheidet sich an den Daten, nicht am Markup. Solange es nur
+     Arbeiten auf Papier gibt, wären Reiter für „Haut“ und „Alles“ drei Knöpfe, von denen
+     zwei ins Leere führen. Sie erscheinen wieder, sobald Hautfotos dazukommen. */
+  const traegerDa = ['haut', 'papier'].filter(t => W.some(w => w.tr === t));
+  const einTraeger = traegerDa.length < 2;
+  if (einTraeger && traegerDa.length) S.traeger = traegerDa[0];
   const isReal = w => !!w.src;
   /* Tuscheblätter kommen mit multiply auf die Seite: Das Papier verschwindet, stehen
      bleibt nur die Zeichnung. Ein Foto mit dunklem Grund darf das nicht, sonst säuft
@@ -98,7 +104,15 @@
     return list;
   }
   function renderTabs() {
-    $('#tr-tabs').innerHTML = [['haut', 'Haut'], ['papier', 'Papier'], ['alles', 'Alles']]
+    const leiste = $('#tr-tabs'), titel = $('#werke-titel');
+    if (einTraeger) {
+      leiste.innerHTML = ''; leiste.hidden = true;
+      if (titel) titel.hidden = false;
+      return;
+    }
+    leiste.hidden = false;
+    if (titel) titel.hidden = true;
+    leiste.innerHTML = [['haut', 'Haut'], ['papier', 'Papier'], ['alles', 'Alles']]
       .map(([k, label]) => `<button type="button" class="tr-tab" data-tr="${k}" aria-pressed="${S.traeger === k}">${label}</button>`).join('')
       + '<span class="tr-schiene" aria-hidden="true"></span>';
     schieneSetzen();
@@ -115,20 +129,35 @@
   }
   addEventListener('resize', schieneSetzen, { passive: true });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(schieneSetzen);
+  /* Ein Reiter, hinter dem nichts steht, ist eine Sackgasse. Angeboten wird deshalb nur,
+     was unter den vorhandenen Werken auch vorkommt — und nur dann, wenn es mehr als eine
+     Möglichkeit gibt. */
+  function vorhanden(liste, feld) {
+    const da = new Set(W.filter(w => w.tr === S.traeger).map(w => w[feld]));
+    return (liste || []).filter(v => da.has(v));
+  }
   function renderChips() {
     const chip = (label, active, f, v) => `<button type="button" class="chip" data-f="${f}" data-v="${esc(v == null ? '' : v)}" aria-pressed="${active}">${esc(label)}</button>`;
+    const gruppe = (alleLabel, werte, f, aktiv) => werte.length < 2 ? ''
+      : chip(alleLabel, !aktiv, f, '') + werte.map(o => chip(String(o), aktiv === o, f, o)).join('');
     let html = '';
     if (S.traeger === 'haut') {
-      html = chip('Alle Stellen', !S.fOrt, 'fOrt', '') + (FILTER.orte || []).map(o => chip(o, S.fOrt === o, 'fOrt', o)).join('')
-        + '<span class="chip-gap"></span>' + (FILTER.motive || []).map(o => chip(o, S.fMotiv === o, 'fMotiv', o)).join('');
+      const a = gruppe('Alle Stellen', vorhanden(FILTER.orte, 'ortKey'), 'fOrt', S.fOrt);
+      const b = gruppe('Alle Motive', vorhanden(FILTER.motive, 'motiv'), 'fMotiv', S.fMotiv);
+      html = a + (a && b ? '<span class="chip-gap"></span>' : '') + b;
     } else if (S.traeger === 'papier') {
-      html = chip('Alle Serien', !S.fSerie, 'fSerie', '') + (FILTER.serien || []).map(o => chip(o, S.fSerie === o, 'fSerie', o)).join('')
-        + '<span class="chip-gap"></span>' + (FILTER.jahre || []).map(o => chip(String(o), S.fJahr === o, 'fJahr', o)).join('');
+      const a = gruppe('Alle Serien', vorhanden(FILTER.serien, 'serie'), 'fSerie', S.fSerie);
+      const b = gruppe('Alle Jahre', vorhanden(FILTER.jahre, 'jahr'), 'fJahr', S.fJahr);
+      html = a + (a && b ? '<span class="chip-gap"></span>' : '') + b;
     }
     const el = $('#werke-filter'); el.innerHTML = html; el.hidden = !html;
   }
   function renderGrid() {
     const list = filtered();
+    const vs = CFG.werkeVorspann || {};
+    const satz = einTraeger ? (vs.nurPapier || '') : (vs.beides || '');
+    const lead = $('#werke-lead-text');
+    if (lead && satz) lead.textContent = satz;
     $('#werke-count').textContent = list.length === 1 ? 'Ein Werk.' : list.length + ' Werke.';
     const gl = $('#g-list'); gl.dataset.layout = S.layout;
     const wall = gl.closest('.g-wall');
@@ -206,7 +235,7 @@
       };
     } else apply();
   }
-  $('#tr-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) setTraeger(b.dataset.tr); });
+  $('#tr-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b && !einTraeger) setTraeger(b.dataset.tr); });
   $('#werke-filter').addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const f = b.dataset.f, v = b.dataset.v;
@@ -329,6 +358,18 @@
   /* ---------- Flash ---------- */
   function renderFlash() {
     const el = $('#flash-list'); if (!el) return;
+    /* Ohne Blätter kein Abschnitt. Erfundene Blätter wären das Gegenteil dessen, wofür
+       die Seite da ist. */
+    const abschnitt = document.getElementById('flash');
+    const navLink = document.querySelector('.top a[href="#flash"]');
+    if (!FLASH.length) {
+      if (abschnitt) abschnitt.hidden = true;
+      if (navLink) navLink.hidden = true;
+      el.innerHTML = '';
+      return;
+    }
+    if (abschnitt) abschnitt.hidden = false;
+    if (navLink) navLink.hidden = false;
     el.innerHTML = FLASH.map(f => {
       const bild = f.src
         ? `<img class="ink-img" src="${esc(f.src)}" alt="" loading="lazy" decoding="async">`
@@ -480,8 +521,8 @@
   });
   document.addEventListener('sequenz-select', e => {
     const k = e.detail && e.detail.key;
-    const target = k === 'flash' ? 'flash' : 'werke';
-    if (k === 'haut' || k === 'papier') setTraeger(k, true);
+    const target = k === 'flash' && FLASH.length ? 'flash' : 'werke';
+    if (!einTraeger && (k === 'haut' || k === 'papier')) setTraeger(k, true);
     const el = document.getElementById(target);
     if (!el) return;
     const top = el.getBoundingClientRect().top + scrollY - 56;
