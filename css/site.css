@@ -243,6 +243,28 @@ werk-sequenz { display: block; }
 .sheet-status { color: var(--avail); }
 .sheet.vergeben .sheet-status { color: var(--mut); }
 
+/* ---------- Grafik ---------- */
+/* Plakate, Cover und Signets bringen ihren eigenen, dunklen Grund mit. Sie werden deshalb
+   nicht multipliziert und behalten ihr Format: Ein Plakat ist hochkant, ein Signet quer,
+   und beides bleibt so. Die Haarlinie ist für die Richtungen mit dunklem Papier da, wo ein
+   schwarzes Plakat sonst in den Grund liefe. */
+/* Spalten statt Raster: Die Formate sind zu verschieden. Im Raster richtet sich jede Reihe
+   nach dem höchsten Stück, und unter den Signets steht ein Loch, so hoch wie ein Plakat. */
+.gr-grid { columns: 2; column-gap: var(--gg); margin-top: 26px; }
+.gr-item { display: block; width: 100%; border: 0; background: none; padding: 0;
+  margin: 0 0 var(--gg); break-inside: avoid;
+  text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.gr-ph { display: block; overflow: hidden; border: 1px solid var(--line); background: var(--bg2); }
+.gr-ph > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.gr-meta { display: block; padding: 12px 2px 0; }
+.gr-t { display: block; font-weight: 500; }
+.gr-m { display: block; color: var(--mut); font-size: 15.5px; margin-top: 3px; }
+.gr-n { display: block; color: var(--mut); font-size: 15px; margin-top: 2px; text-wrap: pretty; }
+/* In der Werkstatt-Richtung hängen auch die Plakate am Klebeband. */
+.app[data-richtung="c"] .gr-item:nth-child(2n) .gr-ph { transform: rotate(-0.8deg); }
+.app[data-richtung="c"] .gr-item:nth-child(3n) .gr-ph { transform: rotate(0.9deg); }
+@media (max-width: 700px) { .gr-grid { columns: 1; } }
+
 /* ---------- Anfrage ---------- */
 .steps { margin: 0; padding: 0 0 0 24px; display: grid; gap: 18px; max-width: 52ch; line-height: 1.6; }
 .steps li { text-wrap: pretty; }

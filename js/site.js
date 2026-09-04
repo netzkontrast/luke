@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   const L = window.LUKE || {};
-  const CFG = L.CONFIG || {}, W = L.WERKE || [], FLASH = L.FLASH || [], FILTER = L.FILTER || {};
+  const CFG = L.CONFIG || {}, W = L.WERKE || [], FLASH = L.FLASH || [], FILTER = L.FILTER || {}, GRAFIK = L.GRAFIK || [];
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -218,19 +218,36 @@
 
   /* ---------- Werkansicht ---------- */
   let ret = null, rect0 = null;
+  /* Die Werkansicht zeigt Werke und Grafiken. Beide sind Bilder mit ein paar Zeilen
+     darunter; nur die Zeilen unterscheiden sich, und geblättert wird jeweils in der
+     eigenen Reihe, nicht quer durch beides. */
+  const istGrafik = o => !!o && !!o.art;
+  const finde = id => W.find(w => w.id === id) || GRAFIK.find(g => g.id === id);
+  const ovListe = o => (istGrafik(o) ? GRAFIK : filtered());
+  function ovZeilen(o) {
+    if (istGrafik(o)) {
+      const r = [{ k: 'Gattung', v: o.art }];
+      if (o.fuer) r.push({ k: 'Für', v: o.fuer });
+      r.push({ k: 'Jahr', v: String(o.jahr) });
+      if (o.notiz) r.push({ k: 'Anlass', v: o.notiz });
+      return r;
+    }
+    const r = [{ k: 'Werknummer', v: 'Nr. ' + o.nr }, { k: 'Träger', v: o.tr === 'haut' ? 'Haut' : 'Papier' }, { k: 'Jahr', v: String(o.jahr) }];
+    if (o.tr === 'haut') r.push({ k: 'Körperstelle', v: o.ort }, { k: 'Sitzungen', v: o.sitzungen + (o.sitzungen > 1 ? ' Sitzungen' : ' Sitzung') }, { k: 'Zustand', v: o.zustand });
+    else r.push({ k: 'Technik', v: o.technik }, { k: 'Maße', v: o.masse }, { k: 'Serie', v: o.serie });
+    return r;
+  }
   function renderOverlay() {
-    const root = $('#ov-root'); const ow = W.find(w => w.id === S.open);
+    const root = $('#ov-root'); const ow = finde(S.open);
     if (!ow) { root.innerHTML = ''; return; }
-    const liste = filtered();
+    const liste = ovListe(ow);
     const stelle = liste.findIndex(w => w.id === ow.id);
-    const rows = [{ k: 'Werknummer', v: 'Nr. ' + ow.nr }, { k: 'Träger', v: ow.tr === 'haut' ? 'Haut' : 'Papier' }, { k: 'Jahr', v: String(ow.jahr) }];
-    if (ow.tr === 'haut') rows.push({ k: 'Körperstelle', v: ow.ort }, { k: 'Sitzungen', v: ow.sitzungen + (ow.sitzungen > 1 ? ' Sitzungen' : ' Sitzung') }, { k: 'Zustand', v: ow.zustand });
-    else rows.push({ k: 'Technik', v: ow.technik }, { k: 'Maße', v: ow.masse }, { k: 'Serie', v: ow.serie });
+    const rows = ovZeilen(ow);
     /* Die Bildfläche hat eine feste Höhe und zeigt das Blatt vollständig. Ein gerechnetes
        Seitenverhältnis brauchte für jedes Format eine Ausnahme und ergab auf dem Telefon
        entweder einen Streifen oder eine Fläche, die nicht mehr aufs Bild passte. */
     const bild = isReal(ow)
-      ? `<img class="${bildKlasse(ow)}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`
+      ? `<img class="${istGrafik(ow) ? 'photo-img' : bildKlasse(ow)}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`
       : artSVG(art(ow.id, ow.seed, ow.vbW, ow.vbH, !!ow.red), ow.vbW, ow.vbH, ow.seed, 'fx' + ow.id);
     const zaehler = liste.length > 1 ? `<span class="ov-zaehler">${stelle + 1} von ${liste.length}</span>` : '';
     root.innerHTML = `<div id="ov" role="dialog" aria-modal="true" aria-label="${esc(ow.t)}"><div id="ov-bg"></div><div class="ov-card"><figure id="ov-fig" class="ov-fig">${bild}</figure><div class="ov-info"><h3 class="hd">${esc(ow.t)}</h3><div class="ov-rows">${rows.map(x => `<div class="ov-row"><div class="mut">${esc(x.k)}</div><div>${esc(x.v)}</div></div>`).join('')}</div><div class="ov-actions">${zaehler}<button type="button" id="ov-prev" class="btn">Zurück</button><button type="button" id="ov-next" class="btn">Weiter</button><button type="button" id="ov-close" class="btn primary" style="padding:10px 20px;font-size:16px;">Schließen</button></div></div></div></div>`;
@@ -270,13 +287,13 @@
   }
   function openWerk(id, btn) {
     ret = btn || null;
-    const ph = btn && btn.querySelector('.g-ph'); rect0 = ph ? ph.getBoundingClientRect() : null;
+    const ph = btn && btn.querySelector('.g-ph, .gr-ph'); rect0 = ph ? ph.getBoundingClientRect() : null;
     S.open = id; renderOverlay(); animateOvIn();
     const c = $('#ov-close'); if (c) c.focus();
   }
   function closeOv() { S.open = null; renderOverlay(); if (ret) ret.focus(); }
   function ovStep(dir) {
-    const list = filtered(); if (!list.length) return;
+    const list = ovListe(finde(S.open)); if (!list.length) return;
     const i = list.findIndex(w => w.id === S.open);
     const nx = list[(i + dir + list.length) % list.length];
     rect0 = null; S.open = nx.id; renderOverlay();
@@ -286,6 +303,27 @@
     if (e.target.closest('#ov-close') || e.target.id === 'ov-bg') closeOv();
     else if (e.target.closest('#ov-prev')) ovStep(-1);
     else if (e.target.closest('#ov-next')) ovStep(1);
+  });
+
+  /* ---------- Grafik ---------- */
+  /* Plakate, Cover und Signets. Sie behalten ihren dunklen Grund: multiply würde aus einem
+     schwarzen Plakat ein Loch in der Seite machen. Jede Karte trägt ihr eigenes Format,
+     ein Plakat wird also nicht auf quadratisch gestutzt. */
+  function renderGrafik() {
+    const el = $('#grafik-list'); if (!el || !GRAFIK.length) return;
+    el.innerHTML = GRAFIK.map(g => {
+      const zeile = [g.art, g.fuer, g.jahr].filter(Boolean).join(', ');
+      const alt = `${g.t}, ${g.art}${g.fuer ? ' ' + g.fuer : ''}, ${g.jahr}. Größer ansehen.`;
+      return `<button type="button" class="gr-item rv" data-gid="${esc(g.id)}" aria-label="${esc(alt)}">`
+        + `<span class="gr-ph" style="aspect-ratio:${g.w} / ${g.h};">`
+        + `<img class="photo-img" src="${esc(g.src)}" srcset="${esc(g.srcset)}" sizes="(max-width: 700px) 92vw, (max-width: 1180px) 46vw, 568px" width="${g.w}" height="${g.h}" alt="" loading="lazy" decoding="async">`
+        + `</span><span class="gr-meta"><span class="gr-t">${esc(g.t)}</span><span class="gr-m">${esc(zeile)}</span>`
+        + (g.notiz ? `<span class="gr-n">${esc(g.notiz)}</span>` : '')
+        + `</span></button>`;
+    }).join('');
+  }
+  $('#grafik-list').addEventListener('click', e => {
+    const b = e.target.closest('.gr-item'); if (b) openWerk(b.dataset.gid, b);
   });
 
   /* ---------- Flash ---------- */
@@ -543,6 +581,7 @@
   applyTheme();
   renderWerke();
   renderFlash();
+  renderGrafik();
   schieneSetzen();
   renderPanel();
   observeNew();

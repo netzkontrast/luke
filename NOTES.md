@@ -10,6 +10,11 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
       „Befreiung der Körperlichkeit, Werk III“ bis „Werk VI“ weiter, das Blatt mit den zwölf Köpfen heißt vorläufig
       „Zwölf Köpfe“ und liegt unter „Tuschstudien“. Alle fünf stehen auf 2026. Reihenfolge, Titel und Jahr sind gesetzt,
       nicht gewusst; Änderungen gehören in `js/works.js`, danach `node video/scripts/werke-uebernehmen.mjs`.
+- [ ] **Grafik: Auftraggeber und Jahre bestätigen.** Eingetragen ist, was auf den Blättern steht. Offen: der Name
+      der Band zu „Requiem: Zerfall“ (das Logo ist nicht zu lesen), die Jahre von Signet und Clubnacht, und ob bei
+      den Auftragsarbeiten jemand mitgenannt werden muss.
+- [ ] **Podcast verlinken.** Der Fuß nennt „Bluthandwerk — Nicht noch ein Tattoo-Podcast!“, im Abschnitt Grafik steht
+      das Titelbild. Sobald es eine Adresse gibt, gehört sie an beide Stellen.
 - [ ] **Einwilligung** der tätowierten Personen schriftlich einholen, bevor Werkfotos (Haut) eingesetzt werden.
 - [ ] **Echte Werkfotos** für die Platzhalter VIII bis XIV (Arbeiten auf Haut) und die Flash-Blätter einsetzen
       (siehe README). Auf Papier gibt es keine Platzhalter mehr.
@@ -32,6 +37,7 @@ Bereits umgesetzt:
 - [x] Werkansicht mit Tastatur bedienbar (Escape, Pfeiltasten, Fokusfalle).
 - [x] Film zur Werkschau unter `video/`, in 16:9 und 9:16, mit denselben Werkdaten wie die Seite.
 - [x] Sieben Papierarbeiten liegen als Aufnahme vor: Werk I bis VI und die zwölf Köpfe.
+- [x] Abschnitt Grafik mit fünf Auftragsarbeiten: Podcast-Titelbild, Plakat, zwei Signets, ein Albumcover.
 
 Beim nächsten Durchgang anzusehen:
 

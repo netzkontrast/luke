@@ -18,7 +18,7 @@ Dann `http://localhost:3000` beziehungsweise `http://localhost:8080` öffnen.
 ## Aufbau
 
 ```
-index.html            Startseite (Auftakt, Sequenz, Aktuell, Werke, Handschrift, Flash, Anfrage, Studio)
+index.html            Startseite (Auftakt, Sequenz, Aktuell, Werke, Handschrift, Flash, Grafik, Anfrage, Studio)
 impressum.html        Impressum (Platzhalter, vor Veröffentlichung ausfüllen)
 datenschutz.html      Datenschutzerklärung (Platzhalter, vor Veröffentlichung prüfen)
 css/site.css          Alle Stile, drei Richtungen über .app[data-richtung]
@@ -71,6 +71,23 @@ sind wichtig: Ohne sie schreibt ffmpeg eine Pixelseitenverhältnis-Korrektur in 
 
 Eine Aufnahme, die ihren dunklen Hintergrund behalten soll, bekommt stattdessen `grund: 'foto'`. Sie wird dann
 nicht multipliziert und bleibt aus der Blättersequenz heraus. Beispiel: Werk VII, die zwölf Köpfe auf schwarzem Holz.
+
+### Grafik
+
+Plakate, Cover und Signets stehen getrennt in `LUKE.GRAFIK`. Sie sind keine Werke im Sinne der Galerie: Sie haben
+einen Auftraggeber und einen Anlass statt Träger, Serie und Maße, und sie behalten immer ihren dunklen Grund.
+
+```js
+{ id: 'gr2', t: 'nebelgrau', art: 'Plakat', fuer: 'Kollektiv Noir und Tränentrinker', jahr: 2026,
+  notiz: '21. Februar 2026, 23 Uhr, Live Music Hall, Köln',
+  src: 'assets/img/grafik-2-nebelgrau-900.jpg',
+  srcset: 'assets/img/grafik-2-nebelgrau-480.jpg 480w, assets/img/grafik-2-nebelgrau-900.jpg 900w, assets/img/grafik-2-nebelgrau-1400.jpg 1400w',
+  w: 1400, h: 1980 }
+```
+
+`fuer` und `notiz` dürfen fehlen, dann entfallen die Zeilen. Jede Karte behält ihr eigenes Format, ein Plakat wird
+also nicht auf quadratisch gestutzt. Die Werkansicht ist dieselbe wie bei den Werken; geblättert wird innerhalb der
+Grafiken, nicht quer durch beides.
 
 - Auftakt: `assets/video/werk-1-profil-zeichnung.mp4` wird einmal abgespielt und blendet dann auf `werk-1-profil-*.jpg` über.
   `werk-1-profil-zeichnung-alt.mp4` ist die frühere Fassung der Animation (August), derzeit nicht eingebunden.

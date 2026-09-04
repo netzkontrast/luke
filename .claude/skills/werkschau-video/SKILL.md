@@ -120,6 +120,13 @@ Kopiere sie nach `video/public/`, referenziere mit `staticFile()`:
   Atelier, Schwarzweiß, hartes Lampenlicht. Kein multiply, das ist eine Fotografie.
   Ken Burns langsam, Kontrast leicht anheben, damit es zur Tusche passt.
 
+**Grafik** (Auftragsarbeiten, `assets/img/grafik-*`)
+- Titelbild des Podcasts, ein Plakat für eine Clubnacht, zwei Signets, ein Albumcover.
+  Alle mit dunklem Grund, alle **ohne multiply**. Sie gehören nicht in die Werkschau der
+  Tuschearbeiten: andere Disziplin, anderer Auftraggeber, andere Erzählung. Wenn sie in
+  einem Film vorkommen, dann als eigener Block mit eigenem Ton, nicht zwischen die Blätter
+  gemischt.
+
 Werkdaten (Titel, Jahr, Technik, Maße) stehen in `js/works.js` unter `LUKE.WERKE` —
 Titel im Film von dort übernehmen, nicht neu erfinden.
 

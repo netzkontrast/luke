@@ -90,3 +90,35 @@ LUKE.FLASH = [
   { n: 5, format: 'A4', motiv: 'Zwei Hände, haltend', status: 'vergeben', seed: 113 },
   { n: 6, format: 'A5', motiv: 'Anker mit Tau', status: 'verfügbar', seed: 127 }
 ];
+
+/* Grafik. Auftragsarbeiten neben dem Tätowieren: Plakate, Cover, Signets. Anders als die
+   Werke haben sie einen Anlass und einen Auftraggeber, deshalb eigene Felder statt Träger,
+   Serie und Maße. Sie behalten immer ihren dunklen Grund, werden also nicht multipliziert.
+   Felder: id, t (Titel), art (Gattung), fuer (für wen), jahr, notiz (Anlass, optional),
+           src, srcset, w, h */
+LUKE.GRAFIK = [
+  { id: 'gr1', t: 'Bluthandwerk', art: 'Titelbild für den Podcast', fuer: 'mit Kiya Noir', jahr: 2026,
+    notiz: '„Nicht noch ein Tattoo-Podcast!“',
+    src: 'assets/img/grafik-1-bluthandwerk-900.jpg',
+    srcset: 'assets/img/grafik-1-bluthandwerk-480.jpg 480w, assets/img/grafik-1-bluthandwerk-900.jpg 900w, assets/img/grafik-1-bluthandwerk-1400.jpg 1400w',
+    w: 1400, h: 1402 },
+  { id: 'gr2', t: 'nebelgrau', art: 'Plakat', fuer: 'Kollektiv Noir und Tränentrinker', jahr: 2026,
+    notiz: '21. Februar 2026, 23 Uhr, Live Music Hall, Köln',
+    src: 'assets/img/grafik-2-nebelgrau-900.jpg',
+    srcset: 'assets/img/grafik-2-nebelgrau-480.jpg 480w, assets/img/grafik-2-nebelgrau-900.jpg 900w, assets/img/grafik-2-nebelgrau-1400.jpg 1400w',
+    w: 1400, h: 1980 },
+  { id: 'gr3', t: 'Kollektiv Noir', art: 'Signet', fuer: 'Kollektiv Noir', jahr: 2025,
+    notiz: 'Dark Electro, Post-Punk, Synthie, Shoegaze, Wave',
+    src: 'assets/img/grafik-4-kollektiv-900.jpg',
+    srcset: 'assets/img/grafik-4-kollektiv-480.jpg 480w, assets/img/grafik-4-kollektiv-900.jpg 900w, assets/img/grafik-4-kollektiv-1228.jpg 1228w',
+    w: 1228, h: 898 },
+  { id: 'gr4', t: 'Spleen', art: 'Signet für eine Clubnacht', fuer: 'Kollektiv Noir', jahr: 2025,
+    notiz: 'Dark Electro, Synth, Coldwave, EBM, Minimal',
+    src: 'assets/img/grafik-3-spleen-844.jpg',
+    srcset: 'assets/img/grafik-3-spleen-480.jpg 480w, assets/img/grafik-3-spleen-844.jpg 844w',
+    w: 844, h: 844 },
+  { id: 'gr5', t: 'Requiem: Zerfall', art: 'Albumcover', fuer: '', jahr: 2025,
+    src: 'assets/img/grafik-5-requiem-900.jpg',
+    srcset: 'assets/img/grafik-5-requiem-480.jpg 480w, assets/img/grafik-5-requiem-900.jpg 900w, assets/img/grafik-5-requiem-1400.jpg 1400w',
+    w: 1400, h: 1400 }
+];
