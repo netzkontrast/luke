@@ -462,63 +462,7 @@
     window.scrollTo({ top, behavior: mScale() ? 'smooth' : 'auto' });
   });
 
-  /* ---------- Videos: Zeichnung im Auftakt, Signatur bei Handschrift ---------- */
-  /* Der Live-Auftakt. assets/js/auftakt-player.js hängt eine Remotion-Komposition als
-     React in die Seite: dieselbe Zeichnung, aber in Ebenen mit Tiefe, die dem Zeiger
-     folgen. Das Bündel wiegt gezippt rund 150 kB, deshalb wird es erst nach dem Laden
-     der Seite geholt, nur wenn Bewegung erwünscht ist und der Anschluss nicht spart.
-     Kommt es nicht an, bleibt es beim Video und beim Standbild. */
-  const buehneGeplant = (() => {
-    const fig = $('.hero-fig');
-    if (!fig || mScale() === 0 || prm) return false;
-    const verbindung = navigator.connection;
-    if (verbindung && (verbindung.saveData || /2g/.test(verbindung.effectiveType || ''))) return false;
-    return true;
-  })();
-
-  (function buehne() {
-    if (!buehneGeplant) return;
-    const fig = $('.hero-fig');
-    const laden = () => {
-      /* Der Player löst staticFile() über diesen Wert auf. Ohne ihn läge er bei /img/...
-         Es muss ein Pfad sein, keine vollständige URL: staticFile kodiert den Doppelpunkt
-         und stellt einem Wert ohne führenden Schrägstrich einen voran, aus http://host
-         würde also /http%3A//host. */
-      window.remotion_staticBase = new URL('assets', document.baseURI).pathname.replace(/\/$/, '');
-      const skript = document.createElement('script');
-      skript.src = 'assets/js/auftakt-player.js';
-      skript.defer = true;
-      skript.addEventListener('error', () => heroOhneBuehne(true));
-      document.body.appendChild(skript);
-      /* Kommt die Bühne nicht binnen vier Sekunden, übernimmt der gewohnte Auftakt. */
-      setTimeout(() => { if (!fig.classList.contains('hat-buehne')) heroOhneBuehne(true); }, 4000);
-    };
-    if (document.readyState === 'complete') laden();
-    else addEventListener('load', laden, { once: true });
-  })();
-
-  function heroOhneBuehne(nurBildSofort) {
-    const fig = $('.hero-fig'), v = $('.hero-video');
-    if (!fig || fig.classList.contains('hat-buehne') || fig.dataset.auftakt === 'ab') return;
-    fig.dataset.auftakt = 'ab';
-    let fertig = false;
-    const still = () => { if (fertig) return; fertig = true; fig.classList.add('done'); };
-    const nurBild = () => { fig.classList.add('still'); still(); };
-    if (!v || mScale() === 0 || nurBildSofort) { nurBild(); return; }
-    /* Kann der Browser das Format nicht (fehlender Codec, gesperrte Wiedergabe), zeigen wir
-       nach kurzer Frist das fertige Blatt statt einer leeren Fläche. */
-    const wache = setTimeout(() => { if (v.readyState < 2 || !v.currentTime) nurBild(); }, 2200);
-    const sicherung = setTimeout(still, 20000);
-    const fertigMachen = () => { clearTimeout(wache); clearTimeout(sicherung); still(); };
-    v.addEventListener('ended', fertigMachen, { once: true });
-    v.addEventListener('error', () => { clearTimeout(wache); clearTimeout(sicherung); nurBild(); }, { once: true });
-    v.addEventListener('timeupdate', () => { if (v.currentTime > 0) clearTimeout(wache); }, { once: true });
-    const p = v.play(); if (p && p.catch) p.catch(() => { clearTimeout(wache); nurBild(); });
-  }
-
-  /* Ohne geplante Bühne läuft der Auftakt sofort wie gewohnt. */
-  if (!buehneGeplant) heroOhneBuehne(false);
-
+  /* ---------- Video: Signatur bei Handschrift ---------- */
   (function band() {
     const v = $('.band-video');
     if (!v) return;

@@ -106,21 +106,24 @@ h2.hd { font-size: clamp(30px,4vw,52px); margin: 0 0 12px; }
 .hero-text h1 { font-size: clamp(46px,7vw,96px); line-height: .95; margin: 0 0 18px; letter-spacing: -0.01em; }
 .hero-text p { margin: 0; max-width: 34ch; color: var(--mut); font-size: 20px; line-height: 1.55; text-wrap: pretty; }
 .hero-draw { will-change: transform; display: flex; justify-content: flex-end; }
-/* Dasselbe Seitenverhältnis wie die Remotion-Komposition (1200 × 1948), damit Standbild,
-   Video und Live-Auftakt exakt übereinander liegen. */
-.hero-fig { position: relative; margin: 0; height: min(78vh, 150vw); aspect-ratio: 1200 / 1948; max-width: 100%; }
-.hero-fig > video, .hero-fig > img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hero-video { object-fit: cover; transition: opacity calc(var(--m)*1.2s) ease; }
-/* Das Blatt im Kopf hat links ein breites leeres Drittel. Weiß verschwindet zwar durch
-   multiply, die Figur säße dadurch aber weit rechts in einer unsichtbaren Fläche. Der
-   Ausschnitt nimmt das leere Drittel weg und rückt sie an ihren Platz. */
-.hero-still { object-fit: cover; object-position: 100% 50%; opacity: 0; transition: opacity calc(var(--m)*1.2s) ease; }
+/* Dasselbe Seitenverhältnis wie die Zeichnung, damit Video und Standbild exakt übereinander
+   liegen. Der Beschnitt hält die vergrößerten Tiefenebenen im Rahmen. */
+.hero-fig { position: relative; margin: 0; height: min(78vh, 150vw); aspect-ratio: 1200 / 1948; max-width: 100%; overflow: hidden; }
+/* Eine Ebene bekommt von js/auftakt.js nur x und y. Skaliert wird am Bild darin, sonst
+   schrieben zwei Bewegungen dieselbe transform. */
+.hero-ebene { position: absolute; inset: 0; will-change: transform; }
+.hero-fern { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); opacity: var(--deck, 0.1); transform: scale(var(--gross, 1)) translateX(var(--versatz, 0)); transform-origin: 50% 50%; }
+.hero-motiv { position: absolute; inset: 0; will-change: transform; }
+.hero-motiv > video, .hero-motiv > img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-video { object-fit: cover; }
+/* Das Blatt im Kopf hat links ein breites leeres Drittel. Der Ausschnitt nimmt es weg und
+   rückt die Figur an ihren Platz. */
+.hero-still { object-fit: cover; object-position: 100% 50%; opacity: 0; }
 .hero-fig.done .hero-still { opacity: 1; }
 .hero-fig.done .hero-video { opacity: 0; }
 .hero-fig.still .hero-video { display: none; }
-/* Läuft der Live-Auftakt, treten Video und Standbild zurück. */
-#auftakt-buehne { position: absolute; inset: 0; }
-.hero-fig.hat-buehne .hero-video, .hero-fig.hat-buehne .hero-still { display: none; }
+/* Vor dem Eintritt versteckt, nur wenn Bewegung möglich ist (siehe Enthüllen). */
+html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="an"] .hero-text p { opacity: 0; }
 .app[data-richtung="b"] .hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; align-items: center; min-height: 72vh; }
 .app[data-richtung="b"] .hero-draw { order: -1; justify-content: center; max-width: 560px; }
 .app[data-richtung="b"] .hero-fig { height: min(64vh, 150vw); }

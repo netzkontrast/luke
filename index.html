@@ -58,21 +58,29 @@
             <h1 class="hd">Luke WTF</h1>
             <p>Tätowierer und Zeichner. Bluthandwerk, Köln-Ehrenfeld — seit 2012. Arbeiten auf Haut und auf Papier.</p>
           </div>
-          <div class="hero-draw" id="hero-par" data-depth="-0.05">
-            <figure class="hero-fig" data-tilt="6">
-              <video class="hero-video ink-img" muted playsinline preload="auto" aria-hidden="true" tabindex="-1">
-                <source src="assets/video/gestaltung-profil-zeichnung.webm" type="video/webm">
-                <source src="assets/video/gestaltung-profil-zeichnung.mp4" type="video/mp4">
-              </video>
-              <img class="hero-still ink-img"
-                   src="assets/img/gestaltung-kniend-1200.jpg"
-                   srcset="assets/img/gestaltung-kniend-800.jpg 800w, assets/img/gestaltung-kniend-1200.jpg 1200w, assets/img/gestaltung-kniend-1900.jpg 1900w"
-                   sizes="(max-width: 900px) 90vw, 40vw"
-                   width="1900" height="2536" fetchpriority="high" decoding="async"
-                   alt="Tuschzeichnung: kniende Figur im Profil, Kopf gesenkt, hinter ihr ein offener Kreis">
-              <!-- Live-Auftakt über den Remotion-Player, nachgeladen aus assets/js/auftakt-player.js.
-                   Ohne das Bündel bleibt es beim Video oben und dem Standbild darunter. -->
-              <div id="auftakt-buehne" hidden aria-hidden="true"></div>
+          <div class="hero-draw" id="hero-par">
+            <!-- Vier Ebenen, von hinten nach vorn, jede mit eigener Tiefe. Die grauen sind
+                 Tiefe, kein Motiv; das Motiv ist das Zeichenvideo, danach das Blatt. Skalierung
+                 und Ausschnitt stehen am Bild, die Ebene selbst bekommt von js/auftakt.js
+                 nur ihre Verschiebung. -->
+            <figure class="hero-fig">
+              <div class="hero-ebene" data-tiefe="0.14"><img class="hero-fern ink-img" src="assets/img/gestaltung-profil-1200.jpg" alt="" aria-hidden="true" style="--deck:0.10; --gross:1.55; object-position:38% 30%" fetchpriority="low" decoding="async"></div>
+              <div class="hero-ebene" data-tiefe="0.30"><img class="hero-fern ink-img" src="assets/img/gestaltung-profil-1200.jpg" alt="" aria-hidden="true" style="--deck:0.16; --gross:1.22; --versatz:-4%; object-position:68% 62%" fetchpriority="low" decoding="async"></div>
+              <div class="hero-ebene" data-tiefe="0.48">
+                <div class="hero-motiv">
+                  <video class="hero-video ink-img" muted playsinline preload="auto" aria-hidden="true" tabindex="-1">
+                    <source src="assets/video/gestaltung-profil-zeichnung.webm" type="video/webm">
+                    <source src="assets/video/gestaltung-profil-zeichnung.mp4" type="video/mp4">
+                  </video>
+                  <img class="hero-still ink-img"
+                       src="assets/img/gestaltung-kniend-1200.jpg"
+                       srcset="assets/img/gestaltung-kniend-800.jpg 800w, assets/img/gestaltung-kniend-1200.jpg 1200w, assets/img/gestaltung-kniend-1900.jpg 1900w"
+                       sizes="(max-width: 900px) 90vw, 40vw"
+                       width="1900" height="2536" fetchpriority="high" decoding="async"
+                       alt="Tuschzeichnung: kniende Figur im Profil, Kopf gesenkt, hinter ihr ein offener Kreis">
+                </div>
+              </div>
+              <div class="hero-ebene" data-tiefe="0.95"><img class="hero-fern ink-img" src="assets/img/gestaltung-profil-1200.jpg" alt="" aria-hidden="true" style="--deck:0.09; --gross:2.1; object-position:82% 88%" fetchpriority="low" decoding="async"></div>
             </figure>
           </div>
         </div>
@@ -285,6 +293,7 @@
 <script src="js/works.js"></script>
 <script src="vendor/motion/motion-13.2.0.min.js"></script>
 <script src="js/bewegung.js"></script>
+<script src="js/auftakt.js"></script>
 <script src="js/werk-sequenz.js"></script>
 <script src="js/site.js"></script>
 <script src="js/tropfspur.js" defer></script>

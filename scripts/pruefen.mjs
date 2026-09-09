@@ -131,6 +131,43 @@ pruefung('bilder: jeder Abschnitt, oben angeschnitten', 'beide', async (page, t)
   }
 });
 
+pruefung('auftakt: vier Ebenen, Titel kommt, das Blatt steht am Ende', 'beide', async (page, t) => {
+  const r1 = await page.evaluate(() => ({
+    ebenen: document.querySelectorAll('.hero-fig .hero-ebene').length,
+    fern: document.querySelectorAll('.hero-fig .hero-fern').length,
+    buehne: !!document.getElementById('auftakt-buehne')
+  }));
+  t.gleich(r1.ebenen, 4, 'Ebenen'); t.gleich(r1.fern, 3, 'ferne Blätter'); t.ok(!r1.buehne, 'die Remotion-Bühne muss weg sein');
+  await t.warten(1600);
+  const r2 = await page.evaluate(() => ({
+    h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity,
+    fern: +getComputedStyle(document.querySelector('.hero-fern')).opacity
+  }));
+  t.gleich(r2.h1, '1', 'Titel nach 1,6 s');
+  t.ok(r2.fern > 0.05 && r2.fern < 0.2, 'ferne Ebene blass sichtbar: ' + r2.fern);
+  await t.bild('auftakt-zeichnen');
+  await t.warten(9200);
+  const r3 = await page.evaluate(() => ({
+    done: document.querySelector('.hero-fig').classList.contains('done'),
+    still: getComputedStyle(document.querySelector('.hero-still')).opacity,
+    video: getComputedStyle(document.querySelector('.hero-video')).opacity
+  }));
+  t.ok(r3.done, 'Auftakt nicht zu Ende: kein .done nach 10,8 s');
+  t.gleich(r3.still, '1', 'Standbild am Ende');
+  t.gleich(r3.video, '0', 'Video am Ende weg');
+  await t.bild('auftakt-blatt');
+});
+
+pruefung('auftakt: ohne Bewegung steht sofort das Blatt', 'schreibtisch', async (page, t) => {
+  const r = await page.evaluate(() => ({
+    done: document.querySelector('.hero-fig').classList.contains('done'),
+    still: getComputedStyle(document.querySelector('.hero-still')).opacity,
+    video: getComputedStyle(document.querySelector('.hero-video')).display,
+    h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity
+  }));
+  t.ok(r.done && r.still === '1' && r.video === 'none' && r.h1 === '1', 'Endzustand: ' + JSON.stringify(r));
+}, { ruhig: true });
+
 /* ---------- Lauf ---------- */
 async function laufen() {
   fs.mkdirSync(AUSGABE, { recursive: true });
