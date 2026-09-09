@@ -25,8 +25,20 @@
   const verbindung = navigator.connection;
   const sparsam = !!(verbindung && (verbindung.saveData || /2g/.test(verbindung.effectiveType || '')));
 
+  /* Ein gemeinsames Ende für alle Wege dorthin: Wächter, Fehlschlag, Startabsage und das
+     echte „ended“ konkurrieren um denselben Zustand. Ohne einen gemeinsamen Merker lief,
+     wenn der Wächter zu früh urteilte und das Video später doch noch zu Ende spielte, der
+     Schnitt ein zweites Mal — das schon gezeigte Blatt blitzte auf Null, bevor es erneut
+     einblendete. Wer zuerst ankommt, gewinnt; jeder spätere Rückruf wird zum No-op. Schon
+     der abgelöste Bühnen-Code kannte diesen Merker unter dem Namen „fertig“. */
+  let fertig = false, wache = null, sicherung = null;
+  function raeumen() { clearTimeout(wache); clearTimeout(sicherung); }
+
   /* Der Endzustand ohne Bewegung: das Blatt steht, das Video bleibt weg, die Ebenen stehen. */
   function nurBild() {
+    if (fertig) return;
+    fertig = true;
+    raeumen();
     fig.classList.add('still', 'done');
     fern.forEach(img => { img.style.opacity = '1'; });
     if (titel) titel.style.opacity = '1';
@@ -48,7 +60,7 @@
   /* Der Ablauf, Sekunden ab jetzt. */
   if (titel) M.animate(titel, { opacity: [0, 1], y: [18, 0] }, { duration: 1.1 * s, ease: KB });
   if (zeile) M.animate(zeile, { opacity: [0, 1], y: [14, 0] }, { duration: 1.0 * s, delay: 0.3 * s, ease: KB });
-  M.animate(motiv, { scale: [1.045, 1] }, { duration: 9.4, ease: K });
+  M.animate(motiv, { scale: [1.045, 1] }, { duration: 9.4 * s, ease: K });
   fern.forEach(img => {
     const deck = parseFloat(getComputedStyle(img).getPropertyValue('--deck')) || 0.1;
     M.animate(img, { opacity: [0, deck] }, { duration: 1.6 * s, delay: 0.15 * s, ease: KB });
@@ -56,12 +68,12 @@
   M.animate(video, { opacity: [0, 1] }, { duration: 0.5 * s, delay: 0.35 * s, ease: KB });
 
   /* Der Schnitt: Video weg, Leerstelle, Blatt. */
-  let geschnitten = false;
   function schnitt() {
-    if (geschnitten) return;
-    geschnitten = true;
-    M.animate(video, { opacity: 0 }, { duration: 0.5, ease: KB }).then(() => {
-      M.animate(still, { opacity: [0, 1], y: [10, 0] }, { duration: 0.9, delay: 0.35, ease: KB }).then(() => {
+    if (fertig) return;
+    fertig = true;
+    raeumen();
+    M.animate(video, { opacity: 0 }, { duration: 0.5 * s, ease: KB }).then(() => {
+      M.animate(still, { opacity: [0, 1], y: [10, 0] }, { duration: 0.9 * s, delay: 0.35 * s, ease: KB }).then(() => {
         fig.classList.add('done');
         still.style.opacity = ''; still.style.transform = '';
       });
@@ -69,13 +81,13 @@
   }
   /* Kann der Browser das Format nicht, oder spielt er nicht ab, steht nach kurzer Frist das
      Blatt statt einer leeren Fläche. */
-  const wache = setTimeout(() => { if (video.readyState < 2 || !video.currentTime) nurBild(); }, 2200);
-  const sicherung = setTimeout(schnitt, 20000);
-  video.addEventListener('ended', () => { clearTimeout(wache); clearTimeout(sicherung); schnitt(); }, { once: true });
-  video.addEventListener('error', () => { clearTimeout(wache); clearTimeout(sicherung); nurBild(); }, { once: true });
+  wache = setTimeout(() => { if (video.readyState < 2 || !video.currentTime) nurBild(); }, 2200);
+  sicherung = setTimeout(schnitt, 20000);
+  video.addEventListener('ended', () => { schnitt(); }, { once: true });
+  video.addEventListener('error', () => { nurBild(); }, { once: true });
   video.addEventListener('timeupdate', () => { if (video.currentTime > 0) clearTimeout(wache); }, { once: true });
   M.delay(() => {
     const p = video.play();
-    if (p && p.catch) p.catch(() => { clearTimeout(wache); nurBild(); });
+    if (p && p.catch) p.catch(() => { nurBild(); });
   }, 0.35 * s);
 })();
