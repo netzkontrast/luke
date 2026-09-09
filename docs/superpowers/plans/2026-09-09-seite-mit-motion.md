@@ -259,8 +259,13 @@ pruefung('enthuellen: nach dem Durchscrollen ist alles da und aufgeräumt', 'bei
   await t.durchscrollen();
   await t.warten(1800);
   const r = await page.evaluate(() => {
-    const alle = Array.from(document.querySelectorAll('.rv')).filter(el => el.offsetParent !== null || el.closest('[hidden]') === null);
-    const sichtbar = alle.filter(el => !el.closest('[hidden]'));
+    /* Was in der Wischschiene rechts außerhalb des Fensters steht, wurde noch nicht gesehen
+       und darf noch warten; alles andere muss da sein. */
+    const sichtbar = Array.from(document.querySelectorAll('.rv')).filter(el => {
+      if (el.closest('[hidden]')) return false;
+      const r = el.getBoundingClientRect();
+      return !(r.right <= 0 || r.left >= innerWidth);
+    });
     const fehlt = sichtbar.filter(el => !el.classList.contains('on') || getComputedStyle(el).opacity !== '1');
     const schmutzig = sichtbar.filter(el => el.style.opacity || el.style.clipPath || el.style.filter);
     return { n: sichtbar.length, fehlt: fehlt.map(el => el.tagName + '.' + el.className).slice(0, 5), schmutzig: schmutzig.length };
@@ -405,7 +410,8 @@ An die Stelle des gelöschten Blocks „Einblenden beim Scrollen“:
    Bewegung“ und ohne ?bewegung=aus. Sonst steht alles von Anfang an da. Wie etwas
    hereinkommt, sagt data-eintritt (text | blatt | druck | block), siehe js/bewegung.js. */
 html[data-js="an"] .rv:not(.on) { opacity: 0; }
-.app[data-bewegung="aus"] .rv { opacity: 1; }
+/* Schaltet das Bedienfeld die Bewegung aus, gewinnt diese Regel (eine Klasse mehr). */
+html[data-js="an"] .app[data-bewegung="aus"] .rv:not(.on) { opacity: 1; }
 
 /* Ein Strich, der von links wächst: Das Stylesheet zeichnet die Linie, Motion dreht --strich
    von 0 auf 1. Ohne JavaScript steht sie ganz. */
@@ -1799,7 +1805,12 @@ git commit -m "Abschnitte: Linien, die weiterlaufen; das Band folgt dem Lesen; d
 for (const r of ['b', 'c']) {
   pruefung(`richtung ${r}: alles kommt, Konsole leer`, 'beide', async (page, t) => {
     await t.durchscrollen(); await t.warten(2200);
-    const fehlt = await page.evaluate(() => Array.from(document.querySelectorAll('.rv')).filter(el => !el.closest('[hidden]') && (!el.classList.contains('on') || getComputedStyle(el).opacity !== '1')).length);
+    const fehlt = await page.evaluate(() => Array.from(document.querySelectorAll('.rv')).filter(el => {
+      if (el.closest('[hidden]')) return false;
+      const r = el.getBoundingClientRect();
+      if (r.right <= 0 || r.left >= innerWidth) return false;
+      return !el.classList.contains('on') || getComputedStyle(el).opacity !== '1';
+    }).length);
     t.gleich(fehlt, 0, 'nicht enthüllt');
     await t.zu(0); await t.warten(600); await t.bild('richtung-' + r + '-oben');
     await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1200); await t.bild('richtung-' + r + '-werke');
@@ -1809,7 +1820,7 @@ for (const r of ['b', 'c']) {
 pruefung('bedienfeld: Bewegung aus zeigt alles, die Blattfolge wird eine Reihe', 'schreibtisch', async (page, t) => {
   await page.click('[data-set="bewegung"][data-val="aus"]'); await t.warten(400);
   const r = await page.evaluate(() => ({
-    fehlt: Array.from(document.querySelectorAll('.rv')).filter(el => !el.closest('[hidden]') && getComputedStyle(el).opacity !== '1').length,
+    fehlt: Array.from(document.querySelectorAll('.rv')).filter(el => { if (el.closest('[hidden]')) return false; const r = el.getBoundingClientRect(); return !(r.right <= 0 || r.left >= innerWidth) && getComputedStyle(el).opacity !== '1'; }).length,
     stand: document.getElementById('blattfolge').dataset.stand,
     spur: document.getElementById('tropfspur').hidden
   }));
