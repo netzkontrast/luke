@@ -80,12 +80,12 @@
     if (!s) { aufraeumen(el); return null; }
     const delay = (opts && opts.delay) || 0;
     const anim = M.animate(el, eintritt(el), { duration: t.dauer * s, delay, ease: t.kurve });
-    /* Läuft anderswo noch etwas (etwa der Strich einer anderen Überschrift), schreibt Motion
-       die Endwerte nach dem then() noch einmal zurück, bevor die Seite ganz zur Ruhe kommt.
-       Ein zweites, spätes Aufräumen gewinnt diesen Wettlauf. */
-    anim.then(() => { aufraeumen(el); setTimeout(() => aufraeumen(el), 300); });
-    /* Die rote Linie unter einer Überschrift läuft weiter, sobald die Schrift steht. */
-    if (richtung() === 'a' && el.matches('h2.hd')) strich(el, { delay: delay + 0.25 * s, dauer: 0.9 });
+    /* Die rote Linie unter einer Überschrift läuft weiter, sobald die Schrift steht — auf
+       demselben Element wie der Eintritt, deshalb erst aufräumen, wenn beide fertig sind. */
+    const strichAnim = (richtung() === 'a' && el.matches('h2.hd')) ? strich(el, { delay: delay + 0.25 * s, dauer: 0.9 }) : null;
+    /* Motion schreibt die Endwerte im Renderschritt des folgenden Bildes noch einmal; deshalb
+       zwei Renderschritte später aufräumen, nicht sofort im then(). */
+    Promise.all([anim, strichAnim].filter(Boolean)).then(() => M.frame.postRender(() => M.frame.postRender(() => aufraeumen(el))));
     return anim;
   }
 
@@ -99,13 +99,12 @@
       if (el.hasAttribute('data-eigen')) return;
       if (!m()) { sofort(el); return; }
       gesehen.add(el);
-      /* Ein Blatt in der Wischschiene steht rechts oft nur mit einem schmalen Streifen im
-         eigenen Fenster, weil die Schiene selbst per overflow-x scrollt — das ist eine
-         eigene Bildlaufgrenze, die kein Rand am Beobachtungsfenster aufweicht. Beobachtet
-         wird deshalb die Schiene als Ganzes: Ist die Reihe auf Augenhöhe, kommt jedes ihrer
-         Blätter herein, unabhängig davon, wie weit es ungewischt noch nach rechts hinausragt. */
-      const ziel = el.closest('[data-layout="schiene"]') || el;
-      const stop = M.inView(ziel, () => {
+      /* amount: 'some' statt eines Flächenanteils: Ein Blatt in der Wischschiene steht rechts
+         oft nur mit einem schmalen Streifen im Fenster, weil die Schiene selbst per overflow-x
+         scrollt — ein Flächenanteil würde es dort nie erreichen, ein ungewischtes Blatt bliebe
+         für immer unsichtbar. „some“ reicht schon bei einem sichtbaren Pixel; zusammen mit dem
+         Rand unten genau der Auslösepunkt des früheren revealScan (oberkante bei 92 % Höhe). */
+      const stop = M.inView(el, () => {
         stop();
         const jetzt = performance.now();
         if (jetzt - zuletzt > 120) reihe = 0;
@@ -113,7 +112,7 @@
         const eigen = el.dataset.versatz != null ? (parseFloat(el.dataset.versatz) || 0) : Math.min(reihe, 4);
         reihe++;
         zeigen(el, { delay: eigen * tempo().versatz * m() });
-      }, { amount: 0.15, margin: '0px 0px -8% 0px' });
+      }, { amount: 'some', margin: '0px 0px -8% 0px' });
     });
   }
 
