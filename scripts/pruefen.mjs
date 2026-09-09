@@ -28,9 +28,10 @@ const ARGS = process.argv.slice(2);
 const BILDER = ARGS.includes('--bilder');
 const NUR = (ARGS.find(a => a.startsWith('--nur=')) || '').slice(6);
 
-/* Warnungen, die bis zu einer bestimmten Aufgabe noch hingenommen werden. Aufgabe 3 nimmt
-   die 3D-Sequenz heraus, mit ihr die WebGL-Warnungen; dann wird diese Liste leer. */
-const TOLERIERT = [/WebGL/];
+/* Bis Aufgabe 3 stand hier eine Ausnahme für die WebGL-Warnungen der 3D-Sequenz. Die
+   Sequenz ist jetzt raus, also gibt es nichts mehr zu tolerieren: Die Konsole muss
+   vollständig leer sein. */
+const TOLERIERT = [];
 
 /* ---------- Server im Prozess ---------- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.mp4': 'video/mp4', '.webm': 'video/webm', '.gif': 'image/gif', '.json': 'application/json' };
@@ -166,6 +167,40 @@ pruefung('auftakt: ohne Bewegung steht sofort das Blatt', 'schreibtisch', async 
     h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity
   }));
   t.ok(r.done && r.still === '1' && r.video === 'none' && r.h1 === '1', 'Endzustand: ' + JSON.stringify(r));
+}, { ruhig: true });
+
+pruefung('blattfolge: fünf Blätter, eins zur Zeit, das letzte bleibt', 'beide', async (page, t) => {
+  const r = await page.evaluate(() => {
+    const bf = document.getElementById('blattfolge');
+    return { stand: bf && bf.dataset.stand, n: bf ? bf.querySelectorAll('.bf-blatt').length : 0,
+      h: bf ? bf.getBoundingClientRect().height : 0, oben: bf ? bf.getBoundingClientRect().top + scrollY : 0,
+      vh: innerHeight, alt: !!document.querySelector('werk-sequenz, canvas') };
+  });
+  t.gleich(r.stand, 'voll', 'Stand'); t.gleich(r.n, 5, 'Blätter'); t.ok(!r.alt, 'kein <werk-sequenz>, kein Canvas mehr');
+  t.ok(r.h >= r.vh * 4.3, 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
+  const strecke = r.h - r.vh;
+  const deck = () => page.evaluate(() => Array.from(document.querySelectorAll('.bf-blatt')).map(el => +getComputedStyle(el).opacity));
+  await t.zu(r.oben + strecke * 0.3); await t.warten(300);
+  let s = await deck();
+  t.ok(s[1] > 0.95 && s.filter(v => v > 0.05).length === 1, 'bei 30 % genau das zweite Blatt: ' + s.map(v => v.toFixed(2)).join(','));
+  await t.bild('blattfolge-zweites');
+  await t.zu(r.oben + strecke * 0.58); await t.warten(300);
+  await t.bild('blattfolge-uebergang');
+  await t.zu(r.oben + strecke); await t.warten(300);
+  s = await deck();
+  t.ok(s[4] > 0.95, 'das letzte Blatt bleibt stehen: ' + s[4]);
+  const schrift = await page.evaluate(() => Array.from(document.querySelectorAll('.bf-schrift')).map(el => +getComputedStyle(el).opacity));
+  t.ok(schrift[4] > 0.95 && schrift[0] < 0.05, 'Beschriftung gehört zum Blatt: ' + schrift.map(v => v.toFixed(2)).join(','));
+  await t.bild('blattfolge-ende');
+});
+
+pruefung('blattfolge: ohne Bewegung eine ruhige Reihe', 'beide', async (page, t) => {
+  const r = await page.evaluate(() => {
+    const bf = document.getElementById('blattfolge');
+    return { stand: bf.dataset.stand, lage: getComputedStyle(bf.querySelector('.bf-buehne')).position,
+      deck: Array.from(bf.querySelectorAll('.bf-blatt')).map(el => getComputedStyle(el).opacity) };
+  });
+  t.gleich(r.stand, 'still', 'Stand'); t.gleich(r.lage, 'static', 'Bühne klebt nicht'); t.ok(r.deck.every(o => o === '1'), 'alle Blätter sichtbar: ' + r.deck.join(','));
 }, { ruhig: true });
 
 /* ---------- Lauf ---------- */

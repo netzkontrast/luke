@@ -28,7 +28,7 @@
     })();
   </script>
   <link rel="stylesheet" href="css/site.css">
-  <noscript><style>.hero-still{opacity:1}.hero-video{display:none}</style></noscript>
+  <noscript><style>.hero-still{opacity:1}.hero-video{display:none}#sequenz{display:none}</style></noscript>
 </head>
 <body>
 <div class="app" data-richtung="a" data-bewegung="voll" data-dichte="luftig" data-rot="spur" data-sequenz="voll" data-korn="aus">
@@ -87,8 +87,11 @@
       </div>
     </section>
 
-    <section id="sequenz" aria-label="Haut, Papier, Flash">
-      <werk-sequenz richtung="a" bewegung="voll"></werk-sequenz>
+    <section id="sequenz" aria-label="Papier, Haut, Flash">
+      <!-- Die Blattfolge: js/blattfolge.js baut hier aus den Werkdaten eine klebende Bühne,
+           auf der ein Blatt nach dem anderen vorbeizieht. Ohne Aufnahmen verschwindet der
+           Abschnitt, ohne Bewegung wird er eine ruhige Reihe. -->
+      <div class="bf" id="blattfolge"></div>
     </section>
 
     <section id="aktuell">
@@ -294,7 +297,7 @@
 <script src="vendor/motion/motion-13.2.0.min.js"></script>
 <script src="js/bewegung.js"></script>
 <script src="js/auftakt.js"></script>
-<script src="js/werk-sequenz.js"></script>
+<script src="js/blattfolge.js"></script>
 <script src="js/site.js"></script>
 <script src="js/tropfspur.js" defer></script>
 </body>

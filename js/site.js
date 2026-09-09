@@ -1,5 +1,5 @@
 /* Luke WTF — Seitenlogik. Portiert aus dem Claude-Design-Prototyp, ohne Framework.
-   Daten und Konfiguration: js/works.js. Bewegung: js/bewegung.js. 3D-Sequenz: js/werk-sequenz.js. */
+   Daten und Konfiguration: js/works.js. Bewegung: js/bewegung.js. Blattfolge: js/blattfolge.js. */
 (function () {
   'use strict';
   const L = window.LUKE || {};
@@ -404,8 +404,6 @@
   function applyTheme() {
     app.dataset.richtung = S.richtung; app.dataset.bewegung = S.bewegung; app.dataset.dichte = S.dichte;
     app.dataset.rot = S.rotspur; app.dataset.sequenz = S.sequenz; app.dataset.korn = S.korn;
-    const seq = $('werk-sequenz');
-    if (seq) { seq.setAttribute('richtung', S.richtung); seq.setAttribute('bewegung', S.sequenz === 'still' ? 'aus' : S.bewegung); }
     const tc = $('meta[name="theme-color"]'); if (tc) tc.setAttribute('content', getComputedStyle(app).getPropertyValue('--bg').trim() || '#E8E8E6');
   }
   function renderPanel() {

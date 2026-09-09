@@ -130,9 +130,42 @@ html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="a
 .app[data-richtung="c"] .hero-grid { min-height: 58vh; align-items: center; }
 .app[data-richtung="c"] .hero-draw { display: block; width: max-content; max-width: 100%; margin-left: auto; background: var(--sheet); box-shadow: 0 12px 32px rgba(20,16,14,0.22); padding: 14px; transform: rotate(-1.2deg); }
 
-/* ---------- Sequenz ---------- */
+/* ---------- Blattfolge (js/blattfolge.js) ----------
+   Eine klebende Bühne, ein Blatt nach dem anderen. Die Höhe des Abschnitts setzt das Skript
+   aus der Zahl der Blätter. Bewegt werden nur transform und opacity, scrollgebunden. Im
+   Stand „still“ wird daraus eine ruhige Reihe mit natürlicher Höhe. */
 .app[data-sequenz="aus"] #sequenz { display: none; }
-werk-sequenz { display: block; }
+.bf { position: relative; }
+.bf-buehne { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.bf-reihe, .bf-stueck { display: contents; }
+.bf-kapitel { position: absolute; left: clamp(20px, 6vw, 80px); bottom: clamp(64px, 14vh, 140px); max-width: min(78vw, 420px); }
+.bf-titel { font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: clamp(38px, 6vw, 72px); line-height: .95; color: var(--ink); margin: 0; }
+.bf-unter { color: var(--mut); font-size: clamp(15px, 2vw, 17px); margin: 10px 0 0; text-wrap: pretty; }
+.bf-kapitel .btn { margin-top: 14px; }
+/* Das Blatt steht rechts, in voller Höhe, ohne Beschnitt. --verh ist Breite durch Höhe. */
+.bf-blatt { position: absolute; inset: 0 8vw 0 auto; margin: auto 0; height: 72svh; width: calc(72svh * var(--verh, 0.6)); max-width: 44vw; will-change: transform, opacity; opacity: 0; }
+.bf-blatt img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.bf-schrift { position: absolute; right: 8vw; bottom: 6vh; text-align: right; max-width: 40ch; opacity: 0; }
+.bf-nr { display: block; font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: 22px; color: var(--annot); }
+.bf-t { display: block; font-weight: 500; }
+.bf-m { display: block; color: var(--mut); font-size: 15.5px; }
+.bf-hinweis { position: absolute; left: 50%; bottom: 18px; margin-left: -22px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--mut); font-size: 13px; }
+.bf-hinweis i { display: block; width: 1px; height: 26px; background: var(--mut); }
+.bf[data-stand="still"] .bf-buehne { position: static; height: auto; overflow: visible; padding: var(--sp) 0; }
+.bf[data-stand="still"] .bf-kapitel { position: static; max-width: var(--mw); margin: 0 auto 28px; padding: 0 clamp(16px,4vw,40px); }
+.bf[data-stand="still"] .bf-reihe { display: flex; gap: var(--gg); overflow-x: auto; max-width: var(--mw); margin: 0 auto; padding: 0 clamp(16px,4vw,40px) 12px; }
+.bf[data-stand="still"] .bf-stueck { display: block; flex: 0 0 auto; }
+.bf[data-stand="still"] .bf-blatt { position: static; margin: 0; height: min(52vh, 480px); width: calc(min(52vh, 480px) * var(--verh, 0.6)); max-width: 80vw; opacity: 1; will-change: auto; }
+.bf[data-stand="still"] .bf-schrift { position: static; opacity: 1; text-align: left; margin-top: 8px; max-width: none; }
+.bf[data-stand="still"] .bf-hinweis { display: none; }
+@media (max-width: 700px) {
+  /* Abweichung vom Brief: 56svh zentriert reichte dem Kapitelblock (Titel, Unterzeile,
+     Knopf) nicht aus — das Blatt lag ihm im Stand oben in der Ruhelage schon ins Wort.
+     46svh lässt genug Luft, für alle fünf Blätter, nicht nur die schlanken. */
+  .bf-blatt { inset: 0; margin: auto; height: 46svh; width: calc(46svh * var(--verh, 0.6)); max-width: 88vw; }
+  .bf-kapitel { left: 6vw; right: 6vw; top: 9svh; bottom: auto; max-width: none; }
+  .bf-schrift { left: 6vw; right: 6vw; bottom: 4svh; text-align: left; }
+}
 
 /* ---------- Aktuell ---------- */
 #aktuell { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
