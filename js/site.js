@@ -1,5 +1,5 @@
 /* Luke WTF — Seitenlogik. Portiert aus dem Claude-Design-Prototyp, ohne Framework.
-   Daten und Konfiguration: js/works.js. 3D-Sequenz: js/werk-sequenz.js. */
+   Daten und Konfiguration: js/works.js. Bewegung: js/bewegung.js. 3D-Sequenz: js/werk-sequenz.js. */
 (function () {
   'use strict';
   const L = window.LUKE || {};
@@ -9,6 +9,8 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const app = $('.app');
   if (!app) return;
+  /* Die Grundlage aller Bewegung (js/bewegung.js). Ohne sie läuft die Seite still. */
+  const B = L.bewegung, M = B && B.M;
   const prm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const params = new URLSearchParams(location.search);
   const pick = (v, opts, d) => (opts.includes(v) ? v : d);
@@ -427,40 +429,15 @@
     $('#panel-vorfuehr').addEventListener('click', () => { S.panel = false; renderPanel(); });
   }
 
-  /* ---------- Einblenden beim Scrollen ----------
-     Kein IntersectionObserver: die .rv-Elemente sind in Richtung A per clip-path auf Breite null
-     beschnitten, und ein beschnittenes Element meldet dem Observer die Fläche null — es würde nie
-     eingeblendet. Stattdessen prüfen wir die Position selbst, angetrieben vom Motion-Loop
-     (js/motion.js) beziehungsweise ersatzweise vom Scroll-Ereignis. */
-  let rvList = [], lastScanY = null;
-  function collectRv() { rvList = $$('.rv:not(.on)'); lastScanY = null; }
-  function revealScan() {
-    if (!rvList.length) return;
-    if (lastScanY !== null && Math.abs(scrollY - lastScanY) < 4) return;
-    lastScanY = scrollY;
-    const trigger = innerHeight * 0.92;
-    const rest = []; let i = 0;
-    for (const el of rvList) {
-      if (el.getBoundingClientRect().top < trigger) {
-        el.style.transitionDelay = Math.min(i * 70, 280) * mScale() + 'ms';
-        el.classList.add('on'); i++;
-        setTimeout(() => { el.style.transitionDelay = ''; }, 1400);
-      } else rest.push(el);
-    }
-    rvList = rest;
-  }
-  const observeNew = () => { collectRv(); revealScan(); };
+  /* ---------- Enthüllen ----------
+     Was neu ins Dokument kommt (Galerie, Grafik, Bestätigung), meldet js/bewegung.js beim
+     Sichtbarwerden an. Der Beobachter sieht nur neue Knoten, keine Attribute: Motion schreibt
+     Inline-Stile, und die dürfen hier keinen Kreis auslösen. */
+  const observeNew = () => { if (B) { B.enthuellen(document); B.parallaxe(document); } };
   new MutationObserver(observeNew).observe(document.body, { childList: true, subtree: true });
-  addEventListener('resize', revealScan, { passive: true });
-  if (L.motion) L.motion.on(revealScan); else addEventListener('scroll', revealScan, { passive: true });
 
   /* ---------- Scrollen, Zeiger, Tastatur ---------- */
   /* Der Scrollfortschritt wird von js/tropfspur.js gezeichnet. */
-  let xy = null, pmr = 0;
-  addEventListener('pointermove', e => {
-    xy = [e.clientX, e.clientY]; if (pmr) return;
-    pmr = requestAnimationFrame(() => { pmr = 0; if (xy) { app.style.setProperty('--mx', (xy[0] / innerWidth * 100).toFixed(1) + '%'); app.style.setProperty('--my', (xy[1] / innerHeight * 100).toFixed(1) + '%'); } });
-  }, { passive: true });
   document.addEventListener('keydown', e => {
     if (e.key && e.key.toLowerCase() === 'b' && e.shiftKey && !e.target.closest('input,textarea,select')) { e.preventDefault(); S.panel = !S.panel; S.panelOpen = true; renderPanel(); return; }
     if (S.open == null) return;
@@ -482,7 +459,7 @@
     const el = document.getElementById(target);
     if (!el) return;
     const top = el.getBoundingClientRect().top + scrollY - 56;
-    if (L.motion) L.motion.scrollTo(top); else window.scrollTo({ top, behavior: mScale() ? 'smooth' : 'auto' });
+    window.scrollTo({ top, behavior: mScale() ? 'smooth' : 'auto' });
   });
 
   /* ---------- Videos: Zeichnung im Auftakt, Signatur bei Handschrift ---------- */
@@ -571,7 +548,7 @@
       if (Math.abs(v.currentTime - ziel) < 0.04) return;
       try { v.currentTime = ziel; } catch (e) { /* Spulen noch nicht möglich */ }
     }
-    if (L.motion) L.motion.on(folgen); else addEventListener('scroll', folgen, { passive: true });
+    addEventListener('scroll', folgen, { passive: true });
   })();
 
   /* ---------- Start ---------- */
