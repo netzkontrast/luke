@@ -221,6 +221,32 @@ pruefung('blattfolge: ohne Bewegung eine ruhige Reihe', 'beide', async (page, t)
   t.gleich(r.stand, 'still', 'Stand'); t.gleich(r.lage, 'static', 'Bühne klebt nicht'); t.ok(r.deck.every(o => o === '1'), 'alle Blätter sichtbar: ' + r.deck.join(','));
 }, { ruhig: true });
 
+pruefung('tropfspur: läuft am rechten Rand, nicht durch den Text', 'beide', async (page, t) => {
+  await t.durchscrollen(); await t.warten(1400);
+  const r = await page.evaluate(() => {
+    const h = document.getElementById('tropfspur'), p = h && h.querySelector('path');
+    if (!h || !p || h.hidden) return null;
+    const links = h.getBoundingClientRect().left + scrollX;
+    const L = p.getTotalLength();
+    const x = a => links + p.getPointAtLength(L * a).x;
+    const wrap = document.querySelector('#werke .wrap').getBoundingClientRect();
+    return { x0: x(0), x50: x(0.5), x95: x(0.95), wrapRechts: wrap.right + scrollX, breite: innerWidth,
+      dash: parseFloat(getComputedStyle(p).strokeDashoffset), L };
+  });
+  t.ok(r, 'Spur fehlt oder ist versteckt');
+  if (!r) return;
+  if (t.mobil) t.ok(r.x50 >= r.breite - 40, 'Spur an der rechten Kante (Telefon): ' + Math.round(r.x50));
+  else t.ok(r.x50 >= r.wrapRechts + 20 && r.x50 <= r.breite - 10, 'Spur rechts neben dem Inhalt: ' + Math.round(r.x50) + ' bei Kante ' + Math.round(r.wrapRechts));
+  t.ok(Math.abs(r.x95 - r.x50) < 40, 'Spur bleibt am Rand');
+  t.ok(r.x0 < r.x50 - 100, 'Spur setzt am Strang an und findet den Rand: ' + Math.round(r.x0) + ' → ' + Math.round(r.x50));
+  t.ok(r.dash < r.L * 0.1, 'Spur ist unten fast ganz gelaufen: ' + Math.round(r.dash) + ' von ' + Math.round(r.L));
+  await t.bild('tropfspur-unten');
+});
+
+pruefung('tropfspur: ohne Bewegung versteckt', 'schreibtisch', async (page, t) => {
+  t.ok(await page.evaluate(() => document.getElementById('tropfspur').hidden), 'Spur muss bei reduzierter Bewegung versteckt sein');
+}, { ruhig: true });
+
 /* ---------- Lauf ---------- */
 async function laufen() {
   fs.mkdirSync(AUSGABE, { recursive: true });

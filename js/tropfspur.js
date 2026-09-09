@@ -6,6 +6,11 @@
    weiter man liest, desto weiter ist sie gelaufen. Am unteren Ende hängt ein Tropfen,
    unterwegs bleiben einzelne Spritzer stehen.
 
+   Neu: Die Spur findet innerhalb der Blattfolge den rechten Rand und läuft dort weiter —
+   sie lief vorher mitten durch den Text der Handschrift, über das Formular und das
+   Atelierfoto. Der Text ist die Hauptsache. Angetrieben wird sie von Motion: scroll()
+   liest den Fortschritt, ein springValue läuft ihm einen Hauch nach, wie Flüssigkeit.
+
    Gezeichnet wird ein SVG in Seitenkoordinaten, kein festes Element: Die Spur gehört zur
    Seite, nicht zum Fenster. Bewegt wird nur stroke-dashoffset und ein Tropfen; beides ist
    für den Browser billig.
@@ -15,6 +20,7 @@
 (function () {
   'use strict';
   const L = (window.LUKE = window.LUKE || {});
+  const B = L.bewegung, M = B && B.M;
   const app = document.querySelector('.app');
   const halter = document.getElementById('tropfspur');
   if (!app || !halter) return;
@@ -31,8 +37,9 @@
   const STRANG_Y = 0.93;
   /* Ruhepunkte, an denen ein Spritzer hängen bleibt, als Anteil der Spurlänge. */
   const SPRITZER = [0.16, 0.34, 0.52, 0.71, 0.88];
+  let x0 = 0, x1 = 0, drift = 0;   // Ansatz, Randlage, Höhe der S-Kurve — in Koordinaten des SVG
 
-  let svg, pfad, tropfen, spritzer = [], laenge = 0, oben = 0, hoehe = 0, breite = 220;
+  let svg, pfad, tropfen, spritzer = [], laenge = 0, oben = 0, hoehe = 0, breite = 0;
   let letzterStand = -1, docHoehe = 0;
 
   /* Die Seitenhöhe wird beim Ausmessen gelesen, nicht im Bildtakt: scrollHeight erzwingt
@@ -40,17 +47,17 @@
   const dokumentHoehe = () =>
     Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
 
-  /* Eine leicht wandernde Linie. Ganz gerade sähe sie nach Balken aus, zu wellig nach
-     Dekoration; hier reichen wenige Pixel Abweichung. */
-  function pfadDaten(h, x) {
-    const schritte = Math.max(6, Math.round(h / 260));
-    let d = `M ${x} 0`;
+  /* Vom Ansatz in einer S-Kurve an den Rand, dann die leicht wandernde Linie senkrecht
+     weiter. Ganz gerade sähe sie nach Balken aus, zu wellig nach Dekoration. */
+  function pfadDaten(h) {
+    let d = `M ${x0} 0 C ${x0} ${(drift * 0.55).toFixed(1)} ${x1} ${(drift * 0.45).toFixed(1)} ${x1} ${drift}`;
+    const rest = h - drift;
+    const schritte = Math.max(6, Math.round(rest / 260));
     for (let i = 1; i <= schritte; i++) {
-      const y = (h * i) / schritte;
-      const y0 = (h * (i - 1)) / schritte;
+      const y = drift + (rest * i) / schritte, y0 = drift + (rest * (i - 1)) / schritte;
       const ab = Math.sin(i * 1.7) * 9 + Math.sin(i * 0.6) * 5;
       const ab0 = Math.sin((i - 1) * 1.7) * 9 + Math.sin((i - 1) * 0.6) * 5;
-      d += ` C ${x + ab0} ${y0 + (y - y0) * 0.4} ${x + ab} ${y - (y - y0) * 0.4} ${x + ab} ${y}`;
+      d += ` C ${x1 + ab0} ${y0 + (y - y0) * 0.4} ${x1 + ab} ${y - (y - y0) * 0.4} ${x1 + ab} ${y}`;
     }
     return d;
   }
@@ -103,9 +110,21 @@
     const seitenX = r.left + window.scrollX + r.width * STRANG_X;
     oben = Math.round(r.top + window.scrollY + r.height * STRANG_Y);
     hoehe = Math.max(0, doc - oben - 90);
+    /* Der Rand: ab 900 px rechts neben der .wrap, darunter an der Kante des Fensters. */
+    const wrap = document.querySelector('#werke .wrap') || document.querySelector('.wrap');
+    const wrapRechts = wrap ? wrap.getBoundingClientRect().right + window.scrollX : innerWidth;
+    const randX = innerWidth >= 900 ? Math.min(wrapRechts + 56, innerWidth - 24) : innerWidth - 18;
+    drift = Math.round(Math.min(hoehe * 0.12, innerHeight * 1.2));
+    const links = Math.round(Math.min(seitenX, randX) - 110);
+    breite = Math.round(Math.abs(randX - seitenX) + 220);
+    x0 = seitenX - links; x1 = randX - links;
+    /* Der übliche Puffer von 110 px reicht auf dem Telefon (randX nur 18 px vor der Kante)
+       über das Fenster hinaus: kein Vorfahre schneidet #tropfspur ab (anders als .g-wall bei
+       der Galerie), das riss die Seite waagerecht auf und blähte in mobilen Browsern sogar
+       innerWidth auf. Der Halter reicht darum nie weiter als bis zur Fensterkante. */
+    breite = Math.min(breite, innerWidth - links);
     if (hoehe < 200) return false;
 
-    const links = Math.round(seitenX - breite / 2);
     halter.style.left = links + 'px';
     halter.style.top = oben + 'px';
     halter.style.width = breite + 'px';
@@ -114,7 +133,7 @@
     svg.setAttribute('width', String(breite));
     svg.setAttribute('height', String(hoehe));
 
-    pfad.setAttribute('d', pfadDaten(hoehe, breite / 2));
+    pfad.setAttribute('d', pfadDaten(hoehe));
     pfad.setAttribute('stroke-width', '2');
     laenge = pfad.getTotalLength();
     pfad.style.strokeDasharray = String(laenge);
@@ -128,11 +147,10 @@
     return true;
   }
 
-  function zeichnen() {
+  function zeichnen(stand) {
     if (!laenge || !docHoehe) return;
-    const max = docHoehe - innerHeight;
-    const roh = max > 0 ? (window.scrollY - oben * 0.35) / (max - oben * 0.35 + 1) : 0;
-    const stand = Math.max(0, Math.min(1, roh));
+    if (typeof stand !== 'number') stand = spur ? spur.get() : 0;
+    stand = Math.max(0, Math.min(1, stand));
     if (Math.abs(stand - letzterStand) < 0.0008) return;
     letzterStand = stand;
 
@@ -150,25 +168,39 @@
       if (deck !== s.deck) { s.deck = deck; s.g.setAttribute('opacity', deck); }
     });
   }
+  /* Der Stand aus der Scrollposition, dieselbe Abbildung wie bisher. */
+  function standAus(y) {
+    const max = docHoehe - innerHeight;
+    return max > 0 ? (y - oben * 0.35) / (max - oben * 0.35 + 1) : 0;
+  }
 
   function an() {
     if (app.dataset.rot === 'aus') return false;
     if (app.dataset.bewegung === 'aus') return false;
+    if (!M || !B.m()) return false;
     return true;
   }
 
   function auffrischen() {
     if (!an()) { halter.hidden = true; return; }
     halter.hidden = !messen();
-    zeichnen();
+    zeichnen(spur ? spur.get() : 0);
+  }
+
+  /* Der Antrieb: scroll() liest den Fortschritt, die Feder läuft ihm nach. Ohne Motion gibt
+     es keine Spur — dann ist auch sonst nichts in Bewegung. Steht vor aufbauen()/auffrischen():
+     auffrischen() liest spur schon bei seinem ersten Aufruf, vor der let-Zeile wäre das ein
+     ReferenceError (temporal dead zone). */
+  let stand = null, spur = null;
+  if (M) {
+    stand = M.motionValue(0);
+    spur = M.springValue(stand, { stiffness: 120, damping: 28 });
+    spur.on('change', zeichnen);
+    M.scroll((p, info) => { stand.set(standAus(info.y.current)); });
   }
 
   aufbauen();
   auffrischen();
-
-  /* Ohne Motion-Modul greifen wir auf das Scroll-Ereignis zurück. */
-  if (L.motion && typeof L.motion.on === 'function') L.motion.on(zeichnen);
-  else addEventListener('scroll', zeichnen, { passive: true });
 
   let warte = 0;
   const neuMessen = () => {
