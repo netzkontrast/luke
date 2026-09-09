@@ -71,35 +71,29 @@
     const stop = M.scroll(anim, { target: halter, offset: ['start start', 'end end'] });
     stopps.push(() => { stop(); anim.cancel(); el.style.transform = ''; el.style.opacity = ''; });
   }
+  /* Motion fährt getrennte Transform-Werte (y, rotate, scale) scrollgebunden in JavaScript
+     und hält dabei keine Zwischenstufe — ein Blatt konnte so dauerhaft auf seinem
+     Austrittswert stehen bleiben, obwohl seine Deckkraft längst wieder bei 1 stand. Ein
+     fertiger transform-String läuft dagegen wie opacity nativ auf der ScrollTimeline. */
+  const tf = (y, dreh, gross) => `translateY(${y}px) rotate(${dreh}deg) scale(${gross})`;
   function bauen() {
     stopps.forEach(f => f()); stopps = [];
     const st = stand();
     halter.dataset.stand = st;
     if (st === 'still') { halter.style.height = ''; kapitelEls.forEach(el => { el.style.opacity = ''; }); return; }
-    /* Abweichung vom Brief: Ein eigens kürzeres Maß fürs Telefon (60) blieb bei den fünf
-       Papierblättern unter der nötigen Höhe der Bühne — dieselbe Scrollstrecke je Blatt
-       wie am großen Bildschirm reicht sicher. */
-    const dezent = B.m() < 1;
-    const je = dezent ? 55 : 70;
+    const mobil = innerWidth <= 700, dezent = B.m() < 1;
+    const je = dezent ? 55 : mobil ? 60 : 70;
     halter.style.height = Math.max(200, N * je + 100) + 'svh';
     const vh = innerHeight, w = 1 / N;
     stuecke.forEach(s => {
       const t0 = s.i * w, letzte = s.i === N - 1, dreh = DREH[s.i % DREH.length];
-      /* Eintritt 30 % des Fensters, Halten, Austritt: kürzer als der Eintritt.
-
-         Abweichung vom Brief: Der Austritt begann dort bei 78 % des Fensters, hier bei 88 %
-         (Beschriftung entsprechend mitgezogen). Motion hält eine scrollgebundene
-         transform-Animation nicht sauber auf dem Zwischenwert einer Halte-Stufe: Bei 78 %
-         stand das zweite Blatt laut Prüfung längst bei Deckkraft 1, war aber schon gut
-         190 Pixel nach oben unterwegs — auf dem Telefon schob es sich dadurch unters
-         Kapitel. Opacity hält exakt, was die Prüfung auch zeigt; y, rotate und scale tun es
-         nicht. 88 % lässt der Bühne Luft, ohne den Übergang zum harten Schnitt zu machen. */
+      /* Eintritt 30 % des Fensters, Halten, Austritt 22 %: kürzer als der Eintritt. */
       if (letzte) {
-        binden(s.blatt, { y: [0.7 * vh, 0.7 * vh, 0, 0], rotate: [dreh, dreh, 0, 0], scale: [0.92, 0.92, 1, 1], opacity: [0, 0, 1, 1] }, [0, t0, t0 + 0.3 * w, 1]);
-        binden(s.schrift, { opacity: [0, 0, 1, 1], y: [8, 8, 0, 0] }, [0, t0 + 0.2 * w, t0 + 0.34 * w, 1]);
+        binden(s.blatt, { transform: [tf(0.7 * vh, dreh, 0.92), tf(0.7 * vh, dreh, 0.92), tf(0, 0, 1), tf(0, 0, 1)], opacity: [0, 0, 1, 1] }, [0, t0, t0 + 0.3 * w, 1]);
+        binden(s.schrift, { opacity: [0, 0, 1, 1], transform: ['translateY(8px)', 'translateY(8px)', 'translateY(0px)', 'translateY(0px)'] }, [0, t0 + 0.2 * w, t0 + 0.34 * w, 1]);
       } else {
-        binden(s.blatt, { y: [0.7 * vh, 0.7 * vh, 0, 0, -0.6 * vh, -0.6 * vh], rotate: [dreh, dreh, 0, 0, 0, 0], scale: [0.92, 0.92, 1, 1, 1.04, 1.04], opacity: [0, 0, 1, 1, 0, 0] }, [0, t0, t0 + 0.3 * w, t0 + 0.88 * w, t0 + w, 1]);
-        binden(s.schrift, { opacity: [0, 0, 1, 1, 0, 0], y: [8, 8, 0, 0, -6, -6] }, [0, t0 + 0.2 * w, t0 + 0.34 * w, t0 + 0.88 * w, t0 + 0.98 * w, 1]);
+        binden(s.blatt, { transform: [tf(0.7 * vh, dreh, 0.92), tf(0.7 * vh, dreh, 0.92), tf(0, 0, 1), tf(0, 0, 1), tf(-0.6 * vh, 0, 1.04), tf(-0.6 * vh, 0, 1.04)], opacity: [0, 0, 1, 1, 0, 0] }, [0, t0, t0 + 0.3 * w, t0 + 0.78 * w, t0 + w, 1]);
+        binden(s.schrift, { opacity: [0, 0, 1, 1, 0, 0], transform: ['translateY(8px)', 'translateY(8px)', 'translateY(0px)', 'translateY(0px)', 'translateY(-6px)', 'translateY(-6px)'] }, [0, t0 + 0.2 * w, t0 + 0.34 * w, t0 + 0.78 * w, t0 + 0.88 * w, 1]);
       }
     });
     /* Kapitel: das erste steht schon, das letzte bleibt; dazwischen kurze Überblendungen. */

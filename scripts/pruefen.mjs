@@ -177,12 +177,30 @@ pruefung('blattfolge: fünf Blätter, eins zur Zeit, das letzte bleibt', 'beide'
       vh: innerHeight, alt: !!document.querySelector('werk-sequenz, canvas') };
   });
   t.gleich(r.stand, 'voll', 'Stand'); t.gleich(r.n, 5, 'Blätter'); t.ok(!r.alt, 'kein <werk-sequenz>, kein Canvas mehr');
-  t.ok(r.h >= r.vh * 4.3, 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
+  t.ok(r.h >= r.vh * (t.mobil ? 3.9 : 4.3), 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
   const strecke = r.h - r.vh;
   const deck = () => page.evaluate(() => Array.from(document.querySelectorAll('.bf-blatt')).map(el => +getComputedStyle(el).opacity));
-  await t.zu(r.oben + strecke * 0.3); await t.warten(300);
+  const transformVon = (sel, i) => page.evaluate(([sel, i]) => getComputedStyle(document.querySelectorAll(sel)[i]).transform, [sel, i]);
+  const ruhe = v => v === 'none' || v === 'matrix(1, 0, 0, 1, 0, 0)';
+  /* Motion fuhr transform früher als getrennte y/rotate/scale-Werte, gebunden über
+     M.scroll(), und hielt dabei keine Zwischenstufe: Ein Blatt konnte bei voller Deckkraft
+     trotzdem auf seinem Austrittswert stehen bleiben (js/blattfolge.js, tf()). Deshalb hier
+     nicht nur die Deckkraft prüfen, sondern an zwei Stellen auch die Ruhelage selbst — und
+     dass ein transform-String läuft, nicht mehr einzelne Werte. */
+  await t.zu(r.oben + strecke * 0.1); await t.warten(300);
   let s = await deck();
+  t.ok(s[0] > 0.95, 'bei 10 % steht das erste Blatt: ' + s[0]);
+  const tf0 = await transformVon('.bf-blatt', 0);
+  t.ok(ruhe(tf0), 'erstes Blatt bei 10 % nicht in Ruhelage: ' + tf0);
+  await t.zu(r.oben + strecke * 0.3); await t.warten(300);
+  s = await deck();
   t.ok(s[1] > 0.95 && s.filter(v => v > 0.05).length === 1, 'bei 30 % genau das zweite Blatt: ' + s.map(v => v.toFixed(2)).join(','));
+  const tf1 = await transformVon('.bf-blatt', 1);
+  t.ok(ruhe(tf1), 'zweites Blatt bei 30 % nicht in Ruhelage: ' + tf1);
+  const schriftTf1 = await transformVon('.bf-schrift', 1);
+  t.ok(ruhe(schriftTf1), 'Beschriftung des zweiten Blatts bei 30 % nicht in Ruhelage: ' + schriftTf1);
+  const nativ = await page.evaluate(() => document.querySelectorAll('.bf-blatt')[1].getAnimations().some(a => 'transform' in a.effect.getKeyframes()[0]));
+  t.ok(nativ, 'transform läuft nicht nativ auf der ScrollTimeline (getAnimations() ohne transform-Keyframes)');
   await t.bild('blattfolge-zweites');
   await t.zu(r.oben + strecke * 0.58); await t.warten(300);
   await t.bild('blattfolge-uebergang');
