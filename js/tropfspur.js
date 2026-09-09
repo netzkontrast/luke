@@ -38,6 +38,7 @@
   /* Ruhepunkte, an denen ein Spritzer hängen bleibt, als Anteil der Spurlänge. */
   const SPRITZER = [0.16, 0.34, 0.52, 0.71, 0.88];
   let x0 = 0, x1 = 0, drift = 0;   // Ansatz, Randlage, Höhe der S-Kurve — in Koordinaten des SVG
+  let faktor = 1;   // Wanderbreite: 1 ab 900 px, sonst gestaucht (siehe messen())
 
   let svg, pfad, tropfen, spritzer = [], laenge = 0, oben = 0, hoehe = 0, breite = 0;
   let letzterStand = -1, docHoehe = 0;
@@ -55,8 +56,8 @@
     const schritte = Math.max(6, Math.round(rest / 260));
     for (let i = 1; i <= schritte; i++) {
       const y = drift + (rest * i) / schritte, y0 = drift + (rest * (i - 1)) / schritte;
-      const ab = Math.sin(i * 1.7) * 9 + Math.sin(i * 0.6) * 5;
-      const ab0 = Math.sin((i - 1) * 1.7) * 9 + Math.sin((i - 1) * 0.6) * 5;
+      const ab = (Math.sin(i * 1.7) * 9 + Math.sin(i * 0.6) * 5) * faktor;
+      const ab0 = (Math.sin((i - 1) * 1.7) * 9 + Math.sin((i - 1) * 0.6) * 5) * faktor;
       d += ` C ${x1 + ab0} ${y0 + (y - y0) * 0.4} ${x1 + ab} ${y - (y - y0) * 0.4} ${x1 + ab} ${y}`;
     }
     return d;
@@ -110,15 +111,21 @@
     const seitenX = r.left + window.scrollX + r.width * STRANG_X;
     oben = Math.round(r.top + window.scrollY + r.height * STRANG_Y);
     hoehe = Math.max(0, doc - oben - 90);
-    /* Der Rand: ab 900 px rechts neben der .wrap, darunter an der Kante des Fensters. */
+    /* Der Rand: ab 900 px rechts neben der .wrap, darunter an der Kante des Fensters.
+       Unter 900 px ist der Rinnstein neben dem Text nur die 16 px Innenabstand der .wrap
+       (siehe css/site.css) — darin muss die Spur bleiben. Sie läuft deshalb näher an der
+       Kante (8 statt 18 px) und die Wanderung wird auf ein Viertel gestaucht: Bei voller
+       Breite reichte sie bis in die rechtsbündige Nebenschrift der Team-Liste und in den
+       Instagram-Link im Fuß hinein. */
     const wrap = document.querySelector('#werke .wrap') || document.querySelector('.wrap');
     const wrapRechts = wrap ? wrap.getBoundingClientRect().right + window.scrollX : innerWidth;
-    const randX = innerWidth >= 900 ? Math.min(wrapRechts + 56, innerWidth - 24) : innerWidth - 18;
+    const randX = innerWidth >= 900 ? Math.min(wrapRechts + 56, innerWidth - 24) : innerWidth - 8;
+    faktor = innerWidth >= 900 ? 1 : 0.25;
     drift = Math.round(Math.min(hoehe * 0.12, innerHeight * 1.2));
     const links = Math.round(Math.min(seitenX, randX) - 110);
     breite = Math.round(Math.abs(randX - seitenX) + 220);
     x0 = seitenX - links; x1 = randX - links;
-    /* Der übliche Puffer von 110 px reicht auf dem Telefon (randX nur 18 px vor der Kante)
+    /* Der übliche Puffer von 110 px reicht auf dem Telefon (randX nur 8 px vor der Kante)
        über das Fenster hinaus: kein Vorfahre schneidet #tropfspur ab (anders als .g-wall bei
        der Galerie), das riss die Seite waagerecht auf und blähte in mobilen Browsern sogar
        innerWidth auf. Der Halter reicht darum nie weiter als bis zur Fensterkante. */

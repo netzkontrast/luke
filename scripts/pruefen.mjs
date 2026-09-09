@@ -230,12 +230,24 @@ pruefung('tropfspur: läuft am rechten Rand, nicht durch den Text', 'beide', asy
     const L = p.getTotalLength();
     const x = a => links + p.getPointAtLength(L * a).x;
     const wrap = document.querySelector('#werke .wrap').getBoundingClientRect();
-    return { x0: x(0), x50: x(0.5), x95: x(0.95), wrapRechts: wrap.right + scrollX, breite: innerWidth,
-      dash: parseFloat(getComputedStyle(p).strokeDashoffset), L };
+    const insta = document.querySelector('.foot-row a[href*="instagram"]');
+    return { x0: x(0), x50: x(0.5), x70: x(0.7), x95: x(0.95), wrapRechts: wrap.right + scrollX, breite: innerWidth,
+      dash: parseFloat(getComputedStyle(p).strokeDashoffset), L,
+      instaRechts: insta ? insta.getBoundingClientRect().right + scrollX : null };
   });
   t.ok(r, 'Spur fehlt oder ist versteckt');
   if (!r) return;
-  if (t.mobil) t.ok(r.x50 >= r.breite - 40, 'Spur an der rechten Kante (Telefon): ' + Math.round(r.x50));
+  if (t.mobil) {
+    t.ok(r.x50 >= r.breite - 40, 'Spur an der rechten Kante (Telefon): ' + Math.round(r.x50));
+    /* Der Rinnstein unter 900 px ist nur die 16 px Innenabstand der .wrap: die ganze
+       Schwanzspitze der Spur muss darin bleiben, sonst streift sie Nebenschrift oder den
+       Instagram-Link im Fuß (siehe js/tropfspur.js, messen()). */
+    for (const [anteil, wert] of [[0.5, r.x50], [0.7, r.x70], [0.95, r.x95]]) {
+      t.ok(wert >= r.breite - 13 && wert <= r.breite - 3, 'Spur bleibt im Rand bei ' + anteil + ': ' + Math.round(wert) + ' (Fenster ' + r.breite + ')');
+    }
+    t.ok(r.instaRechts != null, 'Instagram-Link im Fuß nicht gefunden');
+    if (r.instaRechts != null) t.ok(r.x95 > r.instaRechts + 2, 'Spur rechts vom Instagram-Link im Fuß: ' + Math.round(r.x95) + ' vs ' + Math.round(r.instaRechts));
+  }
   else t.ok(r.x50 >= r.wrapRechts + 20 && r.x50 <= r.breite - 10, 'Spur rechts neben dem Inhalt: ' + Math.round(r.x50) + ' bei Kante ' + Math.round(r.wrapRechts));
   t.ok(Math.abs(r.x95 - r.x50) < 40, 'Spur bleibt am Rand');
   t.ok(r.x0 < r.x50 - 100, 'Spur setzt am Strang an und findet den Rand: ' + Math.round(r.x0) + ' → ' + Math.round(r.x50));
