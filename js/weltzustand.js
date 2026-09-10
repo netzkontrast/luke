@@ -1,7 +1,7 @@
 /* Der Weltzustand.
 
    Bisher hatte jedes bewegte Ding auf dieser Seite seine eigene Buchhaltung: motion.js
-   liest die Scrollposition, werk-sequenz.js liest sie noch einmal, tropfspur.js ein
+   liest die Scrollposition, die 3D-Sequenz las sie noch einmal, tropfspur.js ein
    drittes Mal, und die Galerie prüft in ihrer eigenen Schleife, was schon sichtbar ist.
    Vier Module, vier Wahrheiten, vier Gelegenheiten, auseinanderzulaufen.
 

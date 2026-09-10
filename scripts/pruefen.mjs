@@ -354,6 +354,37 @@ pruefung('anfrage: der Fehler kommt von links, ohne Schütteln', 'schreibtisch',
   t.ok(!r.hidden && /Motividee/.test(r.text) && r.op === '1', 'Fehlerhinweis steht: ' + JSON.stringify(r));
 });
 
+for (const r of ['b', 'c']) {
+  pruefung(`richtung ${r}: alles kommt, Konsole leer`, 'beide', async (page, t) => {
+    await t.durchscrollen(); await t.warten(2200);
+    const fehlt = await page.evaluate(() => Array.from(document.querySelectorAll('.rv')).filter(el => {
+      if (el.closest('[hidden]')) return false;
+      const r = el.getBoundingClientRect();
+      if (r.right <= 0 || r.left >= innerWidth) return false;
+      /* Nicht auf genau 1 prüfen: Richtung B dimmt das Handschriftvideo dauerhaft auf
+         0.9 (.app[data-richtung="b"] .band-video, aus dem ursprünglichen Prototyp, nicht
+         Teil dieses Umbaus). Enthüllt ist enthüllt, auch wenn die Ruhelage nicht 1 heißt —
+         hängengeblieben ist nur, was noch nahe der versteckten Deckkraft 0 steht. */
+      return !el.classList.contains('on') || parseFloat(getComputedStyle(el).opacity) < 0.5;
+    }).length);
+    t.gleich(fehlt, 0, 'nicht enthüllt');
+    await t.zu(0); await t.warten(600); await t.bild('richtung-' + r + '-oben');
+    await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1200); await t.bild('richtung-' + r + '-werke');
+  }, { abfrage: '?richtung=' + r });
+}
+
+pruefung('bedienfeld: Bewegung aus zeigt alles, die Blattfolge wird eine Reihe', 'schreibtisch', async (page, t) => {
+  await page.click('[data-set="bewegung"][data-val="aus"]'); await t.warten(400);
+  const r = await page.evaluate(() => ({
+    fehlt: Array.from(document.querySelectorAll('.rv')).filter(el => { if (el.closest('[hidden]')) return false; const r = el.getBoundingClientRect(); return !(r.right <= 0 || r.left >= innerWidth) && getComputedStyle(el).opacity !== '1'; }).length,
+    stand: document.getElementById('blattfolge').dataset.stand,
+    spur: document.getElementById('tropfspur').hidden
+  }));
+  t.gleich(r.fehlt, 0, 'alles sichtbar'); t.gleich(r.stand, 'still', 'Blattfolge still'); t.ok(r.spur, 'Spur versteckt');
+  await page.click('[data-set="bewegung"][data-val="voll"]'); await t.warten(400);
+  t.gleich(await page.evaluate(() => document.getElementById('blattfolge').dataset.stand), 'voll', 'Blattfolge wieder voll');
+}, { abfrage: '?proto' });
+
 /* ---------- Lauf ---------- */
 async function laufen() {
   fs.mkdirSync(AUSGABE, { recursive: true });

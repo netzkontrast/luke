@@ -40,7 +40,7 @@ Bereits umgesetzt:
 - [x] Schriften lokal gehostet (kein Google-Fonts-Aufruf, vgl. LG München I, 2022).
 - [x] Keine Instagram-Einbettung, nur Links.
 - [x] Streifen „Aktuell“ blendet sich nach dem 27. 9. 2026 automatisch aus.
-- [x] three.js lokal aus `vendor/`, CDN nur als Rückfallebene.
+- [x] Motion 13 lokal aus `vendor/motion/`, keine Bibliothek vom CDN.
 - [x] Reduzierte Bewegung (Systemeinstellung) wird respektiert.
 - [x] Werkansicht mit Tastatur bedienbar (Escape, Pfeiltasten, Fokusfalle).
 - [x] Film zur Werkschau unter `video/`, in 16:9 und 9:16, mit denselben Werkdaten wie die Seite.
@@ -60,11 +60,9 @@ Bereits umgesetzt:
 - [x] Der Seitenkopf zeigt die kniende Figur. Das Video zeigt weiter, wie das Profil entsteht: Das sind zwei Blätter,
       dazwischen liegt eine knappe Leerstelle, damit es als Schnitt gelesen wird und nicht als Verwandlung. Beide sind
       Gestaltung, keine Werke.
+- [x] Sechs Papierblätter im Hochformat liefen auf dem Schreibtisch lang untereinander; ab 1100 px stehen sie jetzt
+      in drei Spalten.
 
 Beim nächsten Durchgang anzusehen:
 
-- Zwischen Kapitel 1 und 2 sowie zwischen 2 und 3 steht die Blättersequenz (`js/werk-sequenz.js`) kurz leer:
-  Die Gruppen liegen 18 Einheiten auseinander, sichtbar ist ein Fenster von ±7,5. Wer langsam scrollt, sieht
-  dort nur den roten Faden auf Weiß. Entweder die Fenster verbreitern oder die Gruppen enger legen.
-- Sechs Papierblätter im Hochformat untereinander machen die Galerie auf dem Schreibtisch lang. Ein zweites
-  Raster für die Serie wäre eine Überlegung wert, sobald Fotos der Hautarbeiten dazukommen.
+- Ein zweites Raster für die Serie wäre eine Überlegung wert, sobald Fotos der Hautarbeiten dazukommen.
