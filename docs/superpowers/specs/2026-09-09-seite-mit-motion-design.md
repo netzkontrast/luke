@@ -412,13 +412,26 @@ Formular oder Foto. Blattfolge: ein Blatt zur Zeit, Beschriftung passt zum Blatt
 - `styleEffect` verlangt für jeden Schlüssel einen Motion-Wert, keine nackte Zahl.
 - Die Zeilen der Prüfung, die Elemente in der Wischschiene betreffen, lassen aus, was
   waagerecht außerhalb des Fensters steht: Das wird erst beim Wischen gesehen.
+- Die Adresse (`?bewegung=`, `?richtung=`) wird in `js/bewegung.js` auf `.app` aufgelöst,
+  bevor ein anderes Skript die Stärke liest. Ein Modul, das `m()` beim Laden liest, sähe
+  sonst den Vorgabewert des Markups; der Auftakt lief so mit `?bewegung=aus` in voller
+  Stärke.
+- Das Standbild des Auftakts setzt die Tiefen-Ebenen auf ihre `--deck`, nicht auf 1;
+  sonst decken drei Kopien der Zeichnung die Figur zu. Die Prüfung misst das jetzt bei
+  reduzierter Bewegung und mit `?bewegung=aus`.
+- Wer ein Element in Bewegung hebt, darf dessen ruhende Drehung nicht in `transform`
+  haben. Die Kippung der Plakate in Richtung C liegt deshalb in der Eigenschaft `rotate`,
+  die neben `transform` steht und von Motion nicht überschrieben wird.
+- `parallaxe()` baut die Bindungen nur neu, wenn ein neues Element dazukam; der
+  Beobachter am Body ruft sie bei jeder Einfügung.
 
 ## 9. Bewusst gelassen
 
 - Der Fuß und die Navigation bewegen sich nicht.
 - Kein „aktiver Abschnitt“ in der Navigation, keine Fortschrittsanzeige außer der Spur.
-- Flash bleibt leer, `skizze.html` und `js/weltzustand.js` bleiben unberührt, ebenso der
-  Film unter `video/` samt `SeitenAuftakt.tsx` (dort weiter Teil des Films).
+- Flash bleibt leer, `skizze.html` und `js/weltzustand.js` bleiben funktional unberührt
+  (in `weltzustand.js` ist nur ein Kommentar berichtigt, der gelöschte Dateien nannte),
+  ebenso der Film unter `video/` samt `SeitenAuftakt.tsx` (dort weiter Teil des Films).
 - Keine Klanggestaltung.
 - Kein Wechsel der Schriften, Farben oder Texte. Die Richtungen B und C bekommen ihre
   Bewegung übersetzt, aber keine neue Idee; A ist der Standard und wird zuerst geprüft.
