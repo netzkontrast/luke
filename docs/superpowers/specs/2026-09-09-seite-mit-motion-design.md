@@ -61,6 +61,10 @@ Was heute je Abschnitt läuft, und was daran schwach ist.
    landen.** Scrollgebundene Bewegung läuft über `scroll()`; wo der Browser
    `ScrollTimeline` kann, läuft sie ohne JavaScript im Bildtakt. Bei scrollgebundener
    Bewegung ist `ease: "linear"` richtig — die Kurve ist dort der Daumen des Lesers.
+   Gemessen beim Bauen: Getrennte Transform-Werte (`y`, `rotate`, `scale`) fährt Motion
+   scrollgebunden in JavaScript und hält dabei keine Zwischenstufe; scrollgebundene
+   Bewegung mit mehreren Stufen wird deshalb als **ein `transform`-String je Keyframe**
+   geschrieben, dann läuft sie wie `opacity` nativ auf der `ScrollTimeline`.
 6. **Kurven ohne Überschwingen.** A: `[.3,.1,.2,1]`, B: `[.16,1,.3,1]`, Federn mit
    `bounce: 0`. Richtung C behält ihr Überschwingen `[.34,1.3,.5,1]`, das ist ihr
    Charakter (Werkstatt). Austritte sind kürzer als Eintritte.
@@ -141,8 +145,10 @@ Endzustand gesetzt.
 - B: `opacity 0→1`, `y 22→0`, `scale .985→1`, `filter blur(9px) brightness(.55) → blur(0px) brightness(1)`.
 - C: `opacity 0→1`, `y −12→0`, `rotate −1.1→0`, `scale 1.015→1`.
 
-**Enthüllen:** je Element ein `inView(el, …, { amount: .15, margin: '0px 0px -8% 0px' })`,
-das nach dem ersten Eintritt abgemeldet wird. Was im selben Augenblick sichtbar wird,
+**Enthüllen:** je Element ein `inView(el, …, { amount: 'some', margin: '0px 0px -8% 0px' })`,
+das nach dem ersten Eintritt abgemeldet wird. „Some“ (jeder schneidende Pixel) statt eines
+Flächenanteils: Das entspricht dem alten Auslösepunkt (Oberkante unter 92 % der Fensterhöhe)
+und ist unabhängig davon, wie viel von einem Blatt die Wischschiene gerade zeigt. Was im selben Augenblick sichtbar wird,
 kommt gestaffelt: `delay = min(reihe, 4) * versatz`, Reihe wird zurückgesetzt, wenn
 zwischen zwei Eintritten mehr als 120 ms liegen. Einmal enthüllt bleibt enthüllt.
 
@@ -226,7 +232,9 @@ section#sequenz > .bf[data-stand=voll|still]
 ```
 
 Höhe des Abschnitts: `N · 70svh + 100svh` (Telefon ≤ 700 px: `N · 60svh + 100svh`,
-dezent: `N · 55svh + 100svh`), `N` = Zahl der Blätter, mindestens `200svh`. Der
+dezent: `N · 55svh + 100svh`), `N` = Zahl der Blätter, mindestens `200svh`. Das Blatt
+steht auf dem Schreibtisch 72svh hoch, auf dem Telefon 46svh — gemessen: Bei 56svh
+überlappte es den Kapitelblock oben um 23 px, bei 46svh bleiben 19 px Luft. Der
 Fortschritt `p` läuft von `start start` bis `end end` des Abschnitts. Blatt `i` hat das
 Fenster `[i/N, (i+1)/N]` mit Breite `w = 1/N`, alles scrollgebunden mit `ease: "linear"`
 und `times`:
@@ -238,8 +246,9 @@ und `times`:
 | `scale` | .92 | .92 | 1 | 1 | 1.04 | 1.04 |
 | `opacity` | 0 | 0 | 1 | 1 | 0 | 0 |
 
-`dreh` im Wechsel −5°, 4°, −3°, 5°, −4°. Der Austritt (22 % des Fensters) ist kürzer als
-der Eintritt (30 %). Zwischen Austritt und nächstem Eintritt liegt ein leerer Augenblick:
+`dreh` im Wechsel −5°, 4°, −3°, 5°, −4°; `y`, `rotate` und `scale` stehen als ein
+`transform`-String je Keyframe (siehe Entscheidung 5). Der Austritt (22 % des Fensters)
+ist kürzer als der Eintritt (30 %). Zwischen Austritt und nächstem Eintritt liegt ein leerer Augenblick:
 ein Schnitt. **Das letzte Blatt geht nicht hinaus**, es bleibt stehen, und die Bühne
 scrollt mit ihm davon. Pixelwerte werden aus `innerHeight` gerechnet und bei
 Größenänderung neu aufgebaut.
@@ -267,8 +276,9 @@ weiterläuft — der Streifen ist ein Vermerk am Rand der Seite.
 
 ### Werke
 
-- **Reiter:** Die Linie unter den Reitern (`.tr-schiene`) gleitet mit Motion (`x`,
-  `width`, Feder `gesetzt`) statt mit einer CSS-Transition.
+- **Reiter:** Die Linie unter den Reitern (`.tr-schiene`) gleitet mit Motion statt mit
+  einer CSS-Transition: Die Breite wird sofort gesetzt, bewegt werden `x` und ein
+  `scaleX` von der alten zur neuen Breite (Feder `gesetzt`) — nur `transform`.
 - **Blätter:** Eintritt „Blatt“ (A) bzw. Richtung; Staffelung nach Spalte
   (`delay = (index % cols) * versatz`). `--dreh` steht im Stylesheet je `nth-child`.
 - **Heben:** Hover und Fokus heben das Bildfeld `.g-ph` um 4 px, Press drückt auf
@@ -276,7 +286,9 @@ weiterläuft — der Streifen ist ein Vermerk am Rand der Seite.
   liegt das Heben auf `.g-ph`, nicht auf `.tin`.
 - **Filtern:** Was verschwindet, geht zuerst (`opacity → 0`, `scale → .98`, `kurz · .5`),
   dann wird neu gezeichnet, dann FLIP mit Feder `gesetzt` für alles, was seinen Platz
-  wechselt; Neues kommt `opacity 0→1`, `y 16→0`, Versatz 0.05.
+  wechselt; Neues kommt `opacity 0→1`, `y 16→0`, Versatz 0.05. Klickt jemand weiter,
+  bevor der Austritt zu Ende ist, zeichnet nur der letzte Lauf; während der Waschung
+  beim Trägerwechsel nimmt die Galerie keinen zweiten Wechsel an.
 - **Trägerwechsel:** Die Waschung `#gwash` bleibt je Richtung wie bisher (A `scaleY`,
   B `opacity`, C `scaleX`), gebaut mit `animate`, danach kommen die Blätter gestaffelt.
 - **Layoutwechsel** (Mauerwerk, Bündig, Schiene): FLIP wie beim Filtern.
@@ -338,8 +350,9 @@ Bleibt SVG in Seitenkoordinaten, bleibt Tropfen, Spritzer und `stroke-dashoffset
 - **Weg:** Ansatz weiter bei `STRANG_X/Y` der `.hero-fig`. Von dort führt eine S-Kurve
   über `min(hoehe · 0.12, 1.2 · innerHeight)` Pixel an den rechten Rand — ab 900 px
   Breite `min(wrapRechts + 56, innerWidth − 24)` (`wrapRechts` = rechte Kante der `.wrap`),
-  darunter `innerWidth − 18`. Ab dort läuft die wandernde Linie wie bisher senkrecht
-  weiter. Der Halter deckt beide x-Werte ab (`left = min(x0, x1) − 110`, Breite
+  darunter `innerWidth − 8` mit einem Viertel der Wanderung (die Randspalte ist dort nur
+  16 px breit; mit ±14 px schnitt die Linie rechtsbündige Zeilen). Ab dort läuft die
+  wandernde Linie wie bisher senkrecht weiter; der Halter bleibt innerhalb des Fensters. Der Halter deckt beide x-Werte ab (`left = min(x0, x1) − 110`, Breite
   `|x1 − x0| + 220`).
 - **Antrieb:** `scroll((p, info) => stand.set(…))` mit derselben Abbildung wie bisher
   (`(scrollY − oben · 0.35) / (max − oben · 0.35 + 1)`), `stand` ein `motionValue`;
@@ -390,7 +403,17 @@ Was in den Bildern zu prüfen ist: Kein weißer Kasten hinter einer Zeichnung
 (vor allem am Ende eines `clip-path`-Eintritts). Die Tropfspur läuft nicht durch Text,
 Formular oder Foto. Blattfolge: ein Blatt zur Zeit, Beschriftung passt zum Blatt.
 
-## 8. Bewusst gelassen
+## 8. Beim Bauen gelernt
+
+- Nach dem Ende einer Motion-Animation schreibt Motion die Endwerte im Renderschritt des
+  folgenden Bildes noch einmal als Inline-Stil. Wer danach aufräumen will, tut es zwei
+  Renderschritte später (`frame.postRender` zweimal), nicht im `then` — und wartet, bis
+  jede Animation auf demselben Element fertig ist.
+- `styleEffect` verlangt für jeden Schlüssel einen Motion-Wert, keine nackte Zahl.
+- Die Zeilen der Prüfung, die Elemente in der Wischschiene betreffen, lassen aus, was
+  waagerecht außerhalb des Fensters steht: Das wird erst beim Wischen gesehen.
+
+## 9. Bewusst gelassen
 
 - Der Fuß und die Navigation bewegen sich nicht.
 - Kein „aktiver Abschnitt“ in der Navigation, keine Fortschrittsanzeige außer der Spur.
