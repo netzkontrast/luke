@@ -28,12 +28,6 @@
     traeger: 'alles', fOrt: null, fMotiv: null, fSerie: null, fJahr: null,
     open: null
   };
-  const TEMPO = {
-    a: { washIn: 500, washOut: 560, flip: 520, ov: 620, eIn: 'cubic-bezier(.4,0,.2,1)', eFlip: 'cubic-bezier(.22,.9,.3,1)' },
-    b: { washIn: 700, washOut: 800, flip: 700, ov: 780, eIn: 'cubic-bezier(.3,0,.15,1)', eFlip: 'cubic-bezier(.16,1,.3,1)' },
-    c: { washIn: 260, washOut: 300, flip: 320, ov: 380, eIn: 'cubic-bezier(.34,1.3,.5,1)', eFlip: 'cubic-bezier(.34,1.35,.5,1)' }
-  };
-  const tempo = () => TEMPO[S.richtung] || TEMPO.a;
   const mScale = () => ({ aus: 0, dezent: 0.55, voll: 1 })[S.bewegung];
 
   /* ---------- Werke ---------- */
@@ -309,17 +303,27 @@
     }, { passive: true });
   }
 
+  /* Öffnen: Der Hintergrund kommt kurz, die Bildfläche fliegt vom Blatt in der Galerie an
+     ihren Platz, die Zeilen folgen gestaffelt. Kein Aufblenden der ganzen Karte, sonst wäre
+     der Flug unsichtbar. */
   function animateOvIn() {
-    const m = mScale(); if (!m) return;
-    const tp = tempo();
-    const bg = $('#ov-bg'), card = $('.ov-card'), fig = $('#ov-fig');
-    if (bg) bg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: tp.ov * 0.6 * m, easing: 'ease-out' });
+    const s = mScale(); if (!s || !M) return;
+    const t = B.tempo();
+    const bg = $('#ov-bg'), card = $('.ov-card'), fig = $('#ov-fig'), info = $('.ov-info');
+    if (bg) M.animate(bg, { opacity: [0, 1] }, { duration: t.kurz * s, ease: t.kurve });
+    if (card) M.animate(card, { opacity: [0, 1] }, { duration: t.kurz * 0.5 * s, ease: t.kurve });
     if (fig && rect0) {
       const r1 = fig.getBoundingClientRect();
-      const dx = rect0.left - r1.left, dy = rect0.top - r1.top, s = rect0.width / r1.width;
-      fig.animate([{ transform: `translate(${dx}px,${dy}px) scale(${s})`, transformOrigin: 'top left' }, { transform: 'none' }], { duration: tp.ov * m, easing: tp.eFlip });
-      if (card) card.animate([{ opacity: 0 }, { opacity: 1 }], { duration: tp.ov * 0.5 * m, delay: tp.ov * 0.25 * m, easing: 'ease-out', fill: 'backwards' });
-    } else if (card) card.animate([{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: tp.ov * 0.65 * m, easing: 'ease-out' });
+      fig.style.transformOrigin = 'top left';
+      /* Motion schreibt die Endwerte im Renderschritt des folgenden Bildes noch einmal (wie in
+         js/bewegung.js, zeigen(), und flipPlay() oben) — ein sofortiges Leeren hier käme zu
+         früh und würde vom nächsten Bild wieder überschrieben. Deshalb erst zwei Renderschritte
+         später leeren. */
+      M.animate(fig, { x: [rect0.left - r1.left, 0], y: [rect0.top - r1.top, 0], scale: [rect0.width / r1.width, 1] }, B.feder.gesetzt)
+        .then(() => M.frame.postRender(() => M.frame.postRender(() => { fig.style.transform = ''; })));
+    } else if (fig) M.animate(fig, { opacity: [0, 1], scale: [0.97, 1] }, { duration: t.ansicht * 0.65 * s, ease: t.kurve });
+    const teile = info ? Array.from(info.children) : [];
+    if (teile.length) M.animate(teile, { opacity: [0, 1], y: [12, 0] }, { duration: t.dauer * 0.5 * s, delay: M.stagger(0.05 * s, { startDelay: 0.15 * s }), ease: t.kurve });
   }
   function openWerk(id, btn) {
     ret = btn || null;
@@ -327,12 +331,46 @@
     S.open = id; renderOverlay(); animateOvIn();
     const c = $('#ov-close'); if (c) c.focus();
   }
-  function closeOv() { S.open = null; renderOverlay(); if (ret) ret.focus(); }
-  function ovStep(dir) {
-    const list = ovListe(finde(S.open)); if (!list.length) return;
+  /* Schließen: umgekehrt und kürzer. Der Dialog bleibt, bis das Bild zurück am Blatt ist;
+     erst dann geht er aus dem Dokument und der Fokus zurück. */
+  let schliesst = false;
+  async function closeOv() {
+    if (schliesst || S.open == null) return;
+    schliesst = true;
+    const s = mScale(), t = B.tempo();
+    const fig = $('#ov-fig'), bg = $('#ov-bg'), info = $('.ov-info');
+    if (s && M) {
+      const ziel = ret && ret.querySelector('.g-ph, .gr-ph');
+      const r0 = ziel ? ziel.getBoundingClientRect() : null;
+      const wartet = [];
+      if (info) wartet.push(M.animate(Array.from(info.children), { opacity: 0, y: 8 }, { duration: t.kurz * 0.5 * s, ease: t.kurve }));
+      if (fig && r0) {
+        const r1 = fig.getBoundingClientRect();
+        fig.style.transformOrigin = 'top left';
+        wartet.push(M.animate(fig, { x: r0.left - r1.left, y: r0.top - r1.top, scale: r0.width / r1.width, opacity: 0.6 }, { duration: t.kurz * s, ease: t.kurve }));
+      } else if (fig) wartet.push(M.animate(fig, { opacity: 0, scale: 0.97 }, { duration: t.kurz * s, ease: t.kurve }));
+      if (bg) wartet.push(M.animate(bg, { opacity: 0 }, { duration: t.kurz * s, delay: t.kurz * 0.3 * s, ease: t.kurve }));
+      await Promise.all(wartet);
+    }
+    S.open = null; renderOverlay(); schliesst = false;
+    if (ret) ret.focus();
+  }
+
+  /* Blättern: das alte Bild geht kurz zur Seite, das neue kommt von der anderen. */
+  async function ovStep(dir) {
+    const list = ovListe(finde(S.open)); if (!list.length || schliesst) return;
     const i = list.findIndex(w => w.id === S.open);
     const nx = list[(i + dir + list.length) % list.length];
+    const s = mScale(), t = B.tempo(), fig = $('#ov-fig');
+    if (s && M && fig) await M.animate(fig, { opacity: 0, x: -14 * dir }, { duration: 0.18 * s, ease: t.kurve });
     rect0 = null; S.open = nx.id; renderOverlay();
+    if (s && M) {
+      const f2 = $('#ov-fig'), zeilen = [$('.ov-info h3'), $('.ov-rows')].filter(Boolean);
+      /* Dieselbe Nachschreib-Falle wie oben bei animateOvIn: erst zwei Renderschritte später leeren. */
+      if (f2) M.animate(f2, { opacity: [0, 1], x: [14 * dir, 0] }, { duration: 0.35 * s, ease: t.kurve })
+        .then(() => M.frame.postRender(() => M.frame.postRender(() => { f2.style.transform = ''; })));
+      if (zeilen.length) M.animate(zeilen, { opacity: [0, 1] }, { duration: 0.3 * s, ease: t.kurve });
+    }
     const c = $('#ov-close'); if (c) c.focus();
   }
   $('#ov-root').addEventListener('click', e => {

@@ -305,6 +305,28 @@ pruefung('werke: Hover hebt das Bildfeld, nicht mehr', 'schreibtisch', async (pa
   t.ok(!tf2 || /translateY\(-?0(\.\d+)?px\)|^none$/.test(tf2), 'senkt sich wieder: ' + JSON.stringify(tf2));
 });
 
+pruefung('werkansicht: öffnet vom Blatt, blättert, schließt zum Blatt zurück', 'beide', async (page, t) => {
+  await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1600);
+  await page.click('.g-item'); await t.warten(120);
+  const flug = await page.evaluate(() => { const f = document.getElementById('ov-fig'); return f ? f.style.transform : null; });
+  t.ok(flug && /translate|scale|matrix/.test(flug), 'das Bild fliegt vom Blatt aus: ' + JSON.stringify(flug));
+  await t.warten(1000);
+  const offen = await page.evaluate(() => ({
+    da: !!document.getElementById('ov'), fokus: document.activeElement && document.activeElement.id,
+    fig: document.getElementById('ov-fig').style.transform, rows: getComputedStyle(document.querySelector('.ov-rows')).opacity
+  }));
+  t.ok(offen.da, 'Werkansicht offen'); t.gleich(offen.fokus, 'ov-close', 'Fokus auf Schließen');
+  t.gleich(offen.fig, '', 'Bild am Platz, transform geleert'); t.gleich(offen.rows, '1', 'Zeilen sichtbar');
+  await t.bild('werkansicht');
+  await page.keyboard.press('ArrowRight'); await t.warten(800);
+  t.gleich(await page.evaluate(() => (document.querySelector('.ov-zaehler') || {}).textContent), '2 von 6', 'geblättert');
+  await page.keyboard.press('Escape'); await t.warten(100);
+  t.ok(await page.evaluate(() => !!document.getElementById('ov')), 'beim Schließen bleibt der Dialog, bis die Bewegung zu Ende ist');
+  await t.warten(1000);
+  const zu = await page.evaluate(() => ({ da: !!document.getElementById('ov'), fokus: document.activeElement && document.activeElement.className }));
+  t.ok(!zu.da, 'Werkansicht geschlossen'); t.ok(/g-item/.test(zu.fokus || ''), 'Fokus zurück auf dem Blatt: ' + zu.fokus);
+});
+
 /* ---------- Lauf ---------- */
 async function laufen() {
   fs.mkdirSync(AUSGABE, { recursive: true });
