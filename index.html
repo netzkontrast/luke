@@ -95,10 +95,10 @@
     </section>
 
     <section id="aktuell">
-      <div class="wrap aktuell-row rv">
-        <div class="a mut">Aktuell, bis 27. September</div>
-        <div class="b">Zwei Arbeiten in der Gruppenausstellung „Red“: <em>Befreiung der Körperlichkeit</em>, Werk I und Werk II. Stage Gallery, Köln.</div>
-        <div class="c mut">Vernissage 23. September, 19–21 Uhr. Danach Do–Fr 14–18 Uhr, So 14–17 Uhr.</div>
+      <div class="wrap aktuell-row">
+        <div class="a mut rv" data-eigen>Aktuell, bis 27. September</div>
+        <div class="b rv" data-eigen>Zwei Arbeiten in der Gruppenausstellung „Red“: <em>Befreiung der Körperlichkeit</em>, Werk I und Werk II. Stage Gallery, Köln.</div>
+        <div class="c mut rv" data-eigen>Vernissage 23. September, 19–21 Uhr. Danach Do–Fr 14–18 Uhr, So 14–17 Uhr.</div>
       </div>
     </section>
 
@@ -130,7 +130,7 @@
           </div>
         </div>
         <figure class="band-fig" data-depth="0.06">
-          <video class="band-video ink-img rv" muted playsinline preload="metadata"
+          <video class="band-video ink-img rv" data-eintritt="block" muted playsinline preload="metadata"
                  poster="assets/img/gestaltung-signatur-poster.jpg"
                  aria-label="Tuschzeichnung eines Auges am Ende einer langen Linie, dazu die handschriftliche Signatur">
             <source src="assets/video/gestaltung-signatur.webm" type="video/webm">
@@ -169,7 +169,7 @@
           </ol>
         </div>
         <div>
-          <form id="af-form" class="field" novalidate>
+          <form id="af-form" class="field rv" data-eintritt="block" novalidate>
             <label><span>Motividee</span><textarea id="af-idee" name="motividee" rows="4" placeholder="Was soll es werden, und warum?"></textarea></label>
             <div class="row">
               <label><span>Träger</span><select id="af-traeger" name="traeger"><option value="haut">Haut (Tattoo)</option><option value="papier">Papier (Original)</option></select></label>
@@ -201,23 +201,25 @@
           <h2 class="hd rv">Bluthandwerk</h2>
           <p class="rv" style="margin:0 0 22px; max-width:52ch; text-wrap:pretty; font-size:19px;">Ein Tätowier-Kollektiv in Köln-Ehrenfeld. Privates Atelier, Termine nur nach Vereinbarung — wer kommt, wird erwartet. Fünf Leute, ein Laden:</p>
           <ul class="team">
-            <li class="rv"><span class="who">Luke WTF</span><span class="what">diese Seite</span></li>
-            <li class="rv"><span>Kiya Noir</span><span class="what">Profil folgt</span></li>
-            <li class="rv"><span>Jonas Dreyer</span><span class="what">Profil folgt</span></li>
-            <li class="rv"><span>Kate Velvet</span><span class="what">Profil folgt</span></li>
-            <li class="rv"><span>Stefan Gepting</span><span class="what">Profil folgt</span></li>
+            <li class="rv" data-eigen><span class="who">Luke WTF</span><span class="what">diese Seite</span></li>
+            <li class="rv" data-eigen><span>Kiya Noir</span><span class="what">Profil folgt</span></li>
+            <li class="rv" data-eigen><span>Jonas Dreyer</span><span class="what">Profil folgt</span></li>
+            <li class="rv" data-eigen><span>Kate Velvet</span><span class="what">Profil folgt</span></li>
+            <li class="rv" data-eigen><span>Stefan Gepting</span><span class="what">Profil folgt</span></li>
           </ul>
         </div>
         <div>
           <figure class="studio-fig" data-depth="0.07">
-            <img class="rv" src="assets/img/luke-atelier-1200.jpg"
-                 srcset="assets/img/luke-atelier-800.jpg 800w, assets/img/luke-atelier-1200.jpg 1200w, assets/img/luke-atelier-1536.jpg 1536w"
-                 sizes="(max-width: 900px) 90vw, 40vw"
-                 width="1536" height="2048" loading="lazy" decoding="async"
-                 alt="Luke im Atelier: mit Pinsel und Palette vor der Staffelei, im Hintergrund Regale mit Farben">
+            <div class="studio-rahmen rv" data-eintritt="block">
+              <img src="assets/img/luke-atelier-1200.jpg"
+                   srcset="assets/img/luke-atelier-800.jpg 800w, assets/img/luke-atelier-1200.jpg 1200w, assets/img/luke-atelier-1536.jpg 1536w"
+                   sizes="(max-width: 900px) 90vw, 40vw"
+                   width="1536" height="2048" loading="lazy" decoding="async"
+                   alt="Luke im Atelier: mit Pinsel und Palette vor der Staffelei, im Hintergrund Regale mit Farben">
+            </div>
             <figcaption>Im Atelier, Bluthandwerk Köln-Ehrenfeld.</figcaption>
           </figure>
-          <div class="card rv">
+          <div class="card rv" data-eintritt="block">
             <div><div class="k">Adresse</div><div>Vogelsangerstraße 84, 50823 Köln-Ehrenfeld</div></div>
             <div><div class="k">Telefon</div><div><a href="tel:+4922129496764">0221 29496764</a></div></div>
             <div><div class="k">Termine</div><div>Nur nach Vereinbarung — DM, E-Mail oder Telefon. Keine Walk-ins.</div></div>
@@ -299,6 +301,7 @@
 <script src="js/auftakt.js"></script>
 <script src="js/blattfolge.js"></script>
 <script src="js/site.js"></script>
+<script src="js/abschnitte.js"></script>
 <script src="js/tropfspur.js" defer></script>
 </body>
 </html>

@@ -396,16 +396,17 @@
   function renderGrafik() {
     const el = $('#grafik-list'); if (!el) return;
     abschnittZeigen('grafik', GRAFIK.length > 0);
-    el.innerHTML = GRAFIK.map(g => {
+    el.innerHTML = GRAFIK.map((g, i) => {
       const zeile = [g.art, g.fuer, g.jahr].filter(Boolean).join(', ');
       const alt = `${g.t}, ${g.art}${g.fuer ? ' ' + g.fuer : ''}, ${g.jahr}. Größer ansehen.`;
-      return `<button type="button" class="gr-item rv" data-gid="${esc(g.id)}" aria-label="${esc(alt)}">`
+      return `<button type="button" class="gr-item rv" data-eintritt="druck" data-versatz="${i % 2}" data-gid="${esc(g.id)}" aria-label="${esc(alt)}">`
         + `<span class="gr-ph" style="aspect-ratio:${g.w} / ${g.h};">`
         + `<img class="photo-img" src="${esc(g.src)}" srcset="${esc(g.srcset)}" sizes="(max-width: 700px) 92vw, (max-width: 1180px) 46vw, 568px" width="${g.w}" height="${g.h}" alt="" loading="lazy" decoding="async">`
         + `</span><span class="gr-meta"><span class="gr-t">${esc(g.t)}</span><span class="gr-m">${esc(zeile)}</span>`
         + (g.notiz ? `<span class="gr-n">${esc(g.notiz)}</span>` : '')
         + `</span></button>`;
     }).join('');
+    if (B) B.heben($$('.gr-item', el), { um: 3, feld: '.gr-ph' });
   }
   $('#grafik-list').addEventListener('click', e => {
     const b = e.target.closest('.gr-item'); if (b) openWerk(b.dataset.gid, b);
@@ -421,13 +422,21 @@
     el.innerHTML = blaetter.map(f => {
       const bild = `<img class="ink-img" src="${esc(f.src)}" alt="" loading="lazy" decoding="async">`;
       const vergeben = f.status === 'vergeben';
-      return `<div class="sheet rv${vergeben ? ' vergeben' : ''}"><div class="sheet-head"><span class="sheet-n">Blatt ${f.n}</span><span class="sheet-f">${esc(f.format)}</span></div><div class="sheet-ph">${bild}</div><div class="sheet-m">${esc(f.motiv)}</div><div class="sheet-row"><span class="mut">${esc(f.preis || 'auf Anfrage')}</span><span class="sheet-status">${esc(f.status)}</span></div></div>`;
+      return `<div class="sheet rv${vergeben ? ' vergeben' : ''}" data-eintritt="blatt"><div class="sheet-head"><span class="sheet-n">Blatt ${f.n}</span><span class="sheet-f">${esc(f.format)}</span></div><div class="sheet-ph">${bild}</div><div class="sheet-m">${esc(f.motiv)}</div><div class="sheet-row"><span class="mut">${esc(f.preis || 'auf Anfrage')}</span><span class="sheet-status">${esc(f.status)}</span></div></div>`;
     }).join('');
   }
 
   /* ---------- Anfrage ---------- */
   const form = $('#af-form');
-  function showErr(msg) { const el = $('#af-err'); if (!el) return; el.textContent = msg; el.hidden = !msg; if (msg) el.focus(); }
+  function showErr(msg) {
+    const el = $('#af-err'); if (!el) return;
+    el.textContent = msg; el.hidden = !msg;
+    if (!msg) return;
+    /* Motion schreibt die Endwerte im Renderschritt des folgenden Bildes noch einmal (wie in
+       js/bewegung.js, zeigen()); deshalb erst zwei Renderschritte später leeren. */
+    if (M && mScale()) M.animate(el, { opacity: [0, 1], x: [-8, 0] }, { duration: B.tempo().kurz * mScale(), ease: B.tempo().kurve }).then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.transform = ''; })));
+    el.focus();
+  }
   function done(mode, text) {
     form.hidden = true;
     const d = $('#af-done');
@@ -437,6 +446,12 @@
     else if (mode === 'mail') d.innerHTML = `<h3 class="hd">Fast geschafft.</h3><p>Dein Mailprogramm sollte sich jetzt mit der Anfrage öffnen. Falls nicht: Text kopieren und per DM an ${ig} schicken.</p>${copyBlock}`;
     else d.innerHTML = `<h3 class="hd">Fast geschafft.</h3><p>Kopier den Text und schick ihn mir per DM an ${ig}. Du hörst von mir — in der Regel innerhalb einer Woche.</p>${copyBlock}`;
     d.hidden = false; d.classList.add('rv', 'on');
+    /* d ist schon sichtbar und trägt .on, bevor das Enthüllen es sähe — B.sofort() trägt es
+       trotzdem in gesehen ein, sonst griffe M.inView() später noch einmal zu. Die eigentliche
+       Bewegung kommt gleich danach, mit eigenem Tempo. Aufräumen zwei Renderschritte später,
+       aus demselben Grund wie in showErr(). */
+    if (B) B.sofort(d);
+    if (M && mScale()) M.animate(d, { opacity: [0, 1], y: [12, 0] }, { duration: B.tempo().dauer * 0.6 * mScale(), ease: B.tempo().kurve }).then(() => M.frame.postRender(() => M.frame.postRender(() => { d.style.opacity = ''; d.style.transform = ''; })));
     const cp = $('[data-copy]', d);
     if (cp) cp.addEventListener('click', () => {
       const ta = $('textarea', d); ta.select();
@@ -547,39 +562,6 @@
     const top = el.getBoundingClientRect().top + scrollY - 56;
     window.scrollTo({ top, behavior: mScale() ? 'smooth' : 'auto' });
   });
-
-  /* ---------- Video: Signatur bei Handschrift ---------- */
-  (function band() {
-    const v = $('.band-video');
-    if (!v) return;
-    /* Bei ausgeschalteter Bewegung bleibt das Standbild stehen, das ist die Signatur. */
-    if (mScale() === 0) return;
-
-    /* Statt einmal abzuspielen folgt die Zeichnung dem Scrollen: Wer den Abschnitt
-       hinunterliest, zieht die Linie mit und sieht die Signatur am Ende entstehen.
-       Das ist dieselbe Bewegung, die Luke beim Zeichnen macht, nur vom Leser ausgelöst. */
-    let kaputt = false;
-    v.preload = 'auto';
-    v.pause();
-    /* Kann der Browser das Format nicht, bleibt das Standbild stehen. */
-    v.addEventListener('error', () => { kaputt = true; }, { once: true });
-    v.addEventListener('loadedmetadata', folgen);
-
-    function folgen() {
-      /* Die Dauer wird bei jedem Durchgang gelesen, nicht einmal beim Start. Sonst hängt
-         alles daran, ob loadedmetadata vor oder nach diesem Skript gefeuert hat. */
-      const dauer = v.duration;
-      if (kaputt || !dauer || !isFinite(dauer)) return;
-      const r = v.getBoundingClientRect();
-      if (r.bottom < -200 || r.top > innerHeight + 200) return;
-      /* Von „taucht unten auf" bis „ist oben durch": daraus wird die Zeit im Clip. */
-      const p = (innerHeight * 0.92 - r.top) / (innerHeight * 0.72 + r.height);
-      const ziel = Math.max(0, Math.min(1, p)) * (dauer - 0.05);
-      if (Math.abs(v.currentTime - ziel) < 0.04) return;
-      try { v.currentTime = ziel; } catch (e) { /* Spulen noch nicht möglich */ }
-    }
-    addEventListener('scroll', folgen, { passive: true });
-  })();
 
   /* ---------- Start ---------- */
   applyTheme();

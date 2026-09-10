@@ -168,7 +168,11 @@ html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="a
 }
 
 /* ---------- Aktuell ---------- */
-#aktuell { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+/* Zwei Linien, die von links wachsen (--strich, js/abschnitte.js). Ein Vermerk am Rand. */
+#aktuell { position: relative; }
+#aktuell::before, #aktuell::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: var(--line); transform: scaleX(var(--strich, 1)); transform-origin: 0 50%; }
+#aktuell::before { top: 0; }
+#aktuell::after { bottom: 0; }
 .aktuell-row { padding-top: 22px; padding-bottom: 22px; display: flex; flex-wrap: wrap; gap: 12px 40px; align-items: baseline; }
 .aktuell-row .a { font-size: 16px; flex: 0 0 auto; }
 .aktuell-row .b { flex: 1 1 380px; font-size: 17.5px; }
@@ -265,13 +269,12 @@ html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="a
 /* ---------- Flash ---------- */
 .flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px,100%),1fr)); gap: calc(var(--gg) * 0.8); }
 /* Die Blätter legen sich leicht schräg ab und richten sich beim Ankommen gerade, so wie
-   man Papier auf einen Tisch legt. In Richtung A ersetzt das den Streifeneffekt. */
-.app[data-richtung="a"] .sheet.rv { clip-path: none; transform: translateY(24px) rotate(var(--dreh, -1.1deg)) scale(0.985); }
-.app[data-richtung="a"] .sheet.rv.on { transform: none; }
+   man Papier auf einen Tisch legt. Das übernimmt jetzt der Eintritt „blatt“ (js/bewegung.js),
+   nicht mehr eine eigene CSS-Regel für .rv. */
 .flash-grid .sheet:nth-child(3n) { --dreh: 1.4deg; }
 .flash-grid .sheet:nth-child(3n+1) { --dreh: -1.2deg; }
 .flash-grid .sheet:nth-child(3n+2) { --dreh: 0.8deg; }
-.sheet { background: var(--sheet); border: 1px solid var(--line); padding: 14px 14px 16px; transition: transform calc(var(--m)*.35s) var(--e), background-color calc(var(--m)*.7s), border-color calc(var(--m)*.7s); }
+.sheet { background: var(--sheet); border: 1px solid var(--line); padding: 14px 14px 16px; transition: background-color calc(var(--m)*.7s), border-color calc(var(--m)*.7s); }
 .sheet.vergeben { opacity: .55; }
 .app[data-richtung="c"] .sheet:nth-child(2n) { transform: rotate(-0.7deg); }
 .app[data-richtung="c"] .sheet:nth-child(3n) { transform: rotate(0.8deg); }
@@ -329,11 +332,14 @@ html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="a
 
 /* ---------- Studio ---------- */
 .team { list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 6px; max-width: 40ch; }
-.team li { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding: 7px 0; }
+.team li { display: flex; justify-content: space-between; gap: 16px; position: relative; padding: 7px 0; }
+/* Dieselbe wachsende Linie wie bei Aktuell, nur je Zeile (--strich, js/abschnitte.js). */
+.team li::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--line); transform: scaleX(var(--strich, 1)); transform-origin: 0 50%; }
 .team .who { font-weight: 500; }
 .team .what { color: var(--mut); font-size: 16px; }
 .studio-fig { margin: 0 0 22px; }
-.studio-fig img { width: 100%; height: auto; }
+.studio-rahmen { overflow: hidden; }
+.studio-rahmen img { width: 100%; height: auto; display: block; will-change: transform; transform-origin: 50% 50%; }
 .studio-fig figcaption { color: var(--mut); font-size: 15px; margin-top: 10px; }
 .app[data-richtung="b"] .studio-fig img { opacity: .9; }
 .card { border: 1px solid var(--line); padding: 26px 28px; display: grid; gap: 16px; font-size: 17px; }

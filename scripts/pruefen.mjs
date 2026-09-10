@@ -327,6 +327,33 @@ pruefung('werkansicht: öffnet vom Blatt, blättert, schließt zum Blatt zurück
   t.ok(!zu.da, 'Werkansicht geschlossen'); t.ok(/g-item/.test(zu.fokus || ''), 'Fokus zurück auf dem Blatt: ' + zu.fokus);
 });
 
+pruefung('abschnitte: Linien wachsen, das Foto wächst, das Band folgt', 'schreibtisch', async (page, t) => {
+  const vorher = await page.evaluate(() => ({
+    aktuell: getComputedStyle(document.getElementById('aktuell')).getPropertyValue('--strich').trim(),
+    team: getComputedStyle(document.querySelector('.team li')).getPropertyValue('--strich').trim()
+  }));
+  t.gleich(vorher.aktuell, '0', 'die Linien von Aktuell warten'); t.gleich(vorher.team, '0', 'die Linien der Teamliste warten');
+  await t.durchscrollen(); await t.warten(2000);
+  const nachher = await page.evaluate(() => ({
+    aktuell: getComputedStyle(document.getElementById('aktuell')).getPropertyValue('--strich').trim(),
+    team: Array.from(document.querySelectorAll('.team li')).map(li => getComputedStyle(li).getPropertyValue('--strich').trim()).join(','),
+    foto: getComputedStyle(document.querySelector('.studio-rahmen img')).transform,
+    band: document.querySelector('.band-video').currentTime,
+    text: Array.from(document.querySelectorAll('#aktuell .rv')).every(el => el.classList.contains('on'))
+  }));
+  t.gleich(nachher.aktuell, '1', 'die Linien von Aktuell sind gewachsen'); t.gleich(nachher.team, '1,1,1,1,1', 'die Linien der Teamliste sind gewachsen');
+  t.ok(nachher.text, 'Aktuell-Text enthüllt');
+  t.ok(/matrix\(1\.0[0-9]/.test(nachher.foto), 'das Foto ist scrollgebunden gewachsen: ' + nachher.foto);
+  t.ok(nachher.band > 5, 'das Signaturvideo ist am Ende der Handschrift weit gespult: ' + nachher.band);
+});
+
+pruefung('anfrage: der Fehler kommt von links, ohne Schütteln', 'schreibtisch', async (page, t) => {
+  await t.zu((await t.abschnitte()).find(a => a.id === 'anfrage').oben - 40); await t.warten(1600);
+  await page.click('#af-send'); await t.warten(700);
+  const r = await page.evaluate(() => { const e = document.getElementById('af-err'); return { hidden: e.hidden, text: e.textContent, op: getComputedStyle(e).opacity, tf: e.style.transform }; });
+  t.ok(!r.hidden && /Motividee/.test(r.text) && r.op === '1', 'Fehlerhinweis steht: ' + JSON.stringify(r));
+});
+
 /* ---------- Lauf ---------- */
 async function laufen() {
   fs.mkdirSync(AUSGABE, { recursive: true });
