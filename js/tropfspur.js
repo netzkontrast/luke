@@ -1,22 +1,29 @@
 /* Die Tropfspur.
 
-   Auf der Website lief bisher links eine gerade rote Linie als Scrollfortschritt mit. Sie
-   war abstrakt und hatte mit den Arbeiten nichts zu tun. Diese Spur setzt stattdessen dort
-   an, wo im Blatt des Auftakts die Tusche endet, und läuft von da die Seite hinunter: Je
-   weiter man liest, desto weiter ist sie gelaufen. Am unteren Ende hängt ein Tropfen,
-   unterwegs bleiben einzelne Spritzer stehen.
+   Im Blatt des Auftakts verlässt der rote Strang das Bild unten. Hier läuft er weiter: auf
+   der Seite, nicht mehr auf dem Blatt. Je weiter man liest, desto weiter ist er gelaufen.
+   Schneidet das Video zur knienden Figur, bleibt die Spur, wo sie ist: Das Blatt hat
+   gewechselt, die Seite behält, was abgetropft ist.
 
-   Neu: Die Spur findet innerhalb der Blattfolge den rechten Rand und läuft dort weiter —
-   sie lief vorher mitten durch den Text der Handschrift, über das Formular und das
-   Atelierfoto. Der Text ist die Hauptsache. Angetrieben wird sie von Motion: scroll()
-   liest den Fortschritt, ein springValue läuft ihm einen Hauch nach, wie Flüssigkeit.
+   Blut, kein Faden. Die Spur ist eine Fläche mit wechselnder Breite, eine blasse Waschung
+   mit dunklem Kern: oben breiter, unten dünner, mit kleinen Knicken, wo das Papier sie hält.
+   Sie zeigt zwei Dinge zugleich:
+   - Die Waschung bleibt stehen, so weit die Spur je gelaufen ist. Wer zurückscrollt, sieht
+     die getrocknete Spur; nichts zieht sich zurück.
+   - Kern und Tropfen zeigen, wo gerade gelesen wird. Der Tropfen hängt am Ende des Kerns,
+     etwa in der Mitte des Fensters, und läuft dem Lesen mit einer Feder nach.
+   Wer stehen bleibt, lässt den Tropfen stauen: Er wird dick. Liest man weiter, bleibt an der
+   Stelle eine Verdickung in der Spur zurück — die Seite merkt sich, wo man verweilt hat.
+   Unterwegs bleiben ein paar Spritzer liegen.
 
    Gezeichnet wird ein SVG in Seitenkoordinaten, kein festes Element: Die Spur gehört zur
-   Seite, nicht zum Fenster. Bewegt wird nur stroke-dashoffset und ein Tropfen; beides ist
-   für den Browser billig.
+   Seite. Die Mittellinie ist eine Funktion x(y); Waschung und Kern sind daraus abgetastete
+   Pfade und entstehen einmal je Vermessung. Im Bildtakt ändern sich nur zwei Clip-Rechtecke
+   (gelaufen, gelesen) und die transform des Tropfens: kein getPointAtLength, kein neuer
+   Pfad. Eine Stauung baut die Waschung einmal neu; das ist selten.
 
-   Aus: Systemeinstellung „reduzierte Bewegung", data-rot="aus" im Bedienfeld, oder wenn
-   der Auftakt fehlt. */
+   Aus: Systemeinstellung „reduzierte Bewegung“, data-rot="aus" oder Bewegung aus im
+   Bedienfeld, oder wenn der Auftakt fehlt. */
 (function () {
   'use strict';
   const L = (window.LUKE = window.LUKE || {});
@@ -24,113 +31,155 @@
   const app = document.querySelector('.app');
   const halter = document.getElementById('tropfspur');
   if (!app || !halter) return;
-
   const NS = 'http://www.w3.org/2000/svg';
-  const prm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Ansatzpunkt: die unterste Stelle, an der im Blatt des Auftakts noch Tusche steht.
-     Im Bild liegt sie bei rund 44 Prozent der Breite und 93 Prozent der Höhe; weil die
-     Figur im Kopf der Seite rechtsbündig beschnitten wird (siehe .hero-still), sind das
-     hier gut 32 Prozent der sichtbaren Breite. Von dort läuft die Spur weiter, als
-     tropfte die Zeichnung ab. */
-  const STRANG_X = 0.32;
-  const STRANG_Y = 0.93;
-  /* Ruhepunkte, an denen ein Spritzer hängen bleibt, als Anteil der Spurlänge. */
-  const SPRITZER = [0.16, 0.34, 0.52, 0.71, 0.88];
-  let x0 = 0, x1 = 0, drift = 0;   // Ansatz, Randlage, Höhe der S-Kurve — in Koordinaten des SVG
-  let faktor = 1;   // Wanderbreite: 1 ab 900 px, sonst gestaucht (siehe messen())
+  /* Ansatz: Im Blatt des Auftakts verlässt der rote Strang das Bild unten bei 70,5 Prozent
+     der Breite, gemessen am letzten Bild der Zeichenanimation. Das Standbild danach liegt im
+     selben Kasten (.hero-fig), die Spur hängt also an derselben Stelle. */
+  const STRANG_X = 0.705;
+  /* Abstand der Stützpunkte in Seitenpixeln. */
+  const SCHRITT = 6;
+  /* Feste Spritzer, als Anteil der Strecke. */
+  const SPRITZER = [0.14, 0.37, 0.61, 0.84];
+  /* Eine Stauung ist etwa 10 px hoch (σ); mehr als vierzehn merkt sich die Seite nicht. */
+  const STAU_SIGMA2 = 200, STAU_MAX = 14;
 
-  let svg, pfad, tropfen, spritzer = [], laenge = 0, oben = 0, hoehe = 0, breite = 0;
-  let letzterStand = -1, docHoehe = 0;
+  const klemm = (v, a, b) => Math.max(a, Math.min(b, v));
+  const misch = (a, b, t) => a + (b - a) * t;
+  const glatt = t => t * t * (3 - 2 * t);
+  const zufall = i => { const v = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
+  /* Ein wenig Zufall über die Strecke, weich zwischen festen Stützstellen alle 160 px:
+     Reine Sinuswellen wiederholen sich, und das Auge findet den Takt. Papier hat keinen. */
+  function rausch(y, saat) { const i = Math.floor(y / 160), t = glatt(y / 160 - i); return misch(zufall(i * 7 + saat) - 0.5, zufall(i * 7 + 7 + saat) - 0.5, t); }
+  const f1 = v => v.toFixed(1), f2 = v => v.toFixed(2);
+
+  /* Geometrie, in Koordinaten des SVG (Ursprung: Ansatz, y nach unten). */
+  let x0 = 0, x1 = 0, drift = 1, hoehe = 0, oben = 0, breite = 0, links = 0, docHoehe = 0;
+  let faktor = 1;          // Wanderbreite: 1 ab 900 px, sonst gestaucht (siehe messen())
+  let HW0 = 3.2;           // halbe Breite der Waschung am Ansatz
+  let POOL_MAX = 1.8;      // um wie viel der Tropfen höchstens anschwillt, in Pixeln
+
+  let svg, rectLauf, rectJetzt, wasch, stauG, kern, rest, spritzer = [], tropfen;
+  let stauungen = [];      // { f, st }: Stelle als Anteil der Strecke, Stärke 0 bis 1
+  let stand = 0, lauf = 0, letztesY = -1;
 
   /* Die Seitenhöhe wird beim Ausmessen gelesen, nicht im Bildtakt: scrollHeight erzwingt
-     ein Layout, und zeichnen() lief damit auch auf Bildern, an denen es nichts zu tun gab. */
-  const dokumentHoehe = () =>
-    Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+     ein Layout. */
+  const dokumentHoehe = () => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
 
-  /* Vom Ansatz in einer S-Kurve an den Rand, dann die leicht wandernde Linie senkrecht
-     weiter. Ganz gerade sähe sie nach Balken aus, zu wellig nach Dekoration. */
-  function pfadDaten(h) {
-    let d = `M ${x0} 0 C ${x0} ${(drift * 0.55).toFixed(1)} ${x1} ${(drift * 0.45).toFixed(1)} ${x1} ${drift}`;
-    const rest = h - drift;
-    const schritte = Math.max(6, Math.round(rest / 260));
-    for (let i = 1; i <= schritte; i++) {
-      const y = drift + (rest * i) / schritte, y0 = drift + (rest * (i - 1)) / schritte;
-      const ab = (Math.sin(i * 1.7) * 9 + Math.sin(i * 0.6) * 5) * faktor;
-      const ab0 = (Math.sin((i - 1) * 1.7) * 9 + Math.sin((i - 1) * 0.6) * 5) * faktor;
-      d += ` C ${x1 + ab0} ${y0 + (y - y0) * 0.4} ${x1 + ab} ${y - (y - y0) * 0.4} ${x1 + ab} ${y}`;
+  /* Die Mittellinie: vom Ansatz in einer flachen S-Kurve an den Rand (drift Pixel lang),
+     danach fast senkrecht, mit kleinen Knicken. Ganz gerade sähe sie nach Balken aus, zu
+     wellig nach Dekoration. Blut läuft gerade. */
+  const wander = y => (Math.sin(y / 138 + 1.1) * 3 + Math.sin(y / 415 + 0.6) * 6 + rausch(y, 3) * 4) * faktor;
+  const xBei = y => misch(x0, x1 + wander(y), glatt(klemm(y / drift, 0, 1)));
+  /* Die halbe Breite: am Ansatz am breitesten, dann dünner, mit feiner Unruhe, damit kein
+     Strich daraus wird; dazu die Stauungen, wo der Leser verweilt hat. */
+  const fein = y => 1 + Math.sin(y / 71 + 0.3) * 0.12 + Math.sin(y / 233 + 2.1) * 0.14;
+  function stau(y) {
+    let s = 0;
+    for (const st of stauungen) {
+      const dy = y - st.f * hoehe;
+      if (dy > -40 && dy < 40) s += st.st * POOL_MAX * 1.3 * Math.exp(-(dy * dy) / STAU_SIGMA2);
     }
-    return d;
+    return s;
   }
+  const hwBei = y => HW0 * (1 - 0.45 * Math.pow(klemm(y / hoehe, 0, 1), 0.7)) * fein(y) + stau(y);
+  /* Der Tropfen deckt die Schnittkante der Waschung und ist nie kleiner als 2,4 px. */
+  const tropfenGross = y => Math.max(2.4, hwBei(y) + 0.6);
+
+  /* Tropfenform um den Ursprung, Radius 1: oben spitz, unten rund. Gesetzt wird sie mit
+     translate und scale, die Form selbst ändert sich nie. */
+  const TROPFEN_D = 'M 0 -2.1 C 0.72 -0.7 1 -0.25 1 0.08 A 1 1 0 1 1 -1 0.08 C -1 -0.25 -0.72 -0.7 0 -2.1 Z';
+  const setzen = (el, x, y, sx, sy) => el.setAttribute('transform', `translate(${f1(x)} ${f1(y)}) scale(${f2(sx)} ${f2(sy == null ? sx : sy)})`);
+
+  function el(name, klasse) { const e = document.createElementNS(NS, name); if (klasse) e.setAttribute('class', klasse); return e; }
+  function rechteck() { const r = el('rect'); r.setAttribute('x', '0'); r.setAttribute('y', '0'); r.setAttribute('width', '0'); r.setAttribute('height', '0'); return r; }
 
   function aufbauen() {
     halter.textContent = '';
-    svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('fill', 'none');
-    pfad = document.createElementNS(NS, 'path');
-    pfad.setAttribute('stroke', 'var(--red)');
-    pfad.setAttribute('stroke-linecap', 'round');
-    /* Dünn und leicht durchscheinend: Die Spur soll über der Seite liegen, aber nicht
-       gegen die Zeichnungen antreten. */
-    pfad.setAttribute('stroke-opacity', '0.72');
-    svg.appendChild(pfad);
-
-    spritzer = SPRITZER.map(() => {
-      const g = document.createElementNS(NS, 'g');
-      g.setAttribute('opacity', '0');
-      const tr = document.createElementNS(NS, 'path');
-      tr.setAttribute('fill', 'var(--red)');
-      tr.setAttribute('fill-opacity', '0.8');
-      g.appendChild(tr);
-      svg.appendChild(g);
-      return { g, tr, bei: 0, deck: '' };
-    });
-    spritzer.forEach((s, i) => { s.bei = SPRITZER[i]; });
-
-    tropfen = document.createElementNS(NS, 'path');
-    tropfen.setAttribute('fill', 'var(--red)');
-    tropfen.setAttribute('fill-opacity', '0.85');
-    svg.appendChild(tropfen);
+    svg = el('svg'); svg.setAttribute('aria-hidden', 'true');
+    const defs = el('defs');
+    const cLauf = el('clipPath'); cLauf.id = 'ts-lauf'; rectLauf = rechteck(); cLauf.appendChild(rectLauf);
+    const cJetzt = el('clipPath'); cJetzt.id = 'ts-jetzt'; rectJetzt = rechteck(); cJetzt.appendChild(rectJetzt);
+    defs.append(cLauf, cJetzt);
+    /* Gelaufen: die Waschung und die Stauungen, bis zum höchsten Stand. */
+    const gLauf = el('g'); gLauf.setAttribute('clip-path', 'url(#ts-lauf)');
+    wasch = el('path', 'ts-wasch'); stauG = el('g', 'ts-stau'); gLauf.append(wasch, stauG);
+    /* Der getrocknete Tropfen am Ende der Waschung: rundet die Schnittkante, wenn der Leser
+       wieder oben ist. Solange der Tropfen selbst dort hängt, liegt er darüber. */
+    rest = el('path', 'ts-rest'); rest.setAttribute('d', TROPFEN_D); rest.setAttribute('opacity', '0');
+    /* Gelesen: der Kern, bis zum jetzigen Stand. */
+    const gJetzt = el('g'); gJetzt.setAttribute('clip-path', 'url(#ts-jetzt)');
+    kern = el('path', 'ts-kern'); gJetzt.appendChild(kern);
+    const gSpritzer = el('g', 'ts-spritzer');
+    spritzer = SPRITZER.map(f => { const p = el('path'); p.setAttribute('d', TROPFEN_D); p.setAttribute('opacity', '0'); gSpritzer.appendChild(p); return { p, f, deck: '0' }; });
+    tropfen = el('path', 'ts-tropfen'); tropfen.setAttribute('d', TROPFEN_D); tropfen.setAttribute('opacity', '0');
+    svg.append(defs, gLauf, rest, gJetzt, gSpritzer, tropfen);
     halter.appendChild(svg);
   }
 
-  /* Tropfenform: oben spitz, unten rund, wie ein hängender Tropfen. */
-  function tropfenForm(x, y, r) {
-    return `M ${x} ${y - r * 2.1} C ${x + r * 0.72} ${y - r * 0.7} ${x + r} ${y - r * 0.25} ${x + r} ${y + r * 0.08}
-            A ${r} ${r} 0 1 1 ${x - r} ${y + r * 0.08}
-            C ${x - r} ${y - r * 0.25} ${x - r * 0.72} ${y - r * 0.7} ${x} ${y - r * 2.1} Z`;
+  /* Die Waschung als Fläche: linke Kante hinunter, rechte Kante hinauf. Die Stauungen
+     liegen als dunklere Kerne darauf. */
+  function waschBauen() {
+    const n = Math.floor(hoehe / SCHRITT);
+    const li = [], re = [];
+    for (let i = 0; i <= n; i++) {
+      const y = Math.min(i * SCHRITT, hoehe), x = xBei(y), hw = hwBei(y);
+      li.push(`${f1(x - hw)} ${f1(y)}`);
+      re.push(`${f1(x + hw)} ${f1(y)}`);
+    }
+    re.reverse();
+    wasch.setAttribute('d', 'M ' + li.join(' L ') + ' L ' + re.join(' L ') + ' Z');
+    stauG.textContent = '';
+    stauungen.forEach(st => {
+      const y = st.f * hoehe, e = el('ellipse');
+      e.setAttribute('cx', f1(xBei(y))); e.setAttribute('cy', f1(y));
+      e.setAttribute('rx', f1(HW0 * 0.45 + st.st * POOL_MAX * 0.9)); e.setAttribute('ry', f1(5 + st.st * 6));
+      stauG.appendChild(e);
+    });
+  }
+  function kernBauen() {
+    const n = Math.floor(hoehe / SCHRITT), d = [];
+    for (let i = 0; i <= n; i++) { const y = Math.min(i * SCHRITT, hoehe); d.push(`${f1(xBei(y))} ${f1(y)}`); }
+    kern.setAttribute('d', 'M ' + d.join(' L '));
   }
 
   function messen() {
     const figur = document.querySelector('.hero-fig');
-    const doc = docHoehe = dokumentHoehe();
+    docHoehe = dokumentHoehe();
     if (!figur) return false;
     const r = figur.getBoundingClientRect();
     if (!r.width || !r.height) return false;
-    const seitenX = r.left + window.scrollX + r.width * STRANG_X;
-    oben = Math.round(r.top + window.scrollY + r.height * STRANG_Y);
-    hoehe = Math.max(0, doc - oben - 90);
-    /* Der Rand: ab 900 px rechts neben der .wrap, darunter an der Kante des Fensters.
+    const quelleX = r.left + window.scrollX + r.width * STRANG_X;
+    oben = Math.round(r.bottom + window.scrollY);
+    hoehe = Math.max(0, docHoehe - oben - 90);
+    if (hoehe < 200) return false;
+    const schmal = innerWidth < 900;
+    faktor = schmal ? 0.25 : 1;
+    HW0 = schmal ? 2.4 : 3.2;
+    POOL_MAX = schmal ? 1.4 : 1.8;
+    /* Der Rand: ab 900 px rechts neben der .wrap und rechts neben den Blättern der Folge
+       (die stehen 8 vw vor der Kante), darunter an der Kante des Fensters. Liegt die Quelle
+       schon in diesem Rand, läuft die Spur gerade hinunter statt erst zur Seite: Das Blatt
+       sitzt in der Ecke der Seite, der Strang tritt nahe der Kante aus.
        Unter 900 px ist der Rinnstein neben dem Text nur die 16 px Innenabstand der .wrap
-       (siehe css/site.css) — darin muss die Spur bleiben. Sie läuft deshalb näher an der
-       Kante (8 statt 18 px) und die Wanderung wird auf ein Viertel gestaucht: Bei voller
-       Breite reichte sie bis in die rechtsbündige Nebenschrift der Team-Liste und in den
-       Instagram-Link im Fuß hinein. */
+       (siehe css/site.css); darin muss die Spur bleiben. Sie läuft deshalb 8 px vor der Kante
+       und die Wanderung wird auf ein Viertel gestaucht: Bei voller Breite reichte sie bis in
+       die rechtsbündige Nebenschrift der Team-Liste und in den Instagram-Link im Fuß. */
     const wrap = document.querySelector('#werke .wrap') || document.querySelector('.wrap');
     const wrapRechts = wrap ? wrap.getBoundingClientRect().right + window.scrollX : innerWidth;
-    const randX = innerWidth >= 900 ? Math.min(wrapRechts + 56, innerWidth - 24) : innerWidth - 8;
-    faktor = innerWidth >= 900 ? 1 : 0.25;
-    drift = Math.round(Math.min(hoehe * 0.12, innerHeight * 1.2));
-    const links = Math.round(Math.min(seitenX, randX) - 110);
-    breite = Math.round(Math.abs(randX - seitenX) + 220);
-    x0 = seitenX - links; x1 = randX - links;
-    /* Der übliche Puffer von 110 px reicht auf dem Telefon (randX nur 8 px vor der Kante)
-       über das Fenster hinaus: kein Vorfahre schneidet #tropfspur ab (anders als .g-wall bei
-       der Galerie), das riss die Seite waagerecht auf und blähte in mobilen Browsern sogar
-       innerWidth auf. Der Halter reicht darum nie weiter als bis zur Fensterkante. */
-    breite = Math.min(breite, innerWidth - links);
-    if (hoehe < 200) return false;
+    const randMin = Math.min(Math.max(wrapRechts + 56, innerWidth * 0.92 + 24), innerWidth - 24);
+    const randX = schmal ? innerWidth - 8 : klemm(quelleX, randMin, innerWidth - 24);
+    /* Die S-Kurve zum Rand: auf dem Schreibtisch lang und flach, auf dem Telefon ein halbes
+       Fenster — dort steht gleich unter dem Blatt der Vorspann, und die Spur soll neben dem
+       Text laufen, nicht hindurch (der Vorspann bleibt dafür schmal, css/site.css). */
+    drift = Math.max(1, Math.round(Math.min(hoehe * 0.12, innerHeight * (schmal ? 0.5 : 1.2))));
+    /* Der Halter deckt Quelle und Rand samt Wanderung, Waschung und Spritzern (zusammen
+       unter 30 px je Seite) und reicht nie über die Fensterkante hinaus: Kein Vorfahre
+       schneidet #tropfspur ab, ein Überstand risse die Seite waagerecht auf. */
+    links = Math.round(Math.min(quelleX, randX) - 40);
+    breite = Math.min(Math.round(Math.abs(randX - quelleX) + 80), innerWidth - links);
+    x0 = quelleX - links; x1 = randX - links;
 
     halter.style.left = links + 'px';
     halter.style.top = oben + 'px';
@@ -139,43 +188,92 @@
     svg.setAttribute('viewBox', `0 0 ${breite} ${hoehe}`);
     svg.setAttribute('width', String(breite));
     svg.setAttribute('height', String(hoehe));
+    rectLauf.setAttribute('width', String(breite));
+    rectJetzt.setAttribute('width', String(breite));
 
-    pfad.setAttribute('d', pfadDaten(hoehe));
-    pfad.setAttribute('stroke-width', '2');
-    laenge = pfad.getTotalLength();
-    pfad.style.strokeDasharray = String(laenge);
-
+    waschBauen();
+    kernBauen();
     spritzer.forEach((s, i) => {
-      const p = pfad.getPointAtLength(laenge * SPRITZER[i]);
-      const gross = 2.4 + (i % 3) * 0.8;
-      s.tr.setAttribute('d', tropfenForm(p.x + (i % 2 ? 3 : -3), p.y, gross));
+      const y = s.f * hoehe, dx = (i % 2 ? 1 : -1) * (5 + (i % 3)) * (schmal ? 0.3 : 1);
+      setzen(s.p, xBei(y) + dx, y, 1.5 + (i % 3) * 0.4);
     });
-    letzterStand = -1;
+    /* Was schon gelaufen ist, bleibt gelaufen — auch nach einem Umbruch der Seite. */
+    const yLauf = lauf * hoehe;
+    rectLauf.setAttribute('height', f1(yLauf));
+    setzen(rest, xBei(yLauf), yLauf, tropfenGross(yLauf));
+    letztesY = -1;
     return true;
   }
 
-  function zeichnen(stand) {
-    if (!laenge || !docHoehe) return;
-    if (typeof stand !== 'number') stand = spur ? spur.get() : 0;
-    stand = Math.max(0, Math.min(1, stand));
-    if (Math.abs(stand - letzterStand) < 0.0008) return;
-    letzterStand = stand;
+  /* ---- Der Tropfen und die Stauung ---- */
+  let pool = 0, poolAnim = null, ruheTimer = 0, ruheY = -1, ruheAmLauf = false;
+  const poolWert = M ? M.motionValue(0) : null;
+  if (poolWert) poolWert.on('change', v => { pool = v; tropfenSetzen(); });
+  function halt(a) { if (a && a.stop) a.stop(); }
 
-    pfad.style.strokeDashoffset = String(laenge * (1 - stand));
-    /* Der Tropfen hängt am unteren Ende der bereits gelaufenen Spur. */
-    const p = pfad.getPointAtLength(Math.max(1, laenge * stand));
-    const wachsen = 2.2 + Math.min(1.8, stand * 2.4);
-    tropfen.setAttribute('d', tropfenForm(p.x, p.y, wachsen));
-    tropfen.setAttribute('opacity', stand > 0.004 ? '1' : '0');
-
-    spritzer.forEach((s) => {
-      /* Ein Spritzer wird sichtbar, sobald die Spur an ihm vorbei ist, und bleibt stehen.
-         Geschrieben wird nur, wenn sich der Wert wirklich ändert. */
-      const deck = stand > s.bei ? String(Math.min(1, (stand - s.bei) * 14) * 0.85) : '0';
-      if (deck !== s.deck) { s.deck = deck; s.g.setAttribute('opacity', deck); }
-    });
+  function tropfenSetzen() {
+    if (!hoehe) return;
+    const y = stand * hoehe, gross = tropfenGross(y) + pool;
+    /* Wer schnell nach unten liest, zieht den Tropfen ein wenig in die Länge. */
+    const v = spur ? spur.getVelocity() * hoehe : 0;
+    setzen(tropfen, xBei(y), y, gross, gross * (1 + klemm(v / 4000, 0, 0.35)));
+    tropfen.setAttribute('opacity', stand > 0.003 ? '1' : '0');
   }
-  /* Der Stand aus der Scrollposition, dieselbe Abbildung wie bisher. */
+  /* Steht der Leser eine halbe Sekunde, sammelt sich am Tropfen etwas — drei Sekunden lang,
+     dann ist er voll. */
+  function sammeln(y) {
+    if (!poolWert || stand < 0.003 || !an()) return;
+    ruheY = y; ruheAmLauf = stand >= lauf - 0.0005;
+    halt(poolAnim);
+    poolAnim = M.animate(poolWert, POOL_MAX, { duration: 3, ease: [0.3, 0.1, 0.2, 1] });
+  }
+  /* Geht es weiter, bleibt die Stauung als Verdickung zurück, wenn der Tropfen vorn lag;
+     der Tropfen selbst wird wieder schlank. */
+  function weiter() {
+    halt(poolAnim); poolAnim = null;
+    if (pool > POOL_MAX * 0.3 && ruheAmLauf) ablegen(ruheY / hoehe, pool / POOL_MAX);
+    if (pool > 0 && poolWert) poolAnim = M.animate(poolWert, 0, { duration: 0.4, ease: [0.3, 0.1, 0.2, 1] });
+    ruheY = -1;
+  }
+  function ablegen(f, st) {
+    const letzte = stauungen[stauungen.length - 1];
+    if (letzte && Math.abs(letzte.f - f) * hoehe < 30) letzte.st = Math.max(letzte.st, st);
+    else if (stauungen.length < STAU_MAX) stauungen.push({ f, st });
+    else return;
+    waschBauen();
+  }
+  function ruhe(y) {
+    if (ruheY >= 0 && Math.abs(y - ruheY) > 24) weiter();
+    clearTimeout(ruheTimer);
+    ruheTimer = setTimeout(() => sammeln(y), 450);
+  }
+
+  function zeichnen(neu) {
+    if (!hoehe || !docHoehe) return;
+    if (typeof neu !== 'number') neu = spur ? spur.get() : 0;
+    stand = klemm(neu, 0, 1);
+    const y = stand * hoehe;
+    /* Die Feder nähert sich ihrem Ziel nur asymptotisch; unter einem Viertelpixel wird
+       nicht gezeichnet, und die Ruhe zählt weiter. */
+    if (letztesY >= 0 && Math.abs(y - letztesY) < 0.25) return;
+    letztesY = y;
+    rectJetzt.setAttribute('height', f1(y));
+    if (stand > lauf) {
+      lauf = stand;
+      rectLauf.setAttribute('height', f1(y));
+      setzen(rest, xBei(y), y, tropfenGross(y));
+      rest.setAttribute('opacity', lauf > 0.003 ? '1' : '0');
+      /* Ein Spritzer wird sichtbar, sobald die Spur an ihm vorbei ist, und bleibt stehen. */
+      spritzer.forEach(s => {
+        const deck = lauf > s.f ? String(Math.min(1, (lauf - s.f) * 14)) : '0';
+        if (deck !== s.deck) { s.deck = deck; s.p.setAttribute('opacity', deck); }
+      });
+    }
+    tropfenSetzen();
+    ruhe(y);
+  }
+  /* Der Stand aus der Scrollposition, dieselbe Abbildung wie bisher: Der Tropfen hängt
+     ungefähr in der Mitte des Fensters und wandert langsam nach unten. */
   function standAus(y) {
     const max = docHoehe - innerHeight;
     return max > 0 ? (y - oben * 0.35) / (max - oben * 0.35 + 1) : 0;
@@ -189,7 +287,7 @@
   }
 
   function auffrischen() {
-    if (!an()) { halter.hidden = true; return; }
+    if (!an()) { halter.hidden = true; halt(poolAnim); return; }
     halter.hidden = !messen();
     zeichnen(spur ? spur.get() : 0);
   }
@@ -198,12 +296,12 @@
      es keine Spur — dann ist auch sonst nichts in Bewegung. Steht vor aufbauen()/auffrischen():
      auffrischen() liest spur schon bei seinem ersten Aufruf, vor der let-Zeile wäre das ein
      ReferenceError (temporal dead zone). */
-  let stand = null, spur = null;
+  let fortschritt = null, spur = null;
   if (M) {
-    stand = M.motionValue(0);
-    spur = M.springValue(stand, { stiffness: 120, damping: 28 });
+    fortschritt = M.motionValue(0);
+    spur = M.springValue(fortschritt, { stiffness: 120, damping: 28 });
     spur.on('change', zeichnen);
-    M.scroll((p, info) => { stand.set(standAus(info.y.current)); });
+    M.scroll((p, info) => { fortschritt.set(standAus(info.y.current)); });
   }
 
   aufbauen();
@@ -220,7 +318,6 @@
   /* Die Seitenhöhe ändert sich, wenn die Galerie filtert oder die Werkansicht aufgeht. */
   new MutationObserver(neuMessen).observe(document.body, { childList: true, subtree: true });
   new MutationObserver(auffrischen).observe(app, { attributes: true, attributeFilter: ['data-rot', 'data-bewegung', 'data-richtung'] });
-  if (prm) halter.dataset.ruhig = 'an';
 
-  L.tropfspur = { auffrischen, zeichnen };
+  L.tropfspur = { auffrischen, zeichnen, stand: () => stand, lauf: () => lauf, stauungen: () => stauungen.length };
 })();

@@ -29,8 +29,12 @@
     const v = document.querySelector('.band-video'), fig = v && v.closest('.band-fig');
     if (!v || !fig || !M || !s()) return;
     let kaputt = false;
-    v.preload = 'auto'; v.pause();
+    v.pause();
     v.addEventListener('error', () => { kaputt = true; }, { once: true });
+    /* Ganz laden darf das Video erst, wenn die Handschrift ein Fenster weit herangerückt ist.
+       Vorher stand hier preload = 'auto' schon beim Start der Seite: 1,7 MB, die mit dem
+       Auftaktvideo um die Leitung stritten, obwohl sie erst weit unten gebraucht werden. */
+    const stopLaden = M.inView(fig, () => { stopLaden(); v.preload = 'auto'; }, { margin: '100% 0px 100% 0px' });
     M.scroll(p => {
       const dauer = v.duration;
       if (kaputt || !dauer || !isFinite(dauer)) return;

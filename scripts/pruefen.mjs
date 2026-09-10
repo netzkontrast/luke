@@ -132,20 +132,27 @@ pruefung('bilder: jeder Abschnitt, oben angeschnitten', 'beide', async (page, t)
   }
 });
 
-pruefung('auftakt: vier Ebenen, Titel kommt, das Blatt steht am Ende', 'beide', async (page, t) => {
-  const r1 = await page.evaluate(() => ({
-    ebenen: document.querySelectorAll('.hero-fig .hero-ebene').length,
-    fern: document.querySelectorAll('.hero-fig .hero-fern').length,
-    buehne: !!document.getElementById('auftakt-buehne')
-  }));
-  t.gleich(r1.ebenen, 4, 'Ebenen'); t.gleich(r1.fern, 3, 'ferne Blätter'); t.ok(!r1.buehne, 'die Remotion-Bühne muss weg sein');
+pruefung('auftakt: ein Blatt in der Ecke, Titel kommt, das Blatt steht am Ende', 'beide', async (page, t) => {
+  const r1 = await page.evaluate(() => {
+    const fig = document.querySelector('.hero-fig').getBoundingClientRect();
+    const nav = document.querySelector('.top').getBoundingClientRect();
+    return {
+      motiv: document.querySelectorAll('.hero-fig .hero-motiv').length,
+      fern: document.querySelectorAll('.hero-fig .hero-fern, .hero-fig .hero-ebene').length,
+      buehne: !!document.getElementById('auftakt-buehne'),
+      rechts: innerWidth - fig.right, oben: fig.top - nav.bottom, breite: fig.width, hoehe: fig.height
+    };
+  });
+  t.gleich(r1.motiv, 1, 'genau ein Motiv'); t.gleich(r1.fern, 0, 'keine grauen Tiefenebenen mehr'); t.ok(!r1.buehne, 'die Remotion-Bühne muss weg sein');
+  /* Das Blatt gehört in die Ecke der Seite: rechts an die Kante, oben an die Leiste. Vorher
+     stand es in der Spalte des Inhalts (auf dem Schreibtisch 170 px vor der Kante) und auf
+     dem Telefon mittig mit 24 px Luft. */
+  t.ok(Math.abs(r1.rechts) <= 1, 'Blatt bündig mit der rechten Kante: ' + r1.rechts + ' px Abstand');
+  t.ok(Math.abs(r1.oben) <= 1, 'Blatt bündig unter der Leiste: ' + r1.oben + ' px Abstand');
+  t.ok(Math.abs(r1.breite / r1.hoehe - 1200 / 1948) < 0.01, 'Format des Videos: ' + (r1.breite / r1.hoehe).toFixed(3));
   await t.warten(1600);
-  const r2 = await page.evaluate(() => ({
-    h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity,
-    fern: +getComputedStyle(document.querySelector('.hero-fern')).opacity
-  }));
+  const r2 = await page.evaluate(() => ({ h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity }));
   t.gleich(r2.h1, '1', 'Titel nach 1,6 s');
-  t.ok(r2.fern > 0.05 && r2.fern < 0.2, 'ferne Ebene blass sichtbar: ' + r2.fern);
   await t.bild('auftakt-zeichnen');
   await t.warten(9200);
   const r3 = await page.evaluate(() => ({
@@ -164,14 +171,9 @@ pruefung('auftakt: ohne Bewegung steht sofort das Blatt', 'schreibtisch', async 
     done: document.querySelector('.hero-fig').classList.contains('done'),
     still: getComputedStyle(document.querySelector('.hero-still')).opacity,
     video: getComputedStyle(document.querySelector('.hero-video')).display,
-    h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity,
-    fern: +getComputedStyle(document.querySelector('.hero-fern')).opacity
+    h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity
   }));
   t.ok(r.done && r.still === '1' && r.video === 'none' && r.h1 === '1', 'Endzustand: ' + JSON.stringify(r));
-  /* nurBild() setzte die fernen Ebenen früher auf volle Deckkraft statt auf --deck: drei
-     übereinandergelegte Tuschekopien begruben die Zeichnung, obwohl der Vollbewegungs-Check
-     oben dieselbe Ebene schon immer richtig prüfte. */
-  t.ok(r.fern > 0.05 && r.fern < 0.2, 'ferne Ebene blass sichtbar, nicht voll aufgedeckt: ' + r.fern);
 }, { ruhig: true });
 
 pruefung('auftakt: ?bewegung=aus steht sofort am Ende, ohne dass das Video läuft', 'schreibtisch', async (page, t) => {
@@ -181,8 +183,7 @@ pruefung('auftakt: ?bewegung=aus steht sofort am Ende, ohne dass das Video läuf
       done: document.querySelector('.hero-fig').classList.contains('done'),
       still: getComputedStyle(document.querySelector('.hero-still')).opacity,
       videoZeit: v.currentTime,
-      videoDisplay: getComputedStyle(v).display,
-      fern: +getComputedStyle(document.querySelector('.hero-fern')).opacity
+      videoDisplay: getComputedStyle(v).display
     };
   });
   /* Ohne diesen Lauf blieb unbemerkt, dass ?bewegung=aus den Auftakt gar nicht erreichte
@@ -191,54 +192,65 @@ pruefung('auftakt: ?bewegung=aus steht sofort am Ende, ohne dass das Video läuf
   t.ok(r.done, '.done fehlt bei ?bewegung=aus');
   t.gleich(r.still, '1', 'Standbild bei ?bewegung=aus');
   t.ok(r.videoZeit === 0 || r.videoDisplay === 'none', 'Video läuft trotz ?bewegung=aus: ' + JSON.stringify(r));
-  t.ok(r.fern > 0.05 && r.fern < 0.2, 'ferne Ebene blass sichtbar bei ?bewegung=aus: ' + r.fern);
 }, { abfrage: '?bewegung=aus' });
 
 pruefung('bewegung: ?bewegung=dezent setzt die Stärke auf 0,55', 'schreibtisch', async (page, t) => {
   t.gleich(await page.evaluate(() => window.LUKE.bewegung.m()), 0.55, 'Stärke bei ?bewegung=dezent');
 }, { abfrage: '?bewegung=dezent' });
 
-pruefung('blattfolge: fünf Blätter, eins zur Zeit, das letzte bleibt', 'beide', async (page, t) => {
+pruefung('blattfolge: fünf Blätter, eins zur Zeit, keines kürzer als eine Sekunde, das letzte bleibt', 'beide', async (page, t) => {
   const r = await page.evaluate(() => {
     const bf = document.getElementById('blattfolge');
     return { stand: bf && bf.dataset.stand, n: bf ? bf.querySelectorAll('.bf-blatt').length : 0,
       h: bf ? bf.getBoundingClientRect().height : 0, oben: bf ? bf.getBoundingClientRect().top + scrollY : 0,
-      vh: innerHeight, alt: !!document.querySelector('werk-sequenz, canvas') };
+      vh: innerHeight, alt: !!document.querySelector('werk-sequenz, canvas'), mindestens: window.LUKE.blattfolge.mindestens };
   });
   t.gleich(r.stand, 'voll', 'Stand'); t.gleich(r.n, 5, 'Blätter'); t.ok(!r.alt, 'kein <werk-sequenz>, kein Canvas mehr');
-  t.ok(r.h >= r.vh * (t.mobil ? 3.9 : 4.3), 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
+  t.ok(r.h >= r.vh * (t.mobil ? 4.4 : 5.2), 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
+  t.gleich(r.mindestens, 1000, 'Mindeststand eines Blatts in ms');
   const strecke = r.h - r.vh;
   const deck = () => page.evaluate(() => Array.from(document.querySelectorAll('.bf-blatt')).map(el => +getComputedStyle(el).opacity));
   const transformVon = (sel, i) => page.evaluate(([sel, i]) => getComputedStyle(document.querySelectorAll(sel)[i]).transform, [sel, i]);
   const ruhe = v => v === 'none' || v === 'matrix(1, 0, 0, 1, 0, 0)';
-  /* Motion fuhr transform früher als getrennte y/rotate/scale-Werte, gebunden über
-     M.scroll(), und hielt dabei keine Zwischenstufe: Ein Blatt konnte bei voller Deckkraft
-     trotzdem auf seinem Austrittswert stehen bleiben (js/blattfolge.js, tf()). Deshalb hier
-     nicht nur die Deckkraft prüfen, sondern an zwei Stellen auch die Ruhelage selbst — und
-     dass ein transform-String läuft, nicht mehr einzelne Werte. */
-  await t.zu(r.oben + strecke * 0.1); await t.warten(300);
+  const da = s => s.filter(v => v > 0.05).length;
+  /* Ankunft: Das erste Blatt legt sich ab, sobald die Bühne zu einem guten Teil im Fenster steht. */
+  await t.zu(r.oben - r.vh * 0.5); await t.warten(1500);
   let s = await deck();
-  t.ok(s[0] > 0.95, 'bei 10 % steht das erste Blatt: ' + s[0]);
-  const tf0 = await transformVon('.bf-blatt', 0);
-  t.ok(ruhe(tf0), 'erstes Blatt bei 10 % nicht in Ruhelage: ' + tf0);
-  await t.zu(r.oben + strecke * 0.3); await t.warten(300);
+  t.ok(s[0] > 0.95 && da(s) === 1, 'bei der Ankunft steht genau das erste Blatt: ' + s.map(v => v.toFixed(2)).join(','));
+  /* Weiter zum zweiten: Der Wechsel braucht seine Zeit, dann steht es allein, in Ruhelage. */
+  await t.zu(r.oben + strecke * 0.3); await t.warten(2200);
   s = await deck();
-  t.ok(s[1] > 0.95 && s.filter(v => v > 0.05).length === 1, 'bei 30 % genau das zweite Blatt: ' + s.map(v => v.toFixed(2)).join(','));
+  t.ok(s[1] > 0.95 && da(s) === 1, 'bei 30 % genau das zweite Blatt: ' + s.map(v => v.toFixed(2)).join(','));
   const tf1 = await transformVon('.bf-blatt', 1);
   t.ok(ruhe(tf1), 'zweites Blatt bei 30 % nicht in Ruhelage: ' + tf1);
   const schriftTf1 = await transformVon('.bf-schrift', 1);
   t.ok(ruhe(schriftTf1), 'Beschriftung des zweiten Blatts bei 30 % nicht in Ruhelage: ' + schriftTf1);
-  const nativ = await page.evaluate(() => document.querySelectorAll('.bf-blatt')[1].getAnimations().some(a => 'transform' in a.effect.getKeyframes()[0]));
-  t.ok(nativ, 'transform läuft nicht nativ auf der ScrollTimeline (getAnimations() ohne transform-Keyframes)');
   await t.bild('blattfolge-zweites');
-  await t.zu(r.oben + strecke * 0.58); await t.warten(300);
-  await t.bild('blattfolge-uebergang');
-  await t.zu(r.oben + strecke); await t.warten(300);
+  /* Mit Schwung ans Ende: Die Bühne holt nach, aber kein Blatt steht kürzer als eine Sekunde.
+     Nach anderthalb Sekunden darf das letzte Blatt darum noch nicht da sein — vorher flogen
+     hier drei Blätter in einer Sekunde vorbei. */
+  await t.zu(r.oben + strecke); await t.warten(1500);
   s = await deck();
-  t.ok(s[4] > 0.95, 'das letzte Blatt bleibt stehen: ' + s[4]);
+  t.ok(s[4] < 0.5, 'das letzte Blatt kommt nicht sofort, jedes davor hat seine Sekunde: ' + s.map(v => v.toFixed(2)).join(','));
+  t.ok(da(s) <= 2, 'höchstens ein Blatt und sein Nachfolger zugleich: ' + s.map(v => v.toFixed(2)).join(','));
+  await t.bild('blattfolge-uebergang');
+  await t.warten(8500);
+  s = await deck();
+  t.ok(s[4] > 0.95 && da(s) === 1, 'am Ende steht das letzte Blatt allein: ' + s.map(v => v.toFixed(2)).join(','));
   const schrift = await page.evaluate(() => Array.from(document.querySelectorAll('.bf-schrift')).map(el => +getComputedStyle(el).opacity));
   t.ok(schrift[4] > 0.95 && schrift[0] < 0.05, 'Beschriftung gehört zum Blatt: ' + schrift.map(v => v.toFixed(2)).join(','));
+  const geladen = await page.evaluate(() => Array.from(document.querySelectorAll('.bf-blatt img')).map(i => !!i.getAttribute('src')));
+  t.ok(geladen.every(Boolean), 'alle Blätter haben am Ende ihre Quelle: ' + geladen.join(','));
   await t.bild('blattfolge-ende');
+});
+
+pruefung('blattfolge: die Blätter 2 bis 5 laden erst, wenn der Leser kommt', 'schreibtisch', async (page, t) => {
+  const vorher = await page.evaluate(() => Array.from(document.querySelectorAll('.bf-blatt img')).map(i => !!i.getAttribute('src')));
+  t.gleich(vorher.join(','), 'true,false,false,false,false', 'beim Start hat nur das erste Blatt eine Quelle');
+  const bf = await page.evaluate(() => { const b = document.getElementById('blattfolge').getBoundingClientRect(); return { oben: b.top + scrollY, h: b.height }; });
+  await t.zu(bf.oben + (bf.h - 900) * 0.25); await t.warten(400);
+  const mitte = await page.evaluate(() => Array.from(document.querySelectorAll('.bf-blatt img')).map(i => !!i.getAttribute('src')));
+  t.gleich(mitte.join(','), 'true,true,true,false,false', 'bei 25 % sind die ersten drei geladen, die letzten zwei warten');
 });
 
 pruefung('blattfolge: ohne Bewegung eine ruhige Reihe', 'beide', async (page, t) => {
@@ -250,22 +262,32 @@ pruefung('blattfolge: ohne Bewegung eine ruhige Reihe', 'beide', async (page, t)
   t.gleich(r.stand, 'still', 'Stand'); t.gleich(r.lage, 'static', 'Bühne klebt nicht'); t.ok(r.deck.every(o => o === '1'), 'alle Blätter sichtbar: ' + r.deck.join(','));
 }, { ruhig: true });
 
-pruefung('tropfspur: läuft am rechten Rand, nicht durch den Text', 'beide', async (page, t) => {
+pruefung('tropfspur: hängt am Strang, läuft am rechten Rand, nicht durch den Text', 'beide', async (page, t) => {
   await t.durchscrollen(); await t.warten(1400);
   const r = await page.evaluate(() => {
-    const h = document.getElementById('tropfspur'), p = h && h.querySelector('path');
+    const h = document.getElementById('tropfspur'), p = h && h.querySelector('.ts-kern');
     if (!h || !p || h.hidden) return null;
-    const links = h.getBoundingClientRect().left + scrollX;
+    const hb = h.getBoundingClientRect();
+    const links = hb.left + scrollX, oben = hb.top + scrollY;
     const L = p.getTotalLength();
     const x = a => links + p.getPointAtLength(L * a).x;
     const wrap = document.querySelector('#werke .wrap').getBoundingClientRect();
+    const fig = document.querySelector('.hero-fig').getBoundingClientRect();
     const insta = document.querySelector('.foot-row a[href*="instagram"]');
-    return { x0: x(0), x50: x(0.5), x70: x(0.7), x95: x(0.95), wrapRechts: wrap.right + scrollX, breite: innerWidth,
-      dash: parseFloat(getComputedStyle(p).strokeDashoffset), L,
-      instaRechts: insta ? insta.getBoundingClientRect().right + scrollX : null };
+    return { x0: x(0), y0: oben + p.getPointAtLength(0).y, x50: x(0.5), x70: x(0.7), x95: x(0.95), wrapRechts: wrap.right + scrollX, breite: innerWidth,
+      strangX: fig.left + scrollX + fig.width * 0.705, figUnten: fig.bottom + scrollY,
+      stand: window.LUKE.tropfspur.stand(), lauf: window.LUKE.tropfspur.lauf(),
+      wasch: (h.querySelector('.ts-wasch').getAttribute('d') || '').length > 1000,
+      rechts: hb.right, instaRechts: insta ? insta.getBoundingClientRect().right + scrollX : null };
   });
   t.ok(r, 'Spur fehlt oder ist versteckt');
   if (!r) return;
+  /* Der Ansatz: wo der rote Strang das Blatt des Auftakts unten verlässt (70,5 % der Breite,
+     Unterkante). Vorher hing die Spur an der knienden Figur, die kein Rot trägt, und begann
+     ein Stück unter deren Tusche in der Luft. */
+  t.ok(Math.abs(r.x0 - r.strangX) < 2, 'Ansatz am Strang: ' + Math.round(r.x0) + ' statt ' + Math.round(r.strangX));
+  t.ok(Math.abs(r.y0 - r.figUnten) < 2, 'Ansatz an der Unterkante des Blatts: ' + Math.round(r.y0) + ' statt ' + Math.round(r.figUnten));
+  t.ok(r.rechts <= r.breite + 0.5, 'Halter reicht nicht über die Fensterkante hinaus: ' + Math.round(r.rechts));
   if (t.mobil) {
     t.ok(r.x50 >= r.breite - 40, 'Spur an der rechten Kante (Telefon): ' + Math.round(r.x50));
     /* Der Rinnstein unter 900 px ist nur die 16 px Innenabstand der .wrap: die ganze
@@ -279,9 +301,38 @@ pruefung('tropfspur: läuft am rechten Rand, nicht durch den Text', 'beide', asy
   }
   else t.ok(r.x50 >= r.wrapRechts + 20 && r.x50 <= r.breite - 10, 'Spur rechts neben dem Inhalt: ' + Math.round(r.x50) + ' bei Kante ' + Math.round(r.wrapRechts));
   t.ok(Math.abs(r.x95 - r.x50) < 40, 'Spur bleibt am Rand');
-  t.ok(r.x0 < r.x50 - 100, 'Spur setzt am Strang an und findet den Rand: ' + Math.round(r.x0) + ' → ' + Math.round(r.x50));
-  t.ok(r.dash < r.L * 0.1, 'Spur ist unten fast ganz gelaufen: ' + Math.round(r.dash) + ' von ' + Math.round(r.L));
+  t.ok(r.x0 <= r.x50 + 1, 'Spur läuft zum Rand hin oder gerade hinunter: ' + Math.round(r.x0) + ' → ' + Math.round(r.x50));
+  t.ok(r.stand > 0.9 && r.lauf > 0.9, 'Spur ist unten fast ganz gelaufen: ' + r.stand.toFixed(3));
+  t.ok(r.wasch, 'die Waschung hat einen Pfad');
   await t.bild('tropfspur-unten');
+});
+
+pruefung('tropfspur: die Waschung bleibt, der Tropfen staut, die Stauung bleibt zurück', 'schreibtisch', async (page, t) => {
+  const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+  const lesen = () => page.evaluate(() => {
+    const T = window.LUKE.tropfspur, m = /scale\(([\d.]+) ([\d.]+)\)/.exec(document.querySelector('#tropfspur .ts-tropfen').getAttribute('transform') || '');
+    return { stand: T.stand(), lauf: T.lauf(), stau: T.stauungen(), ellipsen: document.querySelectorAll('#tropfspur .ts-stau ellipse').length,
+      tropfen: m ? +m[1] : 0, gelaufen: +document.querySelector('#ts-lauf rect').getAttribute('height'), gelesen: +document.querySelector('#ts-jetzt rect').getAttribute('height') };
+  });
+  /* Hinlesen, kurz stehen: Der Tropfen schwillt an. */
+  await t.zu(Math.round(H * 0.35)); await t.warten(900);
+  const a = await lesen();
+  await t.warten(2600);
+  const b = await lesen();
+  t.ok(a.stand > 0.2 && a.stand < 0.5, 'Stand bei 35 % der Seite: ' + a.stand.toFixed(3));
+  t.ok(b.tropfen > a.tropfen + 0.8, 'der Tropfen staut sich beim Verweilen: ' + a.tropfen + ' → ' + b.tropfen);
+  t.gleich(a.stau, 0, 'noch keine Stauung');
+  /* Weiterlesen: Die Stauung bleibt als Verdickung zurück, der Tropfen wird wieder schlank. */
+  await t.zu(Math.round(H * 0.55)); await t.warten(1400);
+  const c = await lesen();
+  t.gleich(c.stau, 1, 'eine Stauung nach dem Weiterlesen'); t.gleich(c.ellipsen, 1, 'ihr dunkler Kern steht im SVG');
+  t.ok(c.tropfen < b.tropfen - 0.6, 'der Tropfen ist wieder schlank: ' + c.tropfen);
+  /* Zurück nach oben: Die Waschung bleibt, so weit sie gelaufen ist; nur der Kern folgt. */
+  await t.zu(Math.round(H * 0.3)); await t.warten(1400);
+  const d = await lesen();
+  t.ok(d.stand < d.lauf - 0.1, 'der Stand fällt zurück, der Lauf bleibt: ' + d.stand.toFixed(3) + ' / ' + d.lauf.toFixed(3));
+  t.ok(d.gelaufen > d.gelesen + 500, 'die Waschung reicht weiter als der Kern: ' + Math.round(d.gelaufen) + ' / ' + Math.round(d.gelesen));
+  await t.bild('tropfspur-zurueck');
 });
 
 pruefung('tropfspur: ohne Bewegung versteckt', 'schreibtisch', async (page, t) => {
