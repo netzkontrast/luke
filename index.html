@@ -33,8 +33,8 @@
 <body>
 <div class="app" data-richtung="a" data-bewegung="voll" data-dichte="luftig" data-rot="spur" data-sequenz="voll" data-korn="aus">
 
-  <!-- Die Tropfspur setzt am roten Strang von Werk I an und läuft die Seite hinunter.
-       Sie ersetzt die frühere gerade Fortschrittslinie. -->
+  <!-- Die Tropfspur setzt an, wo der rote Strang das Blatt des Auftakts unten verlässt, und
+       läuft die Seite hinunter, so weit gelesen wurde (js/tropfspur.js). -->
   <div id="tropfspur" aria-hidden="true"></div>
 
   <nav class="top" aria-label="Hauptnavigation">
@@ -59,28 +59,26 @@
             <p>Tätowierer und Zeichner. Bluthandwerk, Köln-Ehrenfeld — seit 2012. Arbeiten auf Haut und auf Papier.</p>
           </div>
           <div class="hero-draw" id="hero-par">
-            <!-- Vier Ebenen, von hinten nach vorn, jede mit eigener Tiefe. Die grauen sind
-                 Tiefe, kein Motiv; das Motiv ist das Zeichenvideo, danach das Blatt. Skalierung
-                 und Ausschnitt stehen am Bild, die Ebene selbst bekommt von js/auftakt.js
-                 nur ihre Verschiebung. -->
+            <!-- Ein Blatt in der Ecke der Seite: erst das Zeichenvideo, nach dem Schnitt die
+                 kniende Figur. Beide liegen im selben Kasten (.hero-fig), der das Format des
+                 Videos hat. Die grauen Tiefenebenen von früher sind raus: Ihre Hüllen waren
+                 eigene Stapelkontexte, multiply griff darin nicht, und so lag über dem Video
+                 eine blasse Kopie der Zeichnung samt Kante. Die Breite des Blatts folgt aus
+                 seiner Höhe (js/auftakt.js zieht nichts, css/site.css: .hero-fig); sizes
+                 rechnet sie darum aus vh, nicht aus vw. -->
             <figure class="hero-fig">
-              <div class="hero-ebene" data-tiefe="0.14"><img class="hero-fern ink-img" src="assets/img/gestaltung-profil-1200.jpg" alt="" aria-hidden="true" style="--deck:0.10; --gross:1.55; object-position:38% 30%" fetchpriority="low" decoding="async"></div>
-              <div class="hero-ebene" data-tiefe="0.30"><img class="hero-fern ink-img" src="assets/img/gestaltung-profil-1200.jpg" alt="" aria-hidden="true" style="--deck:0.16; --gross:1.22; --versatz:-4%; object-position:68% 62%" fetchpriority="low" decoding="async"></div>
-              <div class="hero-ebene" data-tiefe="0.48">
-                <div class="hero-motiv">
-                  <video class="hero-video ink-img" muted playsinline preload="auto" aria-hidden="true" tabindex="-1">
-                    <source src="assets/video/gestaltung-profil-zeichnung.webm" type="video/webm">
-                    <source src="assets/video/gestaltung-profil-zeichnung.mp4" type="video/mp4">
-                  </video>
-                  <img class="hero-still ink-img"
-                       src="assets/img/gestaltung-kniend-1200.jpg"
-                       srcset="assets/img/gestaltung-kniend-800.jpg 800w, assets/img/gestaltung-kniend-1200.jpg 1200w, assets/img/gestaltung-kniend-1900.jpg 1900w"
-                       sizes="(max-width: 900px) 90vw, 40vw"
-                       width="1900" height="2536" fetchpriority="high" decoding="async"
-                       alt="Tuschzeichnung: kniende Figur im Profil, Kopf gesenkt, hinter ihr ein offener Kreis">
-                </div>
+              <div class="hero-motiv">
+                <video class="hero-video ink-img" muted playsinline preload="auto" aria-hidden="true" tabindex="-1">
+                  <source src="assets/video/gestaltung-profil-zeichnung.webm" type="video/webm">
+                  <source src="assets/video/gestaltung-profil-zeichnung.mp4" type="video/mp4">
+                </video>
+                <img class="hero-still ink-img"
+                     src="assets/img/gestaltung-kniend-1200.jpg"
+                     srcset="assets/img/gestaltung-kniend-800.jpg 800w, assets/img/gestaltung-kniend-1200.jpg 1200w, assets/img/gestaltung-kniend-1900.jpg 1900w"
+                     sizes="(max-width: 540px) min(32vh, 92vw), min(48vh, 92vw)"
+                     width="1900" height="2536" fetchpriority="high" decoding="async"
+                     alt="Tuschzeichnung: kniende Figur im Profil, Kopf gesenkt, hinter ihr ein offener Kreis">
               </div>
-              <div class="hero-ebene" data-tiefe="0.95"><img class="hero-fern ink-img" src="assets/img/gestaltung-profil-1200.jpg" alt="" aria-hidden="true" style="--deck:0.09; --gross:2.1; object-position:82% 88%" fetchpriority="low" decoding="async"></div>
             </figure>
           </div>
         </div>

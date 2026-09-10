@@ -68,12 +68,21 @@ html[data-js="an"] .app[data-bewegung="aus"] .rv:not(.on) { opacity: 1; }
 .app[data-richtung="c"] .top { border-bottom: 2px dashed var(--line); }
 .app[data-richtung="c"] .top a { text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--fd); font-weight: 500; }
 
-/* Die Tropfspur. Sie steht in Seitenkoordinaten, nicht im Fenster: Sie gehört zur Seite
-   und läuft mit ihr, statt am Rand zu kleben. */
+/* Die Tropfspur (js/tropfspur.js). Sie steht in Seitenkoordinaten, nicht im Fenster: Sie
+   gehört zur Seite und läuft mit ihr, statt am Rand zu kleben. Blut, kein Faden: eine blasse
+   Waschung, die stehen bleibt, so weit die Spur je gelaufen ist, darin ein dunkler Kern und
+   ein Tropfen, die zeigen, wo gerade gelesen wird. Stauungen sind die Stellen, an denen der
+   Leser verweilt hat. */
 #tropfspur { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; }
 #tropfspur svg { display: block; overflow: visible; }
-/* Bei reduzierter Bewegung bleibt die Spur stehen, statt mitzulaufen. */
-#tropfspur[data-ruhig="an"] path { transition: none; }
+#tropfspur .ts-wasch, #tropfspur .ts-rest { fill: var(--red); opacity: .22; }
+#tropfspur .ts-stau { fill: var(--red); opacity: .5; }
+#tropfspur .ts-kern { fill: none; stroke: var(--red); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; opacity: .78; }
+#tropfspur .ts-spritzer { fill: var(--red); opacity: .8; }
+#tropfspur .ts-tropfen { fill: var(--red); opacity: .88; }
+/* Auf dunklem Papier (B) und bei „satt“ darf die Waschung kräftiger sein. */
+.app[data-richtung="b"] #tropfspur .ts-wasch, .app[data-richtung="b"] #tropfspur .ts-rest,
+.app[data-rot="satt"] #tropfspur .ts-wasch, .app[data-rot="satt"] #tropfspur .ts-rest { opacity: .36; }
 .app[data-rot="aus"] #tropfspur { display: none; }
 
 /* ---------- Layout-Helfer ---------- */
@@ -101,18 +110,24 @@ h2.hd { font-size: clamp(30px,4vw,52px); margin: 0 0 12px; }
 
 /* ---------- Auftakt ---------- */
 #auftakt { overflow: hidden; }
+/* Richtung A: Das Blatt sitzt in der Ecke der Seite, oben an der Leiste und rechts an der
+   Kante. Dafür gibt der Umschlag des Auftakts seinen rechten Innenabstand auf; links behält
+   er die Kante der übrigen Abschnitte, mit derselben Rechnung wie .wrap (höchstens --mw
+   breit, mittig, mit Innenabstand). 100 % ist die Breite des Abschnitts, nicht 100vw, damit
+   die Bildlaufleiste nicht mitzählt. B (mittig) und C (schräges Blatt) behalten ihren Umschlag. */
+.app[data-richtung="a"] #auftakt .wrap { max-width: none; padding-right: 0; padding-left: max(clamp(16px,4vw,40px), calc((100% - var(--mw)) / 2 + clamp(16px,4vw,40px))); }
 .hero-grid { display: grid; grid-template-columns: minmax(260px, 5fr) minmax(300px, 7fr); align-items: end; gap: 4vw; min-height: 76vh; }
 .hero-text { padding: 48px 0 clamp(40px,8vh,90px); }
 .hero-text h1 { font-size: clamp(46px,7vw,96px); line-height: .95; margin: 0 0 18px; letter-spacing: -0.01em; }
 .hero-text p { margin: 0; max-width: 34ch; color: var(--mut); font-size: 20px; line-height: 1.55; text-wrap: pretty; }
-.hero-draw { will-change: transform; display: flex; justify-content: flex-end; }
-/* Dasselbe Seitenverhältnis wie die Zeichnung, damit Video und Standbild exakt übereinander
-   liegen. Der Beschnitt hält die vergrößerten Tiefenebenen im Rahmen. */
+.hero-draw { display: flex; justify-content: flex-end; }
+/* Das Format des Zeichenvideos (432 × 704), damit Video und Standbild exakt übereinander
+   liegen. Die Breite folgt aus der Höhe; das Blatt ist breiter und wird rechts beschnitten. */
 .hero-fig { position: relative; margin: 0; height: min(78vh, 150vw); aspect-ratio: 1200 / 1948; max-width: 100%; overflow: hidden; }
-/* Eine Ebene bekommt von js/auftakt.js nur x und y. Skaliert wird am Bild darin, sonst
-   schrieben zwei Bewegungen dieselbe transform. */
-.hero-ebene { position: absolute; inset: 0; will-change: transform; }
-.hero-fern { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); opacity: var(--deck, 0.1); transform: scale(var(--gross, 1)) translateX(var(--versatz, 0)); transform-origin: 50% 50%; }
+/* Der lange Zug des Auftakts (js/auftakt.js, scale 1.045 → 1) läuft auf dieser Hülle, auf
+   einer eigenen Schicht. Die bleibt auch danach: Gäbe man sie frei, zeichnete der Browser
+   das Standbild neu und zählte den Anstrich bei 9,5 s als größten Inhalt (LCP). Dem Zeiger
+   folgt das Blatt nicht mehr: Die Tropfspur hängt am Strang und soll nicht daneben anfangen. */
 .hero-motiv { position: absolute; inset: 0; will-change: transform; }
 .hero-motiv > video, .hero-motiv > img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hero-video { object-fit: cover; }
@@ -123,7 +138,7 @@ h2.hd { font-size: clamp(30px,4vw,52px); margin: 0 0 12px; }
 .hero-fig.done .hero-video { opacity: 0; }
 .hero-fig.still .hero-video { display: none; }
 /* Vor dem Eintritt versteckt, nur wenn Bewegung möglich ist (siehe Enthüllen). */
-html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="an"] .hero-text p { opacity: 0; }
+html[data-js="an"] .hero-text h1, html[data-js="an"] .hero-text p { opacity: 0; }
 .app[data-richtung="b"] .hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; align-items: center; min-height: 72vh; }
 .app[data-richtung="b"] .hero-draw { order: -1; justify-content: center; max-width: 560px; }
 .app[data-richtung="b"] .hero-fig { height: min(64vh, 150vw); }
@@ -136,6 +151,11 @@ html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="a
    Stand „still“ wird daraus eine ruhige Reihe mit natürlicher Höhe. */
 .app[data-sequenz="aus"] #sequenz { display: none; }
 .bf { position: relative; }
+/* Bevor das Skript die Bühne baut, ist der Abschnitt leer; sobald sie steht, rückt alles
+   darunter um die ganze Folge nach unten (gemessen: CLS 0,15 auf dem Schreibtisch, weil
+   „Aktuell“ und die Werke im ersten Bild noch unter dem Auftakt standen). Mit Bewegung
+   bekommt er darum vorab die Höhe der Bühne; ohne Bewegung wird er ohnehin eine Reihe. */
+html[data-js="an"] .bf:not([data-stand]) { min-height: 100svh; }
 .bf-buehne { position: sticky; top: 0; height: 100svh; overflow: hidden; }
 .bf-reihe, .bf-stueck { display: contents; }
 .bf-kapitel { position: absolute; left: clamp(20px, 6vw, 80px); bottom: clamp(64px, 14vh, 140px); max-width: min(78vw, 420px); }
@@ -396,6 +416,9 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
   .app { --cols: 2 !important; }
   .hero-grid { grid-template-columns: 1fr !important; min-height: auto !important; padding-top: 24px; }
   .hero-draw { order: -1; justify-content: center; }
+  /* Richtung A auch hier in der Ecke: rechts an der Kante, oben ohne Luft zur Leiste. */
+  .app[data-richtung="a"] .hero-grid { padding-top: 0; }
+  .app[data-richtung="a"] .hero-draw { justify-content: flex-end; }
   .app[data-richtung="c"] .hero-draw { margin-left: auto; margin-right: auto; }
   .hand-grid { grid-template-columns: 1fr; }
   .ov-card { grid-template-columns: 1fr !important; overflow-y: auto; }
@@ -433,6 +456,9 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
   .app { --cols: 1 !important; --sp: clamp(44px, 11vw, 64px) !important; font-size: 17px; }
   .app[data-richtung="c"] { --cols: 2 !important; }
   .hero-fig, .app[data-richtung="b"] .hero-fig { height: min(52vh, 150vw); }
+  /* Der Vorspann bleibt schmal: Rechts daneben läuft die Tropfspur vom Strang zum Rand, und
+     sie soll am Text vorbei, nicht hindurch (js/tropfspur.js, messen()). */
+  .app[data-richtung="a"] .hero-text p { max-width: min(34ch, calc(100% - 90px)); }
   .ov-card { padding: 14px !important; }
   .ov-row { grid-template-columns: 96px 1fr; }
   .g-list[data-layout="schiene"] .g-item { flex-basis: 78vw !important; }

@@ -25,10 +25,10 @@ css/site.css          Alle Stile, drei Richtungen über .app[data-richtung]
 js/works.js           Werkdaten, Flash-Blätter, Filterlisten, Konfiguration
 js/site.js            Seitenlogik: Galerie, Filter, Werkansicht, Formular, Übergänge
 js/bewegung.js        Grundlage aller Bewegung: Motion, Stärke, Tempo je Richtung, Enthüllen, Parallaxe, Zeiger
-js/auftakt.js         Der Auftakt: vier Ebenen in der Tiefe, Zeichenvideo, Schnitt, Blatt
-js/blattfolge.js      Die Blattfolge: ein Blatt nach dem anderen, scrollgeführt
+js/auftakt.js         Der Auftakt: ein Blatt in der Ecke der Seite, Zeichenvideo, Schnitt, Standbild
+js/blattfolge.js      Die Blattfolge: ein Blatt nach dem anderen; das Scrollen wählt, die Zeit wechselt
 js/abschnitte.js      Kleine Bewegungen je Abschnitt: Aktuell, Handschrift, Studio
-js/tropfspur.js       Die rote Spur, die aus dem Auftakt austritt, den Rand findet und mit dem Lesen mitläuft
+js/tropfspur.js       Die Tropfspur: Blut, kein Faden — hängt am Strang, bleibt stehen, wo sie lief, staut, wo man verweilt
 vendor/motion/        Motion 13.2.0, lokal gehostet (siehe HERKUNFT.md)
 scripts/pruefen.mjs   Prüft die Seite mit Playwright: Zusicherungen, leere Konsole, Bilder je Abschnitt
 skizze.html           Entwurf: ein Weltzustand fährt fliegende Blätter, Sprite und Tränen
@@ -113,14 +113,20 @@ einen Auftraggeber und einen Anlass statt Träger, Serie und Maße, und sie beha
 also nicht auf quadratisch gestutzt. Die Werkansicht ist dieselbe wie bei den Werken; geblättert wird innerhalb der
 Grafiken, nicht quer durch beides.
 
-- Der Auftakt zeigt die Zeichnung in vier Ebenen mit Tiefe (`js/auftakt.js`); das Bündel des Remotion-Players wird
-  von der Seite nicht mehr geladen, der Quelltext bleibt unter `video/` als Teil des Films. Zu sehen ist
-  `assets/video/gestaltung-profil-zeichnung.mp4`, einmal abgespielt; stehen bleibt danach `gestaltung-kniend-*.jpg`.
-  Das sind zwei verschiedene Blätter, und so soll es auch gelesen werden: Eine Arbeit entsteht, eine andere steht.
-  Dazwischen liegt eine knappe Leerstelle, damit der Übergang als Schnitt liest und nicht als Verwandlung.
+- Der Auftakt zeigt ein Blatt in der Ecke der Seite: oben an der Leiste, rechts an der Kante, auf jeder Breite
+  (`js/auftakt.js`, `css/site.css`: `.hero-fig`). Zu sehen ist `assets/video/gestaltung-profil-zeichnung.webm`
+  (Safari: `.mp4`), einmal abgespielt; stehen bleibt danach `gestaltung-kniend-*.jpg`. Das sind zwei verschiedene
+  Blätter, und so soll es auch gelesen werden: Eine Arbeit entsteht, eine andere steht. Dazwischen liegt eine knappe
+  Leerstelle, damit der Übergang als Schnitt liest und nicht als Verwandlung. Die grauen Tiefenebenen einer früheren
+  Fassung sind raus: Ihre Hüllen waren eigene Stapelkontexte, `multiply` griff darin nicht, und über dem Video lag eine
+  blasse Kopie der Zeichnung samt Kante. Das Blatt folgt auch dem Zeiger nicht mehr — die Tropfspur hängt am Strang.
   `gestaltung-profil-zeichnung-alt.mp4` ist die frühere, längere Fassung der Animation (August), derzeit nicht eingebunden.
 - Das Blatt im Kopf hat links ein breites leeres Drittel. Standbild und Live-Auftakt schneiden es rechtsbündig weg
-  (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten.
+  (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten. Die Breite des Kastens
+  folgt aus seiner Höhe (78 vh, auf dem Telefon 52 vh), darum rechnet `sizes` in vh.
+- Was nicht gleich gebraucht wird, lädt später: Das Signaturvideo der Handschrift erst, wenn der Abschnitt ein Fenster
+  weit heranrückt; die Blätter 2 bis 5 der Blattfolge erst, wenn der Leser sich ihnen nähert. Beim Start lädt so gut
+  ein Megabyte weniger (Telefon: gut zwei), und das Auftaktvideo hat die Leitung für sich.
 - Vorschaubild für soziale Netzwerke: `assets/img/og-bild.jpg`, 1200 × 630, dieselbe Zeichnung auf Weiß.
 - Sprite für die Skizze: `assets/img/zeichnung-sprite.webp`, 48 Bilder der Zeichenanimation, 8 × 6 Kacheln zu
   160 × 260, 283 kB. Neu bauen mit ffmpeg:
@@ -153,7 +159,12 @@ Alles, was sich auf der Seite bewegt, ist mit [Motion](https://motion.dev) gebau
 Richtung; die Abschnitte fragen dort. Eintritte kommen beim Sichtbarwerden (`.rv`), scrollgebundene
 Bewegung läuft über `ScrollTimeline`, wo der Browser sie kann. Bei „reduzierte Bewegung“ und mit
 `?bewegung=aus` steht alles im Endzustand. Der Entwurf dazu:
-`docs/superpowers/specs/2026-09-09-seite-mit-motion-design.md`.
+`docs/superpowers/specs/2026-09-09-seite-mit-motion-design.md`, mit dem Nachtrag vom 10. September am Ende.
+
+Zwei Dinge folgen nicht dem Scrollweg, sondern der Zeit: In der Blattfolge wählt das Scrollen das Blatt, gewechselt
+wird aber erst, wenn das stehende Blatt seine Sekunde hatte (`MINDESTENS` in `js/blattfolge.js`) — mit dem Schwung
+eines Wischens flogen vorher drei Blätter in einer Sekunde vorbei. Und die Tropfspur staut, wo der Leser verweilt:
+Der Tropfen schwillt an, und wer weiterliest, lässt eine Verdickung zurück.
 
 Prüfen, mit Playwright:
 

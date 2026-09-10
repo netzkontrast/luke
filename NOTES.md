@@ -66,3 +66,10 @@ Bereits umgesetzt:
 Beim nächsten Durchgang anzusehen:
 
 - Ein zweites Raster für die Serie wäre eine Überlegung wert, sobald Fotos der Hautarbeiten dazukommen.
+- Das Auftaktvideo ist mit 1,7 MB (VP9) beziehungsweise 1,8 MB (H.264) der größte Posten beim Laden. Ein
+  Neukodieren aus `assets/original/` brachte bei gleicher Auflösung kaum etwas (H.264 CRF 24: 1,37 MB, VP9 CRF 34:
+  sogar größer): Die Zeichenanimation hat viel feines Korn. Kleiner würde sie nur mit einem Neu-Render ohne Korn aus
+  Remotion oder mit sichtbarem Qualitätsverlust — beides eine Entscheidung für Luke, nicht für ein Skript.
+- Nach dem Schnitt hängt die Tropfspur rund 7 % der Blatthöhe unter der Tusche der knienden Figur in der Luft: Der
+  Strang des Videos tritt an der Unterkante aus, die Figur endet höher. Wollte man das schließen, müsste das Standbild
+  unten beschnitten werden (Datei), nicht die Spur verschoben.

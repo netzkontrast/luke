@@ -435,3 +435,36 @@ Formular oder Foto. Blattfolge: ein Blatt zur Zeit, Beschriftung passt zum Blatt
 - Keine Klanggestaltung.
 - Kein Wechsel der Schriften, Farben oder Texte. Die Richtungen B und C bekommen ihre
   Bewegung übersetzt, aber keine neue Idee; A ist der Standard und wird zuerst geprüft.
+
+
+## Nachtrag, 10. September 2026
+
+Nach der Abnahme kamen drei Rückmeldungen: Über dem Auftaktvideo liege ein Bild, das Blatt sitze nicht in der
+rechten oberen Ecke der Seite, und in der Blattfolge flögen die Blätter mit dem Schwung des Scrollens vorbei.
+Dazu der Auftrag, Leistung und Tropfspur weiterzubringen. Was sich gegenüber dem Entwurf oben geändert hat:
+
+- **Auftakt.** Die drei grauen Tiefenebenen (Abschnitt 5, Tabelle) sind raus. Ihre Hüllen trugen `will-change` und
+  waren damit eigene Stapelkontexte; `multiply` griff darin nicht, also lag die vorderste als blasse, deckende Kopie
+  der Profilzeichnung über Video und Standbild — samt der harten Kante ihrer grauen Waschung. Die beiden hinteren
+  lagen hinter dem deckenden Video und waren nie zu sehen: 189 kB und drei Schichten für nichts. Geblieben ist das
+  Motiv (Video, Schnitt, Standbild) mit seinem langen Zug; dem Zeiger und dem Scrollen folgt es nicht mehr, weil die
+  Tropfspur am Strang hängen soll und nicht daneben. Das Blatt steht jetzt in der Ecke der Seite: Der Umschlag des
+  Auftakts gibt in Richtung A seinen rechten Innenabstand auf, links behält er die Kante der übrigen Abschnitte; auf
+  dem Telefon rechtsbündig ohne Luft zur Leiste, der Vorspann bleibt schmal.
+- **Blattfolge.** Das Scrollen wählt das Blatt (`floor(p · N)`), die Zeit wechselt: Ein Blatt steht mindestens
+  1000 ms, ein Wechsel geht immer nur um eins (Austritt `kurz`, Schnitt, Eintritt `0,8 · dauer`), rückwärts
+  spiegelbildlich. Das erste Blatt legt sich ab, wenn die Bühne zu 40 % im Fenster steht. Scrollweg je Blatt 85 svh
+  (Telefon 70, dezent 60). Wer der Folge davonläuft, sieht die restlichen Blätter nicht — das ist der Preis dafür,
+  dass nichts das Scrollen anhält. Die Blätter 2 bis N bekommen ihre Bildquelle erst, wenn der Leser sich ihnen
+  nähert (0,8 Fenster davor).
+- **Tropfspur.** Blut, kein Faden: eine Fläche mit wechselnder Breite (blasse Waschung, dunkler Kern), Ansatz bei
+  70,5 % der Breite an der Unterkante des Blatts, wo der Strang austritt. Die Waschung bleibt stehen, so weit die
+  Spur je gelaufen ist; Kern und Tropfen zeigen, wo gelesen wird. Steht der Leser eine halbe Sekunde, schwillt der
+  Tropfen drei Sekunden lang an; liest er weiter, bleibt an der Stelle eine Verdickung (höchstens vierzehn). Gezeichnet
+  wird ohne `getPointAtLength` im Bildtakt: Die Mittellinie ist eine Funktion x(y), im Bildtakt ändern sich zwei
+  Clip-Rechtecke und die `transform` des Tropfens. Liegt die Quelle schon im Rand (breite Schirme), läuft die Spur
+  gerade hinunter; auf dem Telefon ist die S-Kurve ein halbes Fenster kurz, damit sie neben dem Vorspann läuft.
+- **Leistung.** Das Signaturvideo lädt erst, wenn die Handschrift ein Fenster weit heranrückt (vorher 1,7 MB beim
+  Start). Der Abschnitt der Blattfolge reserviert 100 svh, bevor das Skript die Bühne baut (CLS 0,15 → 0). Beim Start
+  lädt der Schreibtisch 2,3 statt 3,1 MB, das Telefon 2,2 statt 4,4 MB. Das Auftaktvideo selbst bleibt, wie es ist
+  (siehe NOTES).
