@@ -17,12 +17,15 @@
 
   /* ---------- Zustand ---------- */
   const S = {
-    richtung: pick(params.get('richtung'), ['a', 'b', 'c'], app.dataset.richtung || 'a'),
+    /* js/bewegung.js hat ?richtung= und ?bewegung= schon vor jedem anderen Skript auf
+       .app übertragen, als einzige Stelle, die die Adresse dafür liest. Hier wird nur
+       noch gelesen, nicht ein zweites Mal geparst. */
+    richtung: app.dataset.richtung || 'a',
     /* Auf dem Telefon ist die Schiene die Voreinstellung: ein Blatt pro Bildschirm,
        zum Wischen. Am großen Bildschirm bleibt es beim Mauerwerk. */
     layout: pick(params.get('layout'), ['mauerwerk', 'buendig', 'schiene'],
       matchMedia('(max-width: 700px)').matches ? 'schiene' : 'mauerwerk'),
-    bewegung: prm ? 'aus' : pick(params.get('bewegung'), ['aus', 'dezent', 'voll'], app.dataset.bewegung || 'voll'),
+    bewegung: prm ? 'aus' : (app.dataset.bewegung || 'voll'),
     dichte: 'luftig', rotspur: 'spur', sequenz: 'voll', korn: 'aus',
     panel: params.has('proto'), panelOpen: true,
     traeger: 'alles', fOrt: null, fMotiv: null, fSerie: null, fJahr: null,

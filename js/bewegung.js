@@ -26,6 +26,19 @@
   const L = (window.LUKE = window.LUKE || {});
   const app = document.querySelector('.app');
   if (!app) return;
+  /* ?bewegung= und ?richtung= zählen schon hier, nicht erst wenn js/site.js sie fürs
+     Bedienfeld überträgt (applyTheme()): bewegung.js lädt vor jedem Verbraucher, der
+     Auftakt fragt aber schon beim Laden nach der Stärke. Läse er dort noch das
+     Markup-Attribut, liefe er trotz „?bewegung=aus“ mit voller Wucht los. js/site.js
+     liest die Attribute nur noch, statt die Adresse ein zweites Mal selbst zu lesen. */
+  (function ausAdresse() {
+    const p = new URLSearchParams(location.search);
+    const passt = (v, erlaubt) => (erlaubt.includes(v) ? v : null);
+    const bewegung = passt(p.get('bewegung'), ['aus', 'dezent', 'voll']);
+    const richtung = passt(p.get('richtung'), ['a', 'b', 'c']);
+    if (bewegung) app.dataset.bewegung = bewegung;
+    if (richtung) app.dataset.richtung = richtung;
+  })();
   const M = window.Motion || null;
   const html = document.documentElement;
   const prm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -127,11 +140,17 @@
      der Browser sie kann. Nur auf Figuren und dem Titel des Auftakts, nie auf Lauftext. */
   const tiefen = [];
   function parallaxe(root) {
+    let neu = false;
     (root || document).querySelectorAll('[data-depth]').forEach(el => {
       if (tiefen.some(t => t.el === el)) return;
       tiefen.push({ el, stop: null, anim: null });
+      neu = true;
     });
-    parallaxeBauen();
+    /* Ohne neue Elemente ist jede vorhandene Tiefe schon gebunden: Der body-weite
+       MutationObserver (js/site.js) ruft das bei jeder DOM-Änderung auf, ein Neubau bei
+       jedem Filterklick oder Overlay-Öffnen hätte sonst laufend Scrollbindungen ab- und
+       wieder aufgebaut, mitten in anderen Bewegungen. */
+    if (neu) parallaxeBauen();
   }
   function parallaxeBauen() {
     const s = m();
@@ -181,7 +200,12 @@
       if (m()) M.animate(feld(el), { scale: 0.985 }, feder.gesetzt);
       return () => { if (m()) M.animate(feld(el), { scale: 1 }, feder.gesetzt); };
     });
-    neu.forEach(el => { el.addEventListener('focus', () => hoch(el)); el.addEventListener('blur', () => runter(el)); });
+    /* focus-visible statt focus: Ein Mausklick setzt Fokus genauso wie die Tastatur, soll
+       das Blatt aber nicht anheben. Das übernimmt für die Maus schon M.hover() oben. */
+    neu.forEach(el => {
+      el.addEventListener('focusin', () => { if (el.matches(':focus-visible')) hoch(el); });
+      el.addEventListener('focusout', () => runter(el));
+    });
   }
 
   L.bewegung = { M, m, richtung, tempo, feder, eintritt, enthuellen, zeigen, sofort, strich, parallaxe, zeiger, heben };

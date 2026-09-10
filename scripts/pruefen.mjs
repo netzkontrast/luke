@@ -164,10 +164,39 @@ pruefung('auftakt: ohne Bewegung steht sofort das Blatt', 'schreibtisch', async 
     done: document.querySelector('.hero-fig').classList.contains('done'),
     still: getComputedStyle(document.querySelector('.hero-still')).opacity,
     video: getComputedStyle(document.querySelector('.hero-video')).display,
-    h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity
+    h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity,
+    fern: +getComputedStyle(document.querySelector('.hero-fern')).opacity
   }));
   t.ok(r.done && r.still === '1' && r.video === 'none' && r.h1 === '1', 'Endzustand: ' + JSON.stringify(r));
+  /* nurBild() setzte die fernen Ebenen früher auf volle Deckkraft statt auf --deck: drei
+     übereinandergelegte Tuschekopien begruben die Zeichnung, obwohl der Vollbewegungs-Check
+     oben dieselbe Ebene schon immer richtig prüfte. */
+  t.ok(r.fern > 0.05 && r.fern < 0.2, 'ferne Ebene blass sichtbar, nicht voll aufgedeckt: ' + r.fern);
 }, { ruhig: true });
+
+pruefung('auftakt: ?bewegung=aus steht sofort am Ende, ohne dass das Video läuft', 'schreibtisch', async (page, t) => {
+  const r = await page.evaluate(() => {
+    const v = document.querySelector('.hero-video');
+    return {
+      done: document.querySelector('.hero-fig').classList.contains('done'),
+      still: getComputedStyle(document.querySelector('.hero-still')).opacity,
+      videoZeit: v.currentTime,
+      videoDisplay: getComputedStyle(v).display,
+      fern: +getComputedStyle(document.querySelector('.hero-fern')).opacity
+    };
+  });
+  /* Ohne diesen Lauf blieb unbemerkt, dass ?bewegung=aus den Auftakt gar nicht erreichte
+     (js/bewegung.js löste die Adresse zu spät auf) und die Öffnung trotzdem mit voller
+     Wucht lief. */
+  t.ok(r.done, '.done fehlt bei ?bewegung=aus');
+  t.gleich(r.still, '1', 'Standbild bei ?bewegung=aus');
+  t.ok(r.videoZeit === 0 || r.videoDisplay === 'none', 'Video läuft trotz ?bewegung=aus: ' + JSON.stringify(r));
+  t.ok(r.fern > 0.05 && r.fern < 0.2, 'ferne Ebene blass sichtbar bei ?bewegung=aus: ' + r.fern);
+}, { abfrage: '?bewegung=aus' });
+
+pruefung('bewegung: ?bewegung=dezent setzt die Stärke auf 0,55', 'schreibtisch', async (page, t) => {
+  t.gleich(await page.evaluate(() => window.LUKE.bewegung.m()), 0.55, 'Stärke bei ?bewegung=dezent');
+}, { abfrage: '?bewegung=dezent' });
 
 pruefung('blattfolge: fünf Blätter, eins zur Zeit, das letzte bleibt', 'beide', async (page, t) => {
   const r = await page.evaluate(() => {
@@ -372,6 +401,23 @@ for (const r of ['b', 'c']) {
     await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1200); await t.bild('richtung-' + r + '-werke');
   }, { abfrage: '?richtung=' + r });
 }
+
+pruefung('richtung c: die Schräglage der Plakate übersteht den Hover', 'schreibtisch', async (page, t) => {
+  await t.zu((await t.abschnitte()).find(a => a.id === 'grafik').oben - 40); await t.warten(600);
+  const dreh = i => page.evaluate(i => getComputedStyle(document.querySelectorAll('.gr-item')[i].querySelector('.gr-ph')).rotate, i);
+  const vorher = await dreh(1);
+  t.ok(vorher && vorher !== 'none', 'zweites Plakat ist in Richtung C nicht schräg: ' + vorher);
+  const box = await page.locator('.gr-item').nth(1).locator('.gr-ph').boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await t.warten(400);
+  await page.mouse.move(2, 2); await t.warten(1000);
+  /* css/site.css setzte die Schräge früher über transform: rotate(...) auf .gr-ph, demselben
+     Element, auf dem B.heben() (js/site.js, renderGrafik()) beim Hover transform: translateY
+     schreibt und translateY(0px) hinterlässt. Seither steht die Schräge in der Einzeleigenschaft
+     rotate, die Motion nie anfasst. */
+  const nachher = await dreh(1);
+  t.gleich(nachher, vorher, 'Plakat liegt nach dem Hover gerade: ' + nachher + ' statt ' + vorher);
+  await t.bild('richtung-c-grafik');
+}, { abfrage: '?richtung=c' });
 
 pruefung('bedienfeld: Bewegung aus zeigt alles, die Blattfolge wird eine Reihe', 'schreibtisch', async (page, t) => {
   await page.click('[data-set="bewegung"][data-val="aus"]'); await t.warten(400);

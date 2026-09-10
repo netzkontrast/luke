@@ -64,7 +64,10 @@
   const N = stuecke.length;
 
   /* Der Stand: voll (scrollgebunden) oder still (Reihe). */
-  const stand = () => (!M || !B.m() || app.dataset.sequenz === 'still') ? 'still' : 'voll';
+  /* „aus“ blendet den ganzen Abschnitt per CSS aus (.app[data-sequenz="aus"] #sequenz);
+     ohne diese Zeile band bauen() trotzdem gut zwölf Scrollanimationen an ein unsichtbares
+     Ziel. */
+  const stand = () => (!M || !B.m() || app.dataset.sequenz === 'still' || app.dataset.sequenz === 'aus') ? 'still' : 'voll';
   let stopps = [];
   function binden(el, kf, times) {
     const anim = M.animate(el, kf, { ease: 'linear', times });
