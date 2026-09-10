@@ -75,20 +75,21 @@
     leiste.innerHTML = [['haut', 'Haut'], ['papier', 'Papier'], ['alles', 'Alles']]
       .map(([k, label]) => `<button type="button" class="tr-tab" data-tr="${k}" aria-pressed="${S.traeger === k}">${label}</button>`).join('')
       + '<span class="tr-schiene" aria-hidden="true"></span>';
-    schieneSetzen();
+    schieneSetzen(true);
   }
 
-  /* Die Linie unter den Reitern folgt dem gewählten Träger. Sie wird nach jedem Zeichnen
-     neu vermessen, weil sich die Wortbreiten mit der Schrift ändern. */
-  function schieneSetzen() {
+  /* Die Linie unter den Reitern gleitet mit einer Feder von einem zum nächsten. Beim ersten
+     Zeichnen und nach Größenänderungen wird sie gesetzt, nicht bewegt. */
+  function schieneSetzen(sofort) {
     const leiste = $('#tr-tabs'), schiene = $('.tr-schiene', leiste);
     const aktiv = $('.tr-tab[aria-pressed="true"]', leiste);
     if (!schiene || !aktiv) return;
-    schiene.style.width = aktiv.offsetWidth + 'px';
-    schiene.style.transform = `translateX(${aktiv.offsetLeft}px)`;
+    const ziel = { x: aktiv.offsetLeft, width: aktiv.offsetWidth };
+    if (sofort === true || !M || !mScale()) { schiene.style.transform = `translateX(${ziel.x}px)`; schiene.style.width = ziel.width + 'px'; return; }
+    M.animate(schiene, ziel, B.feder.gesetzt);
   }
-  addEventListener('resize', schieneSetzen, { passive: true });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schieneSetzen);
+  addEventListener('resize', () => schieneSetzen(true), { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => schieneSetzen(true));
   /* Ein Reiter, hinter dem nichts steht, ist eine Sackgasse. Angeboten wird deshalb nur,
      was unter den vorhandenen Werken auch vorkommt — und nur dann, wenn es mehr als eine
      Möglichkeit gibt. */
@@ -121,7 +122,9 @@
     const gl = $('#g-list'); gl.dataset.layout = S.layout;
     const wall = gl.closest('.g-wall');
     if (wall) wall.dataset.schiene = S.layout === 'schiene' ? 'an' : 'aus';
-    gl.innerHTML = list.map(w => `<button type="button" class="g-item rv" data-fid="${w.id}" aria-label="${esc(altText(w))}"><span class="tin"><span class="cnr" aria-hidden="true">${w.nr}</span><span class="g-ph" style="aspect-ratio:${ratio(w)};">${bildHTML(w, '(max-width: 540px) 92vw, (max-width: 900px) 46vw, 380px')}</span><span class="g-meta"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></span></span></button>`).join('');
+    const cols = Math.max(1, parseInt(getComputedStyle(app).getPropertyValue('--cols'), 10) || 2);
+    gl.innerHTML = list.map((w, i) => `<button type="button" class="g-item rv" data-eintritt="blatt" data-versatz="${i % cols}" data-fid="${w.id}" aria-label="${esc(altText(w))}"><span class="tin"><span class="cnr" aria-hidden="true">${w.nr}</span><span class="g-ph" style="aspect-ratio:${ratio(w)};">${bildHTML(w, '(max-width: 540px) 92vw, (max-width: 900px) 46vw, 380px')}</span><span class="g-meta"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></span></span></button>`).join('');
+    if (B) B.heben($$('.g-item', gl), { um: 4, feld: '.g-ph' });
   }
   function renderWerke() { renderTabs(); renderChips(); renderGrid(); zaehlerNachfuehren(); }
 
@@ -151,50 +154,74 @@
     addEventListener('resize', zaehlerNachfuehren, { passive: true });
   })();
 
-  /* Übergänge: FLIP beim Filtern / Layoutwechsel, Waschung beim Trägerwechsel */
+  /* Übergänge der Galerie. Was verschwindet, geht zuerst, und zwar schneller als es kam;
+     dann wird neu gezeichnet; was bleibt, gleitet an seinen neuen Platz (FLIP), was neu ist,
+     hebt sich kurz. Die neuen Blätter werden hier gezeigt, nicht vom Enthüllen: zwei
+     Bewegungen auf einer transform überschrieben sich. */
   let rects = null;
   function flipStart() { rects = {}; $$('.g-item').forEach(el => { rects[el.dataset.fid] = el.getBoundingClientRect(); }); }
   function flipPlay() {
-    const m = mScale(); if (!m) return;
-    const tp = tempo(); let k = 0;
+    const s = mScale(); if (!s || !M) { $$('.g-item').forEach(el => B.sofort(el)); return; }
+    const t = B.tempo(); let neu = 0;
     $$('.g-item').forEach(el => {
-      const r0 = rects && rects[el.dataset.fid]; const r1 = el.getBoundingClientRect();
-      const dl = Math.min(k * 28, 170) * m;
-      if (!r0) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380 * m, delay: dl, easing: 'ease-out', fill: 'backwards' }); k++; return; }
+      const r0 = rects && rects[el.dataset.fid], r1 = el.getBoundingClientRect();
+      B.sofort(el);
+      if (!r0) {
+        M.animate(el, { opacity: [0, 1], y: [16, 0] }, { duration: t.dauer * 0.6 * s, delay: Math.min(neu++, 6) * 0.05 * s, ease: t.kurve })
+          .then(() => { el.style.opacity = ''; el.style.transform = ''; });
+        return;
+      }
       const dx = r0.left - r1.left, dy = r0.top - r1.top, sw = r0.width / r1.width;
       if (Math.abs(dx) + Math.abs(dy) > 1 || Math.abs(sw - 1) > 0.01) {
-        el.animate([{ transform: `translate(${dx}px,${dy}px) scale(${sw})`, transformOrigin: '0 0' }, { transform: 'none', transformOrigin: '0 0' }], { duration: tp.flip * m, delay: dl * 0.5, easing: tp.eFlip, fill: 'backwards' });
-        k++;
+        el.style.transformOrigin = '0 0';
+        M.animate(el, { x: [dx, 0], y: [dy, 0], scale: [sw, 1] }, B.feder.gesetzt).then(() => { el.style.transform = ''; });
       }
     });
   }
-  function chip(patch) { flipStart(); Object.assign(S, patch); renderChips(); renderGrid(); flipPlay(); }
-  function setLayout(k) { if (k === S.layout) return; flipStart(); S.layout = k; $('#g-list').dataset.layout = k; flipPlay(); }
+  async function austritt(bleiben) {
+    const s = mScale(); if (!s || !M) return;
+    const weg = $$('.g-item').filter(el => !bleiben.has(el.dataset.fid));
+    if (weg.length) await M.animate(weg, { opacity: 0, scale: 0.98 }, { duration: B.tempo().kurz * 0.5 * s, ease: B.tempo().kurve });
+  }
+  async function chip(patch) {
+    const vorher = Object.assign({}, S);
+    Object.assign(S, patch);
+    const bleiben = new Set(filtered().map(w => w.id));
+    Object.assign(S, vorher);
+    await austritt(bleiben);
+    flipStart(); Object.assign(S, patch); renderChips(); renderGrid(); flipPlay();
+  }
+  function setLayout(k) { if (k === S.layout) return; flipStart(); S.layout = k; $('#g-list').dataset.layout = k; zaehlerNachfuehren(); flipPlay(); }
+  /* Die Waschung beim Trägerwechsel, je Richtung: A zieht Tusche von oben herunter, B blendet
+     ins Schwarz, C schiebt ein Blatt von links. Gebaut mit Motion, Dauern aus tempo(). */
   function washAnim(w, ein) {
-    const tp = tempo(), m = Math.max(mScale(), 0.01), r = S.richtung;
-    w.getAnimations().forEach(a => a.cancel());
-    let kf;
-    if (r === 'b') { w.style.transform = 'none'; w.style.background = '#000'; kf = ein ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }]; }
-    else if (r === 'c') { w.style.background = 'var(--sheet)'; w.style.transformOrigin = ein ? '0 50%' : '100% 50%'; kf = ein ? [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }] : [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }]; }
-    else { w.style.background = 'var(--ink)'; w.style.transformOrigin = ein ? '50% 0%' : '50% 100%'; kf = ein ? [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }] : [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }]; }
-    return w.animate(kf, { duration: (ein ? tp.washIn : tp.washOut) * m, easing: tp.eIn, fill: 'forwards' });
+    const t = B.tempo(), s = Math.max(mScale(), 0.01), r = S.richtung;
+    const dauer = (ein ? t.wasch.ein : t.wasch.aus) * s;
+    if (r === 'b') { w.style.transform = 'none'; w.style.background = '#000'; return M.animate(w, { opacity: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve }); }
+    if (r === 'c') { w.style.background = 'var(--sheet)'; w.style.transformOrigin = ein ? '0 50%' : '100% 50%'; return M.animate(w, { scaleX: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve }); }
+    w.style.background = 'var(--ink)'; w.style.transformOrigin = ein ? '50% 0%' : '50% 100%';
+    return M.animate(w, { scaleY: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve });
   }
-  function setTraeger(t, sofort) {
-    if (t === S.traeger) return;
-    const m = mScale(), wash = $('#gwash');
-    const apply = () => { Object.assign(S, { traeger: t, fOrt: null, fMotiv: null, fSerie: null, fJahr: null }); renderWerke(); };
-    if (!sofort && m > 0 && wash) {
-      washAnim(wash, true).onfinish = () => {
-        apply();
-        const tp = tempo(), r = S.richtung;
-        washAnim(wash, false);
-        const kfT = r === 'b' ? [{ opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)' }] : r === 'c' ? [{ opacity: 0, transform: 'translateY(-16px) rotate(-2.5deg)' }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }];
-        let k = 0;
-        $$('.g-item').forEach(el => { el.animate(kfT, { duration: 420 * m, delay: (tp.washOut * 0.55 + Math.min(k * 32, 200)) * m, easing: 'ease-out', fill: 'backwards' }); k++; });
-      };
-    } else apply();
+  function setTraeger(tr, sofort) {
+    if (tr === S.traeger) return;
+    const s = mScale(), wash = $('#gwash');
+    const apply = () => { Object.assign(S, { traeger: tr, fOrt: null, fMotiv: null, fSerie: null, fJahr: null }); renderWerke(); };
+    if (sofort || !s || !M || !wash) { apply(); return; }
+    washAnim(wash, true).then(() => {
+      apply();
+      const t = B.tempo(), items = $$('.g-item');
+      items.forEach(el => B.sofort(el));
+      washAnim(wash, false);
+      items.forEach((el, k) => M.animate(el, B.eintritt(el), { duration: t.dauer * 0.5 * s, delay: (t.wasch.aus * 0.55 + Math.min(k * 0.032, 0.2)) * s, ease: t.kurve })
+        .then(() => { el.style.opacity = ''; el.style.transform = ''; el.style.clipPath = ''; el.style.filter = ''; }));
+    });
   }
-  $('#tr-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) setTraeger(b.dataset.tr); });
+  $('#tr-tabs').addEventListener('click', e => {
+    const b = e.target.closest('[data-tr]'); if (!b) return;
+    $$('.tr-tab').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    schieneSetzen();
+    setTraeger(b.dataset.tr);
+  });
   $('#werke-filter').addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const f = b.dataset.f, v = b.dataset.v;

@@ -259,6 +259,39 @@ pruefung('tropfspur: ohne Bewegung versteckt', 'schreibtisch', async (page, t) =
   t.ok(await page.evaluate(() => document.getElementById('tropfspur').hidden), 'Spur muss bei reduzierter Bewegung versteckt sein');
 }, { ruhig: true });
 
+pruefung('werke: drei Spalten, Blätter gedreht abgelegt, Filter mit Austritt', 'schreibtisch', async (page, t) => {
+  const cols = await page.evaluate(() => getComputedStyle(document.querySelector('.app')).getPropertyValue('--cols').trim());
+  t.gleich(cols, '3', 'Spalten in Richtung A ab 1100 px');
+  const dreh = await page.evaluate(() => Array.from(document.querySelectorAll('.g-item')).slice(0, 3).map(el => getComputedStyle(el).getPropertyValue('--dreh').trim()));
+  t.gleich(dreh.join('|'), '-1.1deg|0.8deg|1.4deg', '--dreh je Blatt');
+  const art = await page.evaluate(() => Array.from(document.querySelectorAll('.g-item')).map(el => el.dataset.eintritt + el.dataset.versatz).join(','));
+  t.gleich(art, 'blatt0,blatt1,blatt2,blatt0,blatt1,blatt2', 'Eintritt und Versatz je Spalte');
+  await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1600);
+  await t.bild('werke-abgelegt');
+  const vorher = await page.evaluate(() => document.querySelectorAll('.g-item').length);
+  await page.click('.chip[data-v="Köpfe"]'); await t.warten(1400);
+  const nachher = await page.evaluate(() => ({
+    n: document.querySelectorAll('.g-item').length,
+    sichtbar: Array.from(document.querySelectorAll('.g-item')).every(el => getComputedStyle(el).opacity === '1' && el.classList.contains('on') && !el.style.transform)
+  }));
+  t.gleich(vorher, 6, 'alle Werke vorher'); t.gleich(nachher.n, 2, 'Köpfe nachher'); t.ok(nachher.sichtbar, 'gefilterte Blätter sichtbar, aufgeräumt');
+  await t.bild('werke-gefiltert');
+});
+
+pruefung('werke: Hover hebt das Bildfeld, nicht mehr', 'schreibtisch', async (page, t) => {
+  await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1600);
+  const box = await page.locator('.g-item').first().boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await t.warten(800);
+  const tf = await page.evaluate(() => document.querySelector('.g-item .g-ph').style.transform);
+  t.ok(/translateY\(-(3|4)(\.\d+)?px\)/.test(tf), 'Bildfeld hebt sich um 4 px: ' + JSON.stringify(tf));
+  await page.mouse.move(2, 2); await t.warten(800);
+  const tf2 = await page.evaluate(() => document.querySelector('.g-item .g-ph').style.transform);
+  /* Eine Feder nähert sich der Ruhelage nur asymptotisch; Motion friert kurz davor ein
+     (beobachtet: z. B. translateY(-0.00122px)). Ein Rest von Tausendstel Pixeln ist die
+     Ruhelage, kein hängengebliebener Hub — den Unterschied macht die Größenordnung. */
+  t.ok(!tf2 || /translateY\(-?0(\.\d+)?px\)|^none$/.test(tf2), 'senkt sich wieder: ' + JSON.stringify(tf2));
+});
+
 /* ---------- Lauf ---------- */
 async function laufen() {
   fs.mkdirSync(AUSGABE, { recursive: true });

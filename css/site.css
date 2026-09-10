@@ -178,9 +178,8 @@ html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="a
 /* Die Linie unter den Reitern gleitet von einem zum nächsten. Vorher sprang sie: Das
    Auge verliert dabei die Verbindung zwischen dem, was war, und dem, was jetzt gilt. */
 .tr-tabs { position: relative; display: flex; gap: clamp(18px,3vw,40px); align-items: baseline; flex-wrap: wrap; margin-bottom: 14px; padding-bottom: 4px; }
-.tr-schiene { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--ink); transform: translateX(0); transition: transform calc(var(--m)*.5s) var(--e), width calc(var(--m)*.5s) var(--e), background-color calc(var(--m)*.7s); pointer-events: none; }
+.tr-schiene { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--ink); transform: translateX(0); pointer-events: none; }
 .app[data-rot="satt"] .tr-schiene { background: var(--red); }
-.app[data-bewegung="aus"] .tr-schiene { transition: none; }
 .tr-tab { background: none; border: 0; padding: 0 0 4px; cursor: pointer; font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: clamp(30px,4.6vw,58px); line-height: 1; color: var(--ink); border-bottom: 3px solid transparent; opacity: .35; transition: opacity calc(var(--m)*.3s), border-color calc(var(--m)*.3s); }
 .tr-tab { border-bottom-color: transparent; }
 .tr-tab[aria-pressed="true"] { opacity: 1; }
@@ -204,6 +203,13 @@ html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="a
 .g-zaehler { display: none; margin: 4px 2px 0; font-size: 15px; color: var(--mut); font-variant-numeric: tabular-nums; }
 .g-wall[data-schiene="an"] .g-zaehler { display: block; }
 .g-item { display: block; width: 100%; border: 0; background: none; padding: 0; margin: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+/* Jedes Blatt legt sich mit eigener Schräge ab und richtet sich gerade (js/bewegung.js liest
+   --dreh). Das Bildfeld ist das, was Hover hebt — nicht der ganze Kasten, damit die
+   Werkstatt-Richtung ihre Drehung auf .tin behält. */
+.g-item:nth-child(3n+1) { --dreh: -1.1deg; }
+.g-item:nth-child(3n+2) { --dreh: 0.8deg; }
+.g-item:nth-child(3n) { --dreh: 1.4deg; }
+.g-ph { will-change: transform; }
 .tin { display: block; transition: transform calc(var(--m)*.35s) var(--e), box-shadow calc(var(--m)*.35s) var(--e), background-color calc(var(--m)*.7s); }
 .g-ph { display: block; background: var(--phbg); overflow: hidden; }
 /* Ein echtes Tuscheblatt liegt mit multiply auf der Seite: Das Papier verschwindet und
@@ -374,6 +380,9 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
 .panel-mini { position: fixed; right: 14px; bottom: 14px; z-index: 1300; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #2A2F36; background: #101317; color: #C9CFD6; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
 
 /* ---------- Umbrüche ---------- */
+/* Sechs Hochformate in zwei Spalten machen die Seite lang; groß zeigt die Blattfolge die
+   Blätter ohnehin. Das Verzeichnis ist zum Ordnen da. */
+@media (min-width: 1100px) { .app[data-richtung="a"] { --cols: 3; } }
 @media (max-width: 900px) {
   .app { --cols: 2 !important; }
   .hero-grid { grid-template-columns: 1fr !important; min-height: auto !important; padding-top: 24px; }
