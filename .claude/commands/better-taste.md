@@ -25,10 +25,10 @@ Dann so vorgehen:
    und warum es zu diesem Inhalt passt. Bewegung muss aus dem Material kommen: Tusche, die
    entsteht, eine Linie, die weiterläuft, ein Blatt, das aufliegt. Nicht aus dem Effektkasten.
 
-3. **Umsetzen.** Vanilla, kein neues Fremdpaket. Was in `js/motion.js` schon läuft, wird
-   mitbenutzt: Der Renderloop ist da, `LUKE.motion.on(fn)` hängt eine Funktion hinein.
-   Zustände gehören in `css/site.css` neben die bestehenden, damit die drei Richtungen A, B
-   und C weiter funktionieren.
+3. **Umsetzen.** Vanilla, kein neues Fremdpaket. Was in `js/bewegung.js` schon läuft, wird
+   mitbenutzt: `LUKE.bewegung` bringt `M.scroll` für Scrollbindung mit, dazu `parallaxe(root)`
+   und den gefederten `zeiger`. Zustände gehören in `css/site.css` neben die bestehenden,
+   damit die drei Richtungen A, B und C weiter funktionieren.
 
 4. **Schranken einhalten.**
    - Bei `prefers-reduced-motion` und bei `data-bewegung="aus"` bleibt alles stehen.

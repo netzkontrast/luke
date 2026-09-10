@@ -5,7 +5,7 @@ Portiert aus dem Claude-Design-Prototyp „Werkschau für Luke WTF Köln“ als 
 
 ## Lokal ansehen
 
-Die Seite braucht einen kleinen Webserver (wegen der Modul-Ladung von three.js), zum Beispiel:
+Die Seite braucht einen kleinen Webserver (die Videos brauchen Range-Anfragen, und `file://` kennt keine), zum Beispiel:
 
 ```
 npx serve .
@@ -24,16 +24,19 @@ datenschutz.html      Datenschutzerklärung (Platzhalter, vor Veröffentlichung 
 css/site.css          Alle Stile, drei Richtungen über .app[data-richtung]
 js/works.js           Werkdaten, Flash-Blätter, Filterlisten, Konfiguration
 js/site.js            Seitenlogik: Galerie, Filter, Werkansicht, Formular, Übergänge
-js/werk-sequenz.js    <werk-sequenz>, scrollgetriebene 3D-Sequenz (three.js)
-js/motion.js          Sanftes Scrollen, Parallaxe, Hintergrundbühne aus echten Blättern (three.js)
-js/tropfspur.js       Die rote Spur, die aus Werk I austritt und mit dem Lesen mitläuft
+js/bewegung.js        Grundlage aller Bewegung: Motion, Stärke, Tempo je Richtung, Enthüllen, Parallaxe, Zeiger
+js/auftakt.js         Der Auftakt: vier Ebenen in der Tiefe, Zeichenvideo, Schnitt, Blatt
+js/blattfolge.js      Die Blattfolge: ein Blatt nach dem anderen, scrollgeführt
+js/abschnitte.js      Kleine Bewegungen je Abschnitt: Aktuell, Handschrift, Studio
+js/tropfspur.js       Die rote Spur, die aus dem Auftakt austritt, den Rand findet und mit dem Lesen mitläuft
+vendor/motion/        Motion 13.2.0, lokal gehostet (siehe HERKUNFT.md)
+scripts/pruefen.mjs   Prüft die Seite mit Playwright: Zusicherungen, leere Konsole, Bilder je Abschnitt
 skizze.html           Entwurf: ein Weltzustand fährt fliegende Blätter, Sprite und Tränen
 js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand, alle lesen daraus
 js/skizze.js          Die drei Systeme der Skizze
 css/skizze.css        Stile nur für die Skizze
 docs/                 Der Claude-Design-Prompt zu diesem Entwurf
 vendor/htmx/          htmx 4.0.0 und hx-live, lokal (nur für die Anzeige der Skizze)
-vendor/               three.js 0.161.0, lokal gehostet
 assets/fonts/         Alegreya, Alegreya Sans, Big Shoulders als woff2 (latin, latin-ext) plus fonts.css
 assets/img/           Werkbilder, Atelierfoto, Poster, Favicon
 assets/original/      Jede Aufnahme, wie sie kam, unbearbeitet (wird nicht ausgeliefert)
@@ -110,7 +113,9 @@ einen Auftraggeber und einen Anlass statt Träger, Serie und Maße, und sie beha
 also nicht auf quadratisch gestutzt. Die Werkansicht ist dieselbe wie bei den Werken; geblättert wird innerhalb der
 Grafiken, nicht quer durch beides.
 
-- Auftakt: `assets/video/gestaltung-profil-zeichnung.mp4` wird einmal abgespielt; stehen bleibt danach `gestaltung-kniend-*.jpg`.
+- Der Auftakt zeigt die Zeichnung in vier Ebenen mit Tiefe (`js/auftakt.js`); das Bündel des Remotion-Players wird
+  von der Seite nicht mehr geladen, der Quelltext bleibt unter `video/` als Teil des Films. Zu sehen ist
+  `assets/video/gestaltung-profil-zeichnung.mp4`, einmal abgespielt; stehen bleibt danach `gestaltung-kniend-*.jpg`.
   Das sind zwei verschiedene Blätter, und so soll es auch gelesen werden: Eine Arbeit entsteht, eine andere steht.
   Dazwischen liegt eine knappe Leerstelle, damit der Übergang als Schnitt liest und nicht als Verwandlung.
   `gestaltung-profil-zeichnung-alt.mp4` ist die frühere, längere Fassung der Animation (August), derzeit nicht eingebunden.
@@ -140,6 +145,22 @@ Der Prototyp hatte drei Gestaltungsrichtungen. Alle drei sind enthalten, Standar
 - Weitere URL-Parameter: `layout=mauerwerk|buendig|schiene`, `bewegung=aus|dezent|voll`
 
 Bei aktivierter Systemeinstellung „reduzierte Bewegung“ starten alle Animationen ausgeschaltet.
+
+## Bewegung
+
+Alles, was sich auf der Seite bewegt, ist mit [Motion](https://motion.dev) gebaut, das lokal unter
+`vendor/motion/` liegt. `js/bewegung.js` ist die eine Stelle für Stärke, Tempo und Kurven je
+Richtung; die Abschnitte fragen dort. Eintritte kommen beim Sichtbarwerden (`.rv`), scrollgebundene
+Bewegung läuft über `ScrollTimeline`, wo der Browser sie kann. Bei „reduzierte Bewegung“ und mit
+`?bewegung=aus` steht alles im Endzustand. Der Entwurf dazu:
+`docs/superpowers/specs/2026-09-09-seite-mit-motion-design.md`.
+
+Prüfen, mit Playwright:
+
+    NODE_PATH=/opt/node22/lib/node_modules node scripts/pruefen.mjs --bilder
+
+Das lädt die Seite in Chromium, scrollt sie durch, prüft Zusicherungen, verlangt eine leere
+Konsole und legt Bilder je Abschnitt (1440 und 390 Pixel breit) unter `pruefung/` ab.
 
 ## Bewegtbild
 

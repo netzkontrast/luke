@@ -10,8 +10,6 @@ img, video { max-width: 100%; height: auto; display: block; }
 a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { text-decoration-thickness: 2px; color: inherit; }
 button { font: inherit; color: inherit; }
-@keyframes draw { to { stroke-dashoffset: 0; } }
-@keyframes surface { to { opacity: 1; } }
 
 /* ---------- Richtungen / Variablen ---------- */
 .app {
@@ -19,7 +17,7 @@ button { font: inherit; color: inherit; }
   --red:#D1232A; --red2:#7E141A; --phbg:#F7F7F7; --sheet:#FAFAFA; --annot:#63625E; --avail:#63625E;
   --ovbg:rgba(13,13,13,0.45);
   --fd:'Alegreya Sans',sans-serif; --fb:'Alegreya Sans',sans-serif; --wtd:300; --wtb:400; --ttd:none;
-  --sp:clamp(64px,8vw,112px); --mw:1180px; --gg:44px; --cols:2; --m:1; --rvd:1s;
+  --sp:clamp(64px,8vw,112px); --mw:1180px; --gg:44px; --cols:2; --m:1;
   --e:cubic-bezier(.3,.1,.2,1);
   position: relative; min-height: 100vh; font-size: 18px; line-height: 1.65;
 }
@@ -27,7 +25,7 @@ button { font: inherit; color: inherit; }
   --bg:#1B1712; --bg2:#221D17; --ink:#EBE5D8; --mut:#A69C8C; --fnt:#39322A; --line:#332C24;
   --red:#A8232B; --red2:#6E1218; --phbg:#221C16; --sheet:#251F18; --annot:#A69C8C; --avail:#A69C8C;
   --ovbg:rgba(0,0,0,0.62);
-  --wtd:500; --sp:clamp(56px,7vw,96px); --gg:28px; --cols:3; --rvd:1.5s;
+  --wtd:500; --sp:clamp(56px,7vw,96px); --gg:28px; --cols:3;
   --e:cubic-bezier(.16,1,.3,1);
 }
 .app[data-richtung="c"] {
@@ -35,7 +33,7 @@ button { font: inherit; color: inherit; }
   --red:#C1272D; --red2:#7E141A; --phbg:#EFE5CE; --sheet:#F2E9D2; --annot:#5B4B8A; --avail:#8A6A10;
   --ovbg:rgba(20,16,14,0.5);
   --fd:'Big Shoulders','Arial Narrow',sans-serif; --fb:'Alegreya',Georgia,serif; --wtd:700; --ttd:uppercase;
-  --sp:clamp(40px,5vw,64px); --gg:14px; --cols:4; --rvd:.55s;
+  --sp:clamp(40px,5vw,64px); --gg:14px; --cols:4;
   --e:cubic-bezier(.3,1.25,.5,1);
 }
 .app[data-bewegung="aus"] { --m:0; }
@@ -44,21 +42,24 @@ button { font: inherit; color: inherit; }
 .app :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .app path { transition: fill calc(var(--m)*.7s), stroke calc(var(--m)*.7s); }
 
-/* ---------- Einblenden beim Scrollen ---------- */
-.rv { opacity: 0; transition: opacity calc(var(--m)*var(--rvd)) var(--e), transform calc(var(--m)*var(--rvd)) var(--e), clip-path calc(var(--m)*var(--rvd)) var(--e), filter calc(var(--m)*var(--rvd)) var(--e), background-size calc(var(--m)*.8s) var(--e) .2s, background-color calc(var(--m)*.7s), color calc(var(--m)*.7s), border-color calc(var(--m)*.7s); }
-.app[data-richtung="a"] .rv { clip-path: inset(0 100% 0 0); }
-.app[data-richtung="b"] .rv { transform: translateY(22px) scale(.985); filter: blur(9px) brightness(.55); }
-.app[data-richtung="c"] .rv { transform: translateY(-12px) rotate(-1.1deg) scale(1.015); }
-.app .rv.on { opacity: 1; transform: none; filter: none; }
-/* Links großzügig über den Rand hinaus, sonst schneidet der Effekt Listenziffern ab. */
-.app[data-richtung="a"] .rv.on { clip-path: inset(-2% -2% -2% -40px); }
-.app[data-richtung="a"] h2.rv::after { content: ''; display: block; width: 0; height: 3px; margin-top: 14px; background: var(--red); transition: width calc(var(--m)*.9s) var(--e) 0.25s; }
-.app[data-richtung="a"] h2.rv.on::after { width: 64px; }
-.app[data-richtung="c"] h2.rv { background-image: linear-gradient(rgba(212,160,23,0.4), rgba(212,160,23,0.4)); background-repeat: no-repeat; background-size: 0% 42%; background-position: 0 88%; }
-.app[data-richtung="c"] h2.rv.on { background-size: 100% 42%; }
-.app[data-bewegung="aus"] .rv { opacity: 1; transform: none; clip-path: none; filter: none; transition: none; }
-.dr { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw calc(var(--m)*2.2s) var(--e) forwards; }
-.hw { opacity: 0; animation: surface calc(var(--m)*1.8s) ease forwards; }
+/* ---------- Enthüllen (js/bewegung.js) ----------
+   Was hereinkommt, trägt .rv und ist versteckt, bis Motion es zeigt. Versteckt wird nur,
+   wenn der Einzeiler im <head> data-js gesetzt hat — also mit JavaScript, ohne „reduzierte
+   Bewegung“ und ohne ?bewegung=aus. Sonst steht alles von Anfang an da. Wie etwas
+   hereinkommt, sagt data-eintritt (text | blatt | druck | block), siehe js/bewegung.js. */
+html[data-js="an"] .rv:not(.on) { opacity: 0; }
+/* Schaltet das Bedienfeld die Bewegung aus, gewinnt diese Regel (eine Klasse mehr). */
+html[data-js="an"] .app[data-bewegung="aus"] .rv:not(.on) { opacity: 1; }
+
+/* Ein Strich, der von links wächst: Das Stylesheet zeichnet die Linie, Motion dreht --strich
+   von 0 auf 1. Ohne JavaScript steht sie ganz. */
+.app[data-richtung="a"] h2.hd::after { content: ''; display: block; width: 64px; height: 3px; margin-top: 14px; background: var(--red); transform: scaleX(var(--strich, 1)); transform-origin: 0 50%; }
+.app[data-richtung="a"][data-rot="satt"] h2.hd::after { width: 110px; }
+/* Die Werkstatt markiert ihre Überschriften mit Textmarker. Er steht, er wächst nicht. */
+.app[data-richtung="c"] h2.hd { background-image: linear-gradient(rgba(212,160,23,0.4), rgba(212,160,23,0.4)); background-repeat: no-repeat; background-size: 100% 42%; background-position: 0 88%; }
+
+/* ---------- Parallaxe (js/bewegung.js) ---------- */
+[data-depth] { will-change: transform; }
 
 /* Lichtkegel und Nav-Varianten */
 .app[data-richtung="b"]::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 60; background: radial-gradient(clamp(380px,55vw,720px) at var(--mx,50%) var(--my,38%), rgba(0,0,0,0) 0%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.34) 100%); opacity: var(--m); }
@@ -92,12 +93,6 @@ h2.hd { font-size: clamp(30px,4vw,52px); margin: 0 0 12px; }
 /* Tuschzeichnungen sitzen direkt auf dem Papier der Seite (weißer Bildgrund verschwindet). */
 .app[data-richtung="a"] .ink-img, .app[data-richtung="c"] .ink-img { mix-blend-mode: multiply; }
 
-/* ---------- 3D-Bühne (js/motion.js) ---------- */
-#stage { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; display: block; pointer-events: none; }
-html.has-stage body, html.has-stage .app { background: transparent; }
-[data-depth], [data-tilt] { will-change: transform; }
-[data-tilt] { transform-style: preserve-3d; }
-
 /* ---------- Navigation ---------- */
 .top { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--line); transition: background-color calc(var(--m)*.7s), border-color calc(var(--m)*.7s); }
 .top .wrap { padding-top: 14px; padding-bottom: 14px; display: flex; align-items: baseline; gap: clamp(14px,3vw,32px); overflow-x: auto; white-space: nowrap; }
@@ -111,33 +106,73 @@ html.has-stage body, html.has-stage .app { background: transparent; }
 .hero-text h1 { font-size: clamp(46px,7vw,96px); line-height: .95; margin: 0 0 18px; letter-spacing: -0.01em; }
 .hero-text p { margin: 0; max-width: 34ch; color: var(--mut); font-size: 20px; line-height: 1.55; text-wrap: pretty; }
 .hero-draw { will-change: transform; display: flex; justify-content: flex-end; }
-/* Dasselbe Seitenverhältnis wie die Remotion-Komposition (1200 × 1948), damit Standbild,
-   Video und Live-Auftakt exakt übereinander liegen. */
-.hero-fig { position: relative; margin: 0; height: min(78vh, 150vw); aspect-ratio: 1200 / 1948; max-width: 100%; }
-.hero-fig > video, .hero-fig > img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hero-video { object-fit: cover; transition: opacity calc(var(--m)*1.2s) ease; }
-/* Das Blatt im Kopf hat links ein breites leeres Drittel. Weiß verschwindet zwar durch
-   multiply, die Figur säße dadurch aber weit rechts in einer unsichtbaren Fläche. Der
-   Ausschnitt nimmt das leere Drittel weg und rückt sie an ihren Platz. */
-.hero-still { object-fit: cover; object-position: 100% 50%; opacity: 0; transition: opacity calc(var(--m)*1.2s) ease; }
+/* Dasselbe Seitenverhältnis wie die Zeichnung, damit Video und Standbild exakt übereinander
+   liegen. Der Beschnitt hält die vergrößerten Tiefenebenen im Rahmen. */
+.hero-fig { position: relative; margin: 0; height: min(78vh, 150vw); aspect-ratio: 1200 / 1948; max-width: 100%; overflow: hidden; }
+/* Eine Ebene bekommt von js/auftakt.js nur x und y. Skaliert wird am Bild darin, sonst
+   schrieben zwei Bewegungen dieselbe transform. */
+.hero-ebene { position: absolute; inset: 0; will-change: transform; }
+.hero-fern { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); opacity: var(--deck, 0.1); transform: scale(var(--gross, 1)) translateX(var(--versatz, 0)); transform-origin: 50% 50%; }
+.hero-motiv { position: absolute; inset: 0; will-change: transform; }
+.hero-motiv > video, .hero-motiv > img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-video { object-fit: cover; }
+/* Das Blatt im Kopf hat links ein breites leeres Drittel. Der Ausschnitt nimmt es weg und
+   rückt die Figur an ihren Platz. */
+.hero-still { object-fit: cover; object-position: 100% 50%; opacity: 0; }
 .hero-fig.done .hero-still { opacity: 1; }
 .hero-fig.done .hero-video { opacity: 0; }
 .hero-fig.still .hero-video { display: none; }
-/* Läuft der Live-Auftakt, treten Video und Standbild zurück. */
-#auftakt-buehne { position: absolute; inset: 0; }
-.hero-fig.hat-buehne .hero-video, .hero-fig.hat-buehne .hero-still { display: none; }
+/* Vor dem Eintritt versteckt, nur wenn Bewegung möglich ist (siehe Enthüllen). */
+html[data-js="an"] .hero-fern, html[data-js="an"] .hero-text h1, html[data-js="an"] .hero-text p { opacity: 0; }
 .app[data-richtung="b"] .hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; align-items: center; min-height: 72vh; }
 .app[data-richtung="b"] .hero-draw { order: -1; justify-content: center; max-width: 560px; }
 .app[data-richtung="b"] .hero-fig { height: min(64vh, 150vw); }
 .app[data-richtung="c"] .hero-grid { min-height: 58vh; align-items: center; }
 .app[data-richtung="c"] .hero-draw { display: block; width: max-content; max-width: 100%; margin-left: auto; background: var(--sheet); box-shadow: 0 12px 32px rgba(20,16,14,0.22); padding: 14px; transform: rotate(-1.2deg); }
 
-/* ---------- Sequenz ---------- */
+/* ---------- Blattfolge (js/blattfolge.js) ----------
+   Eine klebende Bühne, ein Blatt nach dem anderen. Die Höhe des Abschnitts setzt das Skript
+   aus der Zahl der Blätter. Bewegt werden nur transform und opacity, scrollgebunden. Im
+   Stand „still“ wird daraus eine ruhige Reihe mit natürlicher Höhe. */
 .app[data-sequenz="aus"] #sequenz { display: none; }
-werk-sequenz { display: block; }
+.bf { position: relative; }
+.bf-buehne { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.bf-reihe, .bf-stueck { display: contents; }
+.bf-kapitel { position: absolute; left: clamp(20px, 6vw, 80px); bottom: clamp(64px, 14vh, 140px); max-width: min(78vw, 420px); }
+.bf-titel { font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: clamp(38px, 6vw, 72px); line-height: .95; color: var(--ink); margin: 0; }
+.bf-unter { color: var(--mut); font-size: clamp(15px, 2vw, 17px); margin: 10px 0 0; text-wrap: pretty; }
+.bf-kapitel .btn { margin-top: 14px; }
+/* Das Blatt steht rechts, in voller Höhe, ohne Beschnitt. --verh ist Breite durch Höhe. */
+.bf-blatt { position: absolute; inset: 0 8vw 0 auto; margin: auto 0; height: 72svh; width: calc(72svh * var(--verh, 0.6)); max-width: 44vw; will-change: transform, opacity; opacity: 0; }
+.bf-blatt img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.bf-schrift { position: absolute; right: 8vw; bottom: 6vh; text-align: right; max-width: 40ch; opacity: 0; }
+.bf-nr { display: block; font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: 22px; color: var(--annot); }
+.bf-t { display: block; font-weight: 500; }
+.bf-m { display: block; color: var(--mut); font-size: 15.5px; }
+.bf-hinweis { position: absolute; left: 50%; bottom: 18px; margin-left: -22px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--mut); font-size: 13px; }
+.bf-hinweis i { display: block; width: 1px; height: 26px; background: var(--mut); }
+.bf[data-stand="still"] .bf-buehne { position: static; height: auto; overflow: visible; padding: var(--sp) 0; }
+.bf[data-stand="still"] .bf-kapitel { position: static; max-width: var(--mw); margin: 0 auto 28px; padding: 0 clamp(16px,4vw,40px); }
+.bf[data-stand="still"] .bf-reihe { display: flex; gap: var(--gg); overflow-x: auto; max-width: var(--mw); margin: 0 auto; padding: 0 clamp(16px,4vw,40px) 12px; }
+.bf[data-stand="still"] .bf-stueck { display: block; flex: 0 0 auto; }
+.bf[data-stand="still"] .bf-blatt { position: static; margin: 0; height: min(52vh, 480px); width: calc(min(52vh, 480px) * var(--verh, 0.6)); max-width: 80vw; opacity: 1; will-change: auto; }
+.bf[data-stand="still"] .bf-schrift { position: static; opacity: 1; text-align: left; margin-top: 8px; max-width: none; }
+.bf[data-stand="still"] .bf-hinweis { display: none; }
+@media (max-width: 700px) {
+  /* Abweichung vom Brief: 56svh zentriert reichte dem Kapitelblock (Titel, Unterzeile,
+     Knopf) nicht aus — das Blatt lag ihm im Stand oben in der Ruhelage schon ins Wort.
+     46svh lässt genug Luft, für alle fünf Blätter, nicht nur die schlanken. */
+  .bf-blatt { inset: 0; margin: auto; height: 46svh; width: calc(46svh * var(--verh, 0.6)); max-width: 88vw; }
+  .bf-kapitel { left: 6vw; right: 6vw; top: 9svh; bottom: auto; max-width: none; }
+  .bf-schrift { left: 6vw; right: 6vw; bottom: 4svh; text-align: left; }
+}
 
 /* ---------- Aktuell ---------- */
-#aktuell { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+/* Zwei Linien, die von links wachsen (--strich, js/abschnitte.js). Ein Vermerk am Rand. */
+#aktuell { position: relative; }
+#aktuell::before, #aktuell::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: var(--line); transform: scaleX(var(--strich, 1)); transform-origin: 0 50%; }
+#aktuell::before { top: 0; }
+#aktuell::after { bottom: 0; }
 .aktuell-row { padding-top: 22px; padding-bottom: 22px; display: flex; flex-wrap: wrap; gap: 12px 40px; align-items: baseline; }
 .aktuell-row .a { font-size: 16px; flex: 0 0 auto; }
 .aktuell-row .b { flex: 1 1 380px; font-size: 17.5px; }
@@ -147,9 +182,8 @@ werk-sequenz { display: block; }
 /* Die Linie unter den Reitern gleitet von einem zum nächsten. Vorher sprang sie: Das
    Auge verliert dabei die Verbindung zwischen dem, was war, und dem, was jetzt gilt. */
 .tr-tabs { position: relative; display: flex; gap: clamp(18px,3vw,40px); align-items: baseline; flex-wrap: wrap; margin-bottom: 14px; padding-bottom: 4px; }
-.tr-schiene { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--ink); transform: translateX(0); transition: transform calc(var(--m)*.5s) var(--e), width calc(var(--m)*.5s) var(--e), background-color calc(var(--m)*.7s); pointer-events: none; }
+.tr-schiene { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--ink); transform: translateX(0); pointer-events: none; }
 .app[data-rot="satt"] .tr-schiene { background: var(--red); }
-.app[data-bewegung="aus"] .tr-schiene { transition: none; }
 .tr-tab { background: none; border: 0; padding: 0 0 4px; cursor: pointer; font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: clamp(30px,4.6vw,58px); line-height: 1; color: var(--ink); border-bottom: 3px solid transparent; opacity: .35; transition: opacity calc(var(--m)*.3s), border-color calc(var(--m)*.3s); }
 .tr-tab { border-bottom-color: transparent; }
 .tr-tab[aria-pressed="true"] { opacity: 1; }
@@ -173,6 +207,13 @@ werk-sequenz { display: block; }
 .g-zaehler { display: none; margin: 4px 2px 0; font-size: 15px; color: var(--mut); font-variant-numeric: tabular-nums; }
 .g-wall[data-schiene="an"] .g-zaehler { display: block; }
 .g-item { display: block; width: 100%; border: 0; background: none; padding: 0; margin: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+/* Jedes Blatt legt sich mit eigener Schräge ab und richtet sich gerade (js/bewegung.js liest
+   --dreh). Das Bildfeld ist das, was Hover hebt — nicht der ganze Kasten, damit die
+   Werkstatt-Richtung ihre Drehung auf .tin behält. */
+.g-item:nth-child(3n+1) { --dreh: -1.1deg; }
+.g-item:nth-child(3n+2) { --dreh: 0.8deg; }
+.g-item:nth-child(3n) { --dreh: 1.4deg; }
+.g-ph { will-change: transform; }
 .tin { display: block; transition: transform calc(var(--m)*.35s) var(--e), box-shadow calc(var(--m)*.35s) var(--e), background-color calc(var(--m)*.7s); }
 .g-ph { display: block; background: var(--phbg); overflow: hidden; }
 /* Ein echtes Tuscheblatt liegt mit multiply auf der Seite: Das Papier verschwindet und
@@ -228,13 +269,12 @@ werk-sequenz { display: block; }
 /* ---------- Flash ---------- */
 .flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px,100%),1fr)); gap: calc(var(--gg) * 0.8); }
 /* Die Blätter legen sich leicht schräg ab und richten sich beim Ankommen gerade, so wie
-   man Papier auf einen Tisch legt. In Richtung A ersetzt das den Streifeneffekt. */
-.app[data-richtung="a"] .sheet.rv { clip-path: none; transform: translateY(24px) rotate(var(--dreh, -1.1deg)) scale(0.985); }
-.app[data-richtung="a"] .sheet.rv.on { transform: none; }
+   man Papier auf einen Tisch legt. Das übernimmt jetzt der Eintritt „blatt“ (js/bewegung.js),
+   nicht mehr eine eigene CSS-Regel für .rv. */
 .flash-grid .sheet:nth-child(3n) { --dreh: 1.4deg; }
 .flash-grid .sheet:nth-child(3n+1) { --dreh: -1.2deg; }
 .flash-grid .sheet:nth-child(3n+2) { --dreh: 0.8deg; }
-.sheet { background: var(--sheet); border: 1px solid var(--line); padding: 14px 14px 16px; transition: transform calc(var(--m)*.35s) var(--e), background-color calc(var(--m)*.7s), border-color calc(var(--m)*.7s); }
+.sheet { background: var(--sheet); border: 1px solid var(--line); padding: 14px 14px 16px; transition: background-color calc(var(--m)*.7s), border-color calc(var(--m)*.7s); }
 .sheet.vergeben { opacity: .55; }
 .app[data-richtung="c"] .sheet:nth-child(2n) { transform: rotate(-0.7deg); }
 .app[data-richtung="c"] .sheet:nth-child(3n) { transform: rotate(0.8deg); }
@@ -265,9 +305,12 @@ werk-sequenz { display: block; }
 .gr-t { display: block; font-weight: 500; }
 .gr-m { display: block; color: var(--mut); font-size: 15.5px; margin-top: 3px; }
 .gr-n { display: block; color: var(--mut); font-size: 15px; margin-top: 2px; text-wrap: pretty; }
-/* In der Werkstatt-Richtung hängen auch die Plakate am Klebeband. */
-.app[data-richtung="c"] .gr-item:nth-child(2n) .gr-ph { transform: rotate(-0.8deg); }
-.app[data-richtung="c"] .gr-item:nth-child(3n) .gr-ph { transform: rotate(0.9deg); }
+/* In der Werkstatt-Richtung hängen auch die Plakate am Klebeband. Die Schräge steht in der
+   Einzeleigenschaft rotate, nicht im transform-Kurzwort: B.heben() (js/site.js) schreibt
+   beim Hover transform: translateY(...) auf dasselbe .gr-ph und würde ein dort stehendes
+   rotate(...) beim Loslassen durch translateY(0px) ersetzen, die Schräge also löschen. */
+.app[data-richtung="c"] .gr-item:nth-child(2n) .gr-ph { rotate: -0.8deg; }
+.app[data-richtung="c"] .gr-item:nth-child(3n) .gr-ph { rotate: 0.9deg; }
 @media (max-width: 700px) { .gr-grid { columns: 1; } }
 
 /* ---------- Anfrage ---------- */
@@ -292,11 +335,14 @@ werk-sequenz { display: block; }
 
 /* ---------- Studio ---------- */
 .team { list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 6px; max-width: 40ch; }
-.team li { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding: 7px 0; }
+.team li { display: flex; justify-content: space-between; gap: 16px; position: relative; padding: 7px 0; }
+/* Dieselbe wachsende Linie wie bei Aktuell, nur je Zeile (--strich, js/abschnitte.js). */
+.team li::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--line); transform: scaleX(var(--strich, 1)); transform-origin: 0 50%; }
 .team .who { font-weight: 500; }
 .team .what { color: var(--mut); font-size: 16px; }
 .studio-fig { margin: 0 0 22px; }
-.studio-fig img { width: 100%; height: auto; }
+.studio-rahmen { overflow: hidden; }
+.studio-rahmen img { width: 100%; height: auto; display: block; will-change: transform; transform-origin: 50% 50%; }
 .studio-fig figcaption { color: var(--mut); font-size: 15px; margin-top: 10px; }
 .app[data-richtung="b"] .studio-fig img { opacity: .9; }
 .card { border: 1px solid var(--line); padding: 26px 28px; display: grid; gap: 16px; font-size: 17px; }
@@ -323,7 +369,6 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
 .app[data-rot="aus"] { --red: transparent; --red2: transparent; }
 
 
-.app[data-richtung="a"][data-rot="satt"] h2.rv.on::after { width: 110px; }
 .app[data-rot="satt"] .cnr { color: var(--red); border-color: var(--red); }
 .app[data-rot="satt"] a:hover { color: var(--red); }
 .app[data-korn="an"]::before { content: ''; position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: 0.38; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"); }
@@ -344,6 +389,9 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
 .panel-mini { position: fixed; right: 14px; bottom: 14px; z-index: 1300; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #2A2F36; background: #101317; color: #C9CFD6; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
 
 /* ---------- Umbrüche ---------- */
+/* Sechs Hochformate in zwei Spalten machen die Seite lang; groß zeigt die Blattfolge die
+   Blätter ohnehin. Das Verzeichnis ist zum Ordnen da. */
+@media (min-width: 1100px) { .app[data-richtung="a"] { --cols: 3; } }
 @media (max-width: 900px) {
   .app { --cols: 2 !important; }
   .hero-grid { grid-template-columns: 1fr !important; min-height: auto !important; padding-top: 24px; }

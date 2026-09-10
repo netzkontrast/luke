@@ -1,5 +1,5 @@
 /* Luke WTF — Seitenlogik. Portiert aus dem Claude-Design-Prototyp, ohne Framework.
-   Daten und Konfiguration: js/works.js. 3D-Sequenz: js/werk-sequenz.js. */
+   Daten und Konfiguration: js/works.js. Bewegung: js/bewegung.js. Blattfolge: js/blattfolge.js. */
 (function () {
   'use strict';
   const L = window.LUKE || {};
@@ -9,29 +9,28 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const app = $('.app');
   if (!app) return;
+  /* Die Grundlage aller Bewegung (js/bewegung.js). Ohne sie läuft die Seite still. */
+  const B = L.bewegung, M = B && B.M;
   const prm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const params = new URLSearchParams(location.search);
   const pick = (v, opts, d) => (opts.includes(v) ? v : d);
 
   /* ---------- Zustand ---------- */
   const S = {
-    richtung: pick(params.get('richtung'), ['a', 'b', 'c'], app.dataset.richtung || 'a'),
+    /* js/bewegung.js hat ?richtung= und ?bewegung= schon vor jedem anderen Skript auf
+       .app übertragen, als einzige Stelle, die die Adresse dafür liest. Hier wird nur
+       noch gelesen, nicht ein zweites Mal geparst. */
+    richtung: app.dataset.richtung || 'a',
     /* Auf dem Telefon ist die Schiene die Voreinstellung: ein Blatt pro Bildschirm,
        zum Wischen. Am großen Bildschirm bleibt es beim Mauerwerk. */
     layout: pick(params.get('layout'), ['mauerwerk', 'buendig', 'schiene'],
       matchMedia('(max-width: 700px)').matches ? 'schiene' : 'mauerwerk'),
-    bewegung: prm ? 'aus' : pick(params.get('bewegung'), ['aus', 'dezent', 'voll'], app.dataset.bewegung || 'voll'),
+    bewegung: prm ? 'aus' : (app.dataset.bewegung || 'voll'),
     dichte: 'luftig', rotspur: 'spur', sequenz: 'voll', korn: 'aus',
     panel: params.has('proto'), panelOpen: true,
     traeger: 'alles', fOrt: null, fMotiv: null, fSerie: null, fJahr: null,
     open: null
   };
-  const TEMPO = {
-    a: { washIn: 500, washOut: 560, flip: 520, ov: 620, eIn: 'cubic-bezier(.4,0,.2,1)', eFlip: 'cubic-bezier(.22,.9,.3,1)' },
-    b: { washIn: 700, washOut: 800, flip: 700, ov: 780, eIn: 'cubic-bezier(.3,0,.15,1)', eFlip: 'cubic-bezier(.16,1,.3,1)' },
-    c: { washIn: 260, washOut: 300, flip: 320, ov: 380, eIn: 'cubic-bezier(.34,1.3,.5,1)', eFlip: 'cubic-bezier(.34,1.35,.5,1)' }
-  };
-  const tempo = () => TEMPO[S.richtung] || TEMPO.a;
   const mScale = () => ({ aus: 0, dezent: 0.55, voll: 1 })[S.bewegung];
 
   /* ---------- Werke ---------- */
@@ -73,20 +72,28 @@
     leiste.innerHTML = [['haut', 'Haut'], ['papier', 'Papier'], ['alles', 'Alles']]
       .map(([k, label]) => `<button type="button" class="tr-tab" data-tr="${k}" aria-pressed="${S.traeger === k}">${label}</button>`).join('')
       + '<span class="tr-schiene" aria-hidden="true"></span>';
-    schieneSetzen();
+    schieneSetzen(true);
   }
 
-  /* Die Linie unter den Reitern folgt dem gewählten Träger. Sie wird nach jedem Zeichnen
-     neu vermessen, weil sich die Wortbreiten mit der Schrift ändern. */
-  function schieneSetzen() {
+  /* Die Linie unter den Reitern gleitet mit einer Feder von einem zum nächsten. Die Breite
+     wird sofort gesetzt; bewegt wird nur transform — Verschiebung und ein Maßstab, der von
+     der alten Breite zur neuen läuft (FLIP). Beim ersten Zeichnen und nach Größenänderungen
+     wird sie gesetzt, nicht bewegt. */
+  function schieneSetzen(sofort) {
     const leiste = $('#tr-tabs'), schiene = $('.tr-schiene', leiste);
     const aktiv = $('.tr-tab[aria-pressed="true"]', leiste);
     if (!schiene || !aktiv) return;
-    schiene.style.width = aktiv.offsetWidth + 'px';
-    schiene.style.transform = `translateX(${aktiv.offsetLeft}px)`;
+    const x = aktiv.offsetLeft, breite = aktiv.offsetWidth;
+    const vorher = schiene.offsetWidth || breite;
+    const alt = /translateX\(([-\d.]+)px\)/.exec(schiene.style.transform || '');
+    const xAlt = alt ? parseFloat(alt[1]) : x;
+    schiene.style.width = breite + 'px';
+    schiene.style.transformOrigin = '0 50%';
+    if (sofort === true || !M || !mScale()) { schiene.style.transform = `translateX(${x}px)`; return; }
+    M.animate(schiene, { x: [xAlt, x], scaleX: [vorher / breite, 1] }, B.feder.gesetzt);
   }
-  addEventListener('resize', schieneSetzen, { passive: true });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schieneSetzen);
+  addEventListener('resize', () => schieneSetzen(true), { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => schieneSetzen(true));
   /* Ein Reiter, hinter dem nichts steht, ist eine Sackgasse. Angeboten wird deshalb nur,
      was unter den vorhandenen Werken auch vorkommt — und nur dann, wenn es mehr als eine
      Möglichkeit gibt. */
@@ -119,7 +126,9 @@
     const gl = $('#g-list'); gl.dataset.layout = S.layout;
     const wall = gl.closest('.g-wall');
     if (wall) wall.dataset.schiene = S.layout === 'schiene' ? 'an' : 'aus';
-    gl.innerHTML = list.map(w => `<button type="button" class="g-item rv" data-fid="${w.id}" aria-label="${esc(altText(w))}"><span class="tin"><span class="cnr" aria-hidden="true">${w.nr}</span><span class="g-ph" style="aspect-ratio:${ratio(w)};">${bildHTML(w, '(max-width: 540px) 92vw, (max-width: 900px) 46vw, 380px')}</span><span class="g-meta"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></span></span></button>`).join('');
+    const cols = Math.max(1, parseInt(getComputedStyle(app).getPropertyValue('--cols'), 10) || 2);
+    gl.innerHTML = list.map((w, i) => `<button type="button" class="g-item rv" data-eintritt="blatt" data-versatz="${i % cols}" data-fid="${w.id}" aria-label="${esc(altText(w))}"><span class="tin"><span class="cnr" aria-hidden="true">${w.nr}</span><span class="g-ph" style="aspect-ratio:${ratio(w)};">${bildHTML(w, '(max-width: 540px) 92vw, (max-width: 900px) 46vw, 380px')}</span><span class="g-meta"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></span></span></button>`).join('');
+    if (B) B.heben($$('.g-item', gl), { um: 4, feld: '.g-ph' });
   }
   function renderWerke() { renderTabs(); renderChips(); renderGrid(); zaehlerNachfuehren(); }
 
@@ -149,50 +158,90 @@
     addEventListener('resize', zaehlerNachfuehren, { passive: true });
   })();
 
-  /* Übergänge: FLIP beim Filtern / Layoutwechsel, Waschung beim Trägerwechsel */
+  /* Übergänge der Galerie. Was verschwindet, geht zuerst, und zwar schneller als es kam;
+     dann wird neu gezeichnet; was bleibt, gleitet an seinen neuen Platz (FLIP), was neu ist,
+     hebt sich kurz. Die neuen Blätter werden hier gezeigt, nicht vom Enthüllen: zwei
+     Bewegungen auf einer transform überschrieben sich. */
   let rects = null;
   function flipStart() { rects = {}; $$('.g-item').forEach(el => { rects[el.dataset.fid] = el.getBoundingClientRect(); }); }
+  /* Motion schreibt die Endwerte im Renderschritt des folgenden Bildes noch einmal (wie in
+     js/bewegung.js, zeigen()); ein Aufräumen direkt im .then() kam deshalb wieder zurück —
+     beobachtet nach zwei schnellen Filterwechseln hintereinander, wo neu erscheinende Blätter
+     mit style.opacity="1"/transform="none" hängen blieben. Deshalb hier ebenso erst zwei
+     Renderschritte später leeren. */
   function flipPlay() {
-    const m = mScale(); if (!m) return;
-    const tp = tempo(); let k = 0;
+    const s = mScale(); if (!s || !M) { $$('.g-item').forEach(el => B.sofort(el)); return; }
+    const t = B.tempo(); let neu = 0;
     $$('.g-item').forEach(el => {
-      const r0 = rects && rects[el.dataset.fid]; const r1 = el.getBoundingClientRect();
-      const dl = Math.min(k * 28, 170) * m;
-      if (!r0) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380 * m, delay: dl, easing: 'ease-out', fill: 'backwards' }); k++; return; }
+      const r0 = rects && rects[el.dataset.fid], r1 = el.getBoundingClientRect();
+      B.sofort(el);
+      if (!r0) {
+        M.animate(el, { opacity: [0, 1], y: [16, 0] }, { duration: t.dauer * 0.6 * s, delay: Math.min(neu++, 6) * 0.05 * s, ease: t.kurve })
+          .then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.opacity = ''; el.style.transform = ''; })));
+        return;
+      }
       const dx = r0.left - r1.left, dy = r0.top - r1.top, sw = r0.width / r1.width;
       if (Math.abs(dx) + Math.abs(dy) > 1 || Math.abs(sw - 1) > 0.01) {
-        el.animate([{ transform: `translate(${dx}px,${dy}px) scale(${sw})`, transformOrigin: '0 0' }, { transform: 'none', transformOrigin: '0 0' }], { duration: tp.flip * m, delay: dl * 0.5, easing: tp.eFlip, fill: 'backwards' });
-        k++;
+        el.style.transformOrigin = '0 0';
+        M.animate(el, { x: [dx, 0], y: [dy, 0], scale: [sw, 1] }, B.feder.gesetzt)
+          .then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.transform = ''; })));
       }
     });
   }
-  function chip(patch) { flipStart(); Object.assign(S, patch); renderChips(); renderGrid(); flipPlay(); }
-  function setLayout(k) { if (k === S.layout) return; flipStart(); S.layout = k; $('#g-list').dataset.layout = k; flipPlay(); }
+  async function austritt(bleiben) {
+    const s = mScale(); if (!s || !M) return;
+    const weg = $$('.g-item').filter(el => !bleiben.has(el.dataset.fid));
+    if (weg.length) await M.animate(weg, { opacity: 0, scale: 0.98 }, { duration: B.tempo().kurz * 0.5 * s, ease: B.tempo().kurve });
+  }
+  /* Klickt jemand weiter, bevor der Austritt zu Ende ist, zeichnet nur der letzte Lauf. */
+  let filterLauf = 0;
+  async function chip(patch) {
+    const lauf = ++filterLauf;
+    const vorher = Object.assign({}, S);
+    Object.assign(S, patch);
+    const bleiben = new Set(filtered().map(w => w.id));
+    Object.assign(S, vorher);
+    await austritt(bleiben);
+    if (lauf !== filterLauf) return;
+    flipStart(); Object.assign(S, patch); renderChips(); renderGrid(); flipPlay();
+  }
+  function setLayout(k) { if (k === S.layout) return; flipStart(); S.layout = k; $('#g-list').dataset.layout = k; zaehlerNachfuehren(); flipPlay(); }
+  /* Die Waschung beim Trägerwechsel, je Richtung: A zieht Tusche von oben herunter, B blendet
+     ins Schwarz, C schiebt ein Blatt von links. Gebaut mit Motion, Dauern aus tempo(). */
+  /* Läuft schon eine Waschung, lässt ein zweiter Klick sie in Ruhe: Zwei Motion-Animationen
+     auf demselben #gwash überschrieben sich sonst (zwei Richtungswechsel kurz hintereinander,
+     etwa beim schnellen Durchklicken der Reiter). */
+  let waescht = false;
   function washAnim(w, ein) {
-    const tp = tempo(), m = Math.max(mScale(), 0.01), r = S.richtung;
-    w.getAnimations().forEach(a => a.cancel());
-    let kf;
-    if (r === 'b') { w.style.transform = 'none'; w.style.background = '#000'; kf = ein ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }]; }
-    else if (r === 'c') { w.style.background = 'var(--sheet)'; w.style.transformOrigin = ein ? '0 50%' : '100% 50%'; kf = ein ? [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }] : [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }]; }
-    else { w.style.background = 'var(--ink)'; w.style.transformOrigin = ein ? '50% 0%' : '50% 100%'; kf = ein ? [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }] : [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }]; }
-    return w.animate(kf, { duration: (ein ? tp.washIn : tp.washOut) * m, easing: tp.eIn, fill: 'forwards' });
+    const t = B.tempo(), s = Math.max(mScale(), 0.01), r = S.richtung;
+    const dauer = (ein ? t.wasch.ein : t.wasch.aus) * s;
+    if (r === 'b') { w.style.transform = 'none'; w.style.background = '#000'; return M.animate(w, { opacity: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve }); }
+    if (r === 'c') { w.style.background = 'var(--sheet)'; w.style.transformOrigin = ein ? '0 50%' : '100% 50%'; return M.animate(w, { scaleX: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve }); }
+    w.style.background = 'var(--ink)'; w.style.transformOrigin = ein ? '50% 0%' : '50% 100%';
+    return M.animate(w, { scaleY: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve });
   }
-  function setTraeger(t, sofort) {
-    if (t === S.traeger) return;
-    const m = mScale(), wash = $('#gwash');
-    const apply = () => { Object.assign(S, { traeger: t, fOrt: null, fMotiv: null, fSerie: null, fJahr: null }); renderWerke(); };
-    if (!sofort && m > 0 && wash) {
-      washAnim(wash, true).onfinish = () => {
-        apply();
-        const tp = tempo(), r = S.richtung;
-        washAnim(wash, false);
-        const kfT = r === 'b' ? [{ opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)' }] : r === 'c' ? [{ opacity: 0, transform: 'translateY(-16px) rotate(-2.5deg)' }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }];
-        let k = 0;
-        $$('.g-item').forEach(el => { el.animate(kfT, { duration: 420 * m, delay: (tp.washOut * 0.55 + Math.min(k * 32, 200)) * m, easing: 'ease-out', fill: 'backwards' }); k++; });
-      };
-    } else apply();
+  function setTraeger(tr, sofort) {
+    if (tr === S.traeger || waescht) return;
+    const s = mScale(), wash = $('#gwash');
+    const apply = () => { Object.assign(S, { traeger: tr, fOrt: null, fMotiv: null, fSerie: null, fJahr: null }); renderWerke(); };
+    if (sofort || !s || !M || !wash) { apply(); return; }
+    waescht = true;
+    washAnim(wash, true).then(() => {
+      apply();
+      const t = B.tempo(), items = $$('.g-item');
+      items.forEach(el => B.sofort(el));
+      washAnim(wash, false).then(() => { waescht = false; });
+      /* Dieselbe Nachschreib-Falle wie in flipPlay(): erst zwei Renderschritte später leeren. */
+      items.forEach((el, k) => M.animate(el, B.eintritt(el), { duration: t.dauer * 0.5 * s, delay: (t.wasch.aus * 0.55 + Math.min(k * 0.032, 0.2)) * s, ease: t.kurve })
+        .then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.opacity = ''; el.style.transform = ''; el.style.clipPath = ''; el.style.filter = ''; }))));
+    });
   }
-  $('#tr-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) setTraeger(b.dataset.tr); });
+  $('#tr-tabs').addEventListener('click', e => {
+    const b = e.target.closest('[data-tr]'); if (!b || waescht) return;
+    $$('.tr-tab').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    schieneSetzen();
+    setTraeger(b.dataset.tr);
+  });
   $('#werke-filter').addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const f = b.dataset.f, v = b.dataset.v;
@@ -257,17 +306,27 @@
     }, { passive: true });
   }
 
+  /* Öffnen: Der Hintergrund kommt kurz, die Bildfläche fliegt vom Blatt in der Galerie an
+     ihren Platz, die Zeilen folgen gestaffelt. Kein Aufblenden der ganzen Karte, sonst wäre
+     der Flug unsichtbar. */
   function animateOvIn() {
-    const m = mScale(); if (!m) return;
-    const tp = tempo();
-    const bg = $('#ov-bg'), card = $('.ov-card'), fig = $('#ov-fig');
-    if (bg) bg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: tp.ov * 0.6 * m, easing: 'ease-out' });
+    const s = mScale(); if (!s || !M) return;
+    const t = B.tempo();
+    const bg = $('#ov-bg'), card = $('.ov-card'), fig = $('#ov-fig'), info = $('.ov-info');
+    if (bg) M.animate(bg, { opacity: [0, 1] }, { duration: t.kurz * s, ease: t.kurve });
+    if (card) M.animate(card, { opacity: [0, 1] }, { duration: t.kurz * 0.5 * s, ease: t.kurve });
     if (fig && rect0) {
       const r1 = fig.getBoundingClientRect();
-      const dx = rect0.left - r1.left, dy = rect0.top - r1.top, s = rect0.width / r1.width;
-      fig.animate([{ transform: `translate(${dx}px,${dy}px) scale(${s})`, transformOrigin: 'top left' }, { transform: 'none' }], { duration: tp.ov * m, easing: tp.eFlip });
-      if (card) card.animate([{ opacity: 0 }, { opacity: 1 }], { duration: tp.ov * 0.5 * m, delay: tp.ov * 0.25 * m, easing: 'ease-out', fill: 'backwards' });
-    } else if (card) card.animate([{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: tp.ov * 0.65 * m, easing: 'ease-out' });
+      fig.style.transformOrigin = 'top left';
+      /* Motion schreibt die Endwerte im Renderschritt des folgenden Bildes noch einmal (wie in
+         js/bewegung.js, zeigen(), und flipPlay() oben) — ein sofortiges Leeren hier käme zu
+         früh und würde vom nächsten Bild wieder überschrieben. Deshalb erst zwei Renderschritte
+         später leeren. */
+      M.animate(fig, { x: [rect0.left - r1.left, 0], y: [rect0.top - r1.top, 0], scale: [rect0.width / r1.width, 1] }, B.feder.gesetzt)
+        .then(() => M.frame.postRender(() => M.frame.postRender(() => { fig.style.transform = ''; })));
+    } else if (fig) M.animate(fig, { opacity: [0, 1], scale: [0.97, 1] }, { duration: t.ansicht * 0.65 * s, ease: t.kurve });
+    const teile = info ? Array.from(info.children) : [];
+    if (teile.length) M.animate(teile, { opacity: [0, 1], y: [12, 0] }, { duration: t.dauer * 0.5 * s, delay: M.stagger(0.05 * s, { startDelay: 0.15 * s }), ease: t.kurve });
   }
   function openWerk(id, btn) {
     ret = btn || null;
@@ -275,12 +334,46 @@
     S.open = id; renderOverlay(); animateOvIn();
     const c = $('#ov-close'); if (c) c.focus();
   }
-  function closeOv() { S.open = null; renderOverlay(); if (ret) ret.focus(); }
-  function ovStep(dir) {
-    const list = ovListe(finde(S.open)); if (!list.length) return;
+  /* Schließen: umgekehrt und kürzer. Der Dialog bleibt, bis das Bild zurück am Blatt ist;
+     erst dann geht er aus dem Dokument und der Fokus zurück. */
+  let schliesst = false;
+  async function closeOv() {
+    if (schliesst || S.open == null) return;
+    schliesst = true;
+    const s = mScale(), t = B.tempo();
+    const fig = $('#ov-fig'), bg = $('#ov-bg'), info = $('.ov-info');
+    if (s && M) {
+      const ziel = ret && ret.querySelector('.g-ph, .gr-ph');
+      const r0 = ziel ? ziel.getBoundingClientRect() : null;
+      const wartet = [];
+      if (info) wartet.push(M.animate(Array.from(info.children), { opacity: 0, y: 8 }, { duration: t.kurz * 0.5 * s, ease: t.kurve }));
+      if (fig && r0) {
+        const r1 = fig.getBoundingClientRect();
+        fig.style.transformOrigin = 'top left';
+        wartet.push(M.animate(fig, { x: r0.left - r1.left, y: r0.top - r1.top, scale: r0.width / r1.width, opacity: 0.6 }, { duration: t.kurz * s, ease: t.kurve }));
+      } else if (fig) wartet.push(M.animate(fig, { opacity: 0, scale: 0.97 }, { duration: t.kurz * s, ease: t.kurve }));
+      if (bg) wartet.push(M.animate(bg, { opacity: 0 }, { duration: t.kurz * s, delay: t.kurz * 0.3 * s, ease: t.kurve }));
+      await Promise.all(wartet);
+    }
+    S.open = null; renderOverlay(); schliesst = false;
+    if (ret) ret.focus();
+  }
+
+  /* Blättern: das alte Bild geht kurz zur Seite, das neue kommt von der anderen. */
+  async function ovStep(dir) {
+    const list = ovListe(finde(S.open)); if (!list.length || schliesst) return;
     const i = list.findIndex(w => w.id === S.open);
     const nx = list[(i + dir + list.length) % list.length];
+    const s = mScale(), t = B.tempo(), fig = $('#ov-fig');
+    if (s && M && fig) await M.animate(fig, { opacity: 0, x: -14 * dir }, { duration: 0.18 * s, ease: t.kurve });
     rect0 = null; S.open = nx.id; renderOverlay();
+    if (s && M) {
+      const f2 = $('#ov-fig'), zeilen = [$('.ov-info h3'), $('.ov-rows')].filter(Boolean);
+      /* Dieselbe Nachschreib-Falle wie oben bei animateOvIn: erst zwei Renderschritte später leeren. */
+      if (f2) M.animate(f2, { opacity: [0, 1], x: [14 * dir, 0] }, { duration: 0.35 * s, ease: t.kurve })
+        .then(() => M.frame.postRender(() => M.frame.postRender(() => { f2.style.transform = ''; })));
+      if (zeilen.length) M.animate(zeilen, { opacity: [0, 1] }, { duration: 0.3 * s, ease: t.kurve });
+    }
     const c = $('#ov-close'); if (c) c.focus();
   }
   $('#ov-root').addEventListener('click', e => {
@@ -306,16 +399,17 @@
   function renderGrafik() {
     const el = $('#grafik-list'); if (!el) return;
     abschnittZeigen('grafik', GRAFIK.length > 0);
-    el.innerHTML = GRAFIK.map(g => {
+    el.innerHTML = GRAFIK.map((g, i) => {
       const zeile = [g.art, g.fuer, g.jahr].filter(Boolean).join(', ');
       const alt = `${g.t}, ${g.art}${g.fuer ? ' ' + g.fuer : ''}, ${g.jahr}. Größer ansehen.`;
-      return `<button type="button" class="gr-item rv" data-gid="${esc(g.id)}" aria-label="${esc(alt)}">`
+      return `<button type="button" class="gr-item rv" data-eintritt="druck" data-versatz="${i % 2}" data-gid="${esc(g.id)}" aria-label="${esc(alt)}">`
         + `<span class="gr-ph" style="aspect-ratio:${g.w} / ${g.h};">`
         + `<img class="photo-img" src="${esc(g.src)}" srcset="${esc(g.srcset)}" sizes="(max-width: 700px) 92vw, (max-width: 1180px) 46vw, 568px" width="${g.w}" height="${g.h}" alt="" loading="lazy" decoding="async">`
         + `</span><span class="gr-meta"><span class="gr-t">${esc(g.t)}</span><span class="gr-m">${esc(zeile)}</span>`
         + (g.notiz ? `<span class="gr-n">${esc(g.notiz)}</span>` : '')
         + `</span></button>`;
     }).join('');
+    if (B) B.heben($$('.gr-item', el), { um: 3, feld: '.gr-ph' });
   }
   $('#grafik-list').addEventListener('click', e => {
     const b = e.target.closest('.gr-item'); if (b) openWerk(b.dataset.gid, b);
@@ -331,13 +425,21 @@
     el.innerHTML = blaetter.map(f => {
       const bild = `<img class="ink-img" src="${esc(f.src)}" alt="" loading="lazy" decoding="async">`;
       const vergeben = f.status === 'vergeben';
-      return `<div class="sheet rv${vergeben ? ' vergeben' : ''}"><div class="sheet-head"><span class="sheet-n">Blatt ${f.n}</span><span class="sheet-f">${esc(f.format)}</span></div><div class="sheet-ph">${bild}</div><div class="sheet-m">${esc(f.motiv)}</div><div class="sheet-row"><span class="mut">${esc(f.preis || 'auf Anfrage')}</span><span class="sheet-status">${esc(f.status)}</span></div></div>`;
+      return `<div class="sheet rv${vergeben ? ' vergeben' : ''}" data-eintritt="blatt"><div class="sheet-head"><span class="sheet-n">Blatt ${f.n}</span><span class="sheet-f">${esc(f.format)}</span></div><div class="sheet-ph">${bild}</div><div class="sheet-m">${esc(f.motiv)}</div><div class="sheet-row"><span class="mut">${esc(f.preis || 'auf Anfrage')}</span><span class="sheet-status">${esc(f.status)}</span></div></div>`;
     }).join('');
   }
 
   /* ---------- Anfrage ---------- */
   const form = $('#af-form');
-  function showErr(msg) { const el = $('#af-err'); if (!el) return; el.textContent = msg; el.hidden = !msg; if (msg) el.focus(); }
+  function showErr(msg) {
+    const el = $('#af-err'); if (!el) return;
+    el.textContent = msg; el.hidden = !msg;
+    if (!msg) return;
+    /* Motion schreibt die Endwerte im Renderschritt des folgenden Bildes noch einmal (wie in
+       js/bewegung.js, zeigen()); deshalb erst zwei Renderschritte später leeren. */
+    if (M && mScale()) M.animate(el, { opacity: [0, 1], x: [-8, 0] }, { duration: B.tempo().kurz * mScale(), ease: B.tempo().kurve }).then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.transform = ''; })));
+    el.focus();
+  }
   function done(mode, text) {
     form.hidden = true;
     const d = $('#af-done');
@@ -347,6 +449,12 @@
     else if (mode === 'mail') d.innerHTML = `<h3 class="hd">Fast geschafft.</h3><p>Dein Mailprogramm sollte sich jetzt mit der Anfrage öffnen. Falls nicht: Text kopieren und per DM an ${ig} schicken.</p>${copyBlock}`;
     else d.innerHTML = `<h3 class="hd">Fast geschafft.</h3><p>Kopier den Text und schick ihn mir per DM an ${ig}. Du hörst von mir — in der Regel innerhalb einer Woche.</p>${copyBlock}`;
     d.hidden = false; d.classList.add('rv', 'on');
+    /* d ist schon sichtbar und trägt .on, bevor das Enthüllen es sähe — B.sofort() trägt es
+       trotzdem in gesehen ein, sonst griffe M.inView() später noch einmal zu. Die eigentliche
+       Bewegung kommt gleich danach, mit eigenem Tempo. Aufräumen zwei Renderschritte später,
+       aus demselben Grund wie in showErr(). */
+    if (B) B.sofort(d);
+    if (M && mScale()) M.animate(d, { opacity: [0, 1], y: [12, 0] }, { duration: B.tempo().dauer * 0.6 * mScale(), ease: B.tempo().kurve }).then(() => M.frame.postRender(() => M.frame.postRender(() => { d.style.opacity = ''; d.style.transform = ''; })));
     const cp = $('[data-copy]', d);
     if (cp) cp.addEventListener('click', () => {
       const ta = $('textarea', d); ta.select();
@@ -402,8 +510,6 @@
   function applyTheme() {
     app.dataset.richtung = S.richtung; app.dataset.bewegung = S.bewegung; app.dataset.dichte = S.dichte;
     app.dataset.rot = S.rotspur; app.dataset.sequenz = S.sequenz; app.dataset.korn = S.korn;
-    const seq = $('werk-sequenz');
-    if (seq) { seq.setAttribute('richtung', S.richtung); seq.setAttribute('bewegung', S.sequenz === 'still' ? 'aus' : S.bewegung); }
     const tc = $('meta[name="theme-color"]'); if (tc) tc.setAttribute('content', getComputedStyle(app).getPropertyValue('--bg').trim() || '#E8E8E6');
   }
   function renderPanel() {
@@ -427,40 +533,15 @@
     $('#panel-vorfuehr').addEventListener('click', () => { S.panel = false; renderPanel(); });
   }
 
-  /* ---------- Einblenden beim Scrollen ----------
-     Kein IntersectionObserver: die .rv-Elemente sind in Richtung A per clip-path auf Breite null
-     beschnitten, und ein beschnittenes Element meldet dem Observer die Fläche null — es würde nie
-     eingeblendet. Stattdessen prüfen wir die Position selbst, angetrieben vom Motion-Loop
-     (js/motion.js) beziehungsweise ersatzweise vom Scroll-Ereignis. */
-  let rvList = [], lastScanY = null;
-  function collectRv() { rvList = $$('.rv:not(.on)'); lastScanY = null; }
-  function revealScan() {
-    if (!rvList.length) return;
-    if (lastScanY !== null && Math.abs(scrollY - lastScanY) < 4) return;
-    lastScanY = scrollY;
-    const trigger = innerHeight * 0.92;
-    const rest = []; let i = 0;
-    for (const el of rvList) {
-      if (el.getBoundingClientRect().top < trigger) {
-        el.style.transitionDelay = Math.min(i * 70, 280) * mScale() + 'ms';
-        el.classList.add('on'); i++;
-        setTimeout(() => { el.style.transitionDelay = ''; }, 1400);
-      } else rest.push(el);
-    }
-    rvList = rest;
-  }
-  const observeNew = () => { collectRv(); revealScan(); };
+  /* ---------- Enthüllen ----------
+     Was neu ins Dokument kommt (Galerie, Grafik, Bestätigung), meldet js/bewegung.js beim
+     Sichtbarwerden an. Der Beobachter sieht nur neue Knoten, keine Attribute: Motion schreibt
+     Inline-Stile, und die dürfen hier keinen Kreis auslösen. */
+  const observeNew = () => { if (B) { B.enthuellen(document); B.parallaxe(document); } };
   new MutationObserver(observeNew).observe(document.body, { childList: true, subtree: true });
-  addEventListener('resize', revealScan, { passive: true });
-  if (L.motion) L.motion.on(revealScan); else addEventListener('scroll', revealScan, { passive: true });
 
   /* ---------- Scrollen, Zeiger, Tastatur ---------- */
   /* Der Scrollfortschritt wird von js/tropfspur.js gezeichnet. */
-  let xy = null, pmr = 0;
-  addEventListener('pointermove', e => {
-    xy = [e.clientX, e.clientY]; if (pmr) return;
-    pmr = requestAnimationFrame(() => { pmr = 0; if (xy) { app.style.setProperty('--mx', (xy[0] / innerWidth * 100).toFixed(1) + '%'); app.style.setProperty('--my', (xy[1] / innerHeight * 100).toFixed(1) + '%'); } });
-  }, { passive: true });
   document.addEventListener('keydown', e => {
     if (e.key && e.key.toLowerCase() === 'b' && e.shiftKey && !e.target.closest('input,textarea,select')) { e.preventDefault(); S.panel = !S.panel; S.panelOpen = true; renderPanel(); return; }
     if (S.open == null) return;
@@ -482,104 +563,15 @@
     const el = document.getElementById(target);
     if (!el) return;
     const top = el.getBoundingClientRect().top + scrollY - 56;
-    if (L.motion) L.motion.scrollTo(top); else window.scrollTo({ top, behavior: mScale() ? 'smooth' : 'auto' });
+    window.scrollTo({ top, behavior: mScale() ? 'smooth' : 'auto' });
   });
-
-  /* ---------- Videos: Zeichnung im Auftakt, Signatur bei Handschrift ---------- */
-  /* Der Live-Auftakt. assets/js/auftakt-player.js hängt eine Remotion-Komposition als
-     React in die Seite: dieselbe Zeichnung, aber in Ebenen mit Tiefe, die dem Zeiger
-     folgen. Das Bündel wiegt gezippt rund 150 kB, deshalb wird es erst nach dem Laden
-     der Seite geholt, nur wenn Bewegung erwünscht ist und der Anschluss nicht spart.
-     Kommt es nicht an, bleibt es beim Video und beim Standbild. */
-  const buehneGeplant = (() => {
-    const fig = $('.hero-fig');
-    if (!fig || mScale() === 0 || prm) return false;
-    const verbindung = navigator.connection;
-    if (verbindung && (verbindung.saveData || /2g/.test(verbindung.effectiveType || ''))) return false;
-    return true;
-  })();
-
-  (function buehne() {
-    if (!buehneGeplant) return;
-    const fig = $('.hero-fig');
-    const laden = () => {
-      /* Der Player löst staticFile() über diesen Wert auf. Ohne ihn läge er bei /img/...
-         Es muss ein Pfad sein, keine vollständige URL: staticFile kodiert den Doppelpunkt
-         und stellt einem Wert ohne führenden Schrägstrich einen voran, aus http://host
-         würde also /http%3A//host. */
-      window.remotion_staticBase = new URL('assets', document.baseURI).pathname.replace(/\/$/, '');
-      const skript = document.createElement('script');
-      skript.src = 'assets/js/auftakt-player.js';
-      skript.defer = true;
-      skript.addEventListener('error', () => heroOhneBuehne(true));
-      document.body.appendChild(skript);
-      /* Kommt die Bühne nicht binnen vier Sekunden, übernimmt der gewohnte Auftakt. */
-      setTimeout(() => { if (!fig.classList.contains('hat-buehne')) heroOhneBuehne(true); }, 4000);
-    };
-    if (document.readyState === 'complete') laden();
-    else addEventListener('load', laden, { once: true });
-  })();
-
-  function heroOhneBuehne(nurBildSofort) {
-    const fig = $('.hero-fig'), v = $('.hero-video');
-    if (!fig || fig.classList.contains('hat-buehne') || fig.dataset.auftakt === 'ab') return;
-    fig.dataset.auftakt = 'ab';
-    let fertig = false;
-    const still = () => { if (fertig) return; fertig = true; fig.classList.add('done'); };
-    const nurBild = () => { fig.classList.add('still'); still(); };
-    if (!v || mScale() === 0 || nurBildSofort) { nurBild(); return; }
-    /* Kann der Browser das Format nicht (fehlender Codec, gesperrte Wiedergabe), zeigen wir
-       nach kurzer Frist das fertige Blatt statt einer leeren Fläche. */
-    const wache = setTimeout(() => { if (v.readyState < 2 || !v.currentTime) nurBild(); }, 2200);
-    const sicherung = setTimeout(still, 20000);
-    const fertigMachen = () => { clearTimeout(wache); clearTimeout(sicherung); still(); };
-    v.addEventListener('ended', fertigMachen, { once: true });
-    v.addEventListener('error', () => { clearTimeout(wache); clearTimeout(sicherung); nurBild(); }, { once: true });
-    v.addEventListener('timeupdate', () => { if (v.currentTime > 0) clearTimeout(wache); }, { once: true });
-    const p = v.play(); if (p && p.catch) p.catch(() => { clearTimeout(wache); nurBild(); });
-  }
-
-  /* Ohne geplante Bühne läuft der Auftakt sofort wie gewohnt. */
-  if (!buehneGeplant) heroOhneBuehne(false);
-
-  (function band() {
-    const v = $('.band-video');
-    if (!v) return;
-    /* Bei ausgeschalteter Bewegung bleibt das Standbild stehen, das ist die Signatur. */
-    if (mScale() === 0) return;
-
-    /* Statt einmal abzuspielen folgt die Zeichnung dem Scrollen: Wer den Abschnitt
-       hinunterliest, zieht die Linie mit und sieht die Signatur am Ende entstehen.
-       Das ist dieselbe Bewegung, die Luke beim Zeichnen macht, nur vom Leser ausgelöst. */
-    let kaputt = false;
-    v.preload = 'auto';
-    v.pause();
-    /* Kann der Browser das Format nicht, bleibt das Standbild stehen. */
-    v.addEventListener('error', () => { kaputt = true; }, { once: true });
-    v.addEventListener('loadedmetadata', folgen);
-
-    function folgen() {
-      /* Die Dauer wird bei jedem Durchgang gelesen, nicht einmal beim Start. Sonst hängt
-         alles daran, ob loadedmetadata vor oder nach diesem Skript gefeuert hat. */
-      const dauer = v.duration;
-      if (kaputt || !dauer || !isFinite(dauer)) return;
-      const r = v.getBoundingClientRect();
-      if (r.bottom < -200 || r.top > innerHeight + 200) return;
-      /* Von „taucht unten auf" bis „ist oben durch": daraus wird die Zeit im Clip. */
-      const p = (innerHeight * 0.92 - r.top) / (innerHeight * 0.72 + r.height);
-      const ziel = Math.max(0, Math.min(1, p)) * (dauer - 0.05);
-      if (Math.abs(v.currentTime - ziel) < 0.04) return;
-      try { v.currentTime = ziel; } catch (e) { /* Spulen noch nicht möglich */ }
-    }
-    if (L.motion) L.motion.on(folgen); else addEventListener('scroll', folgen, { passive: true });
-  })();
 
   /* ---------- Start ---------- */
   applyTheme();
   renderWerke();
   renderFlash();
   renderGrafik();
-  schieneSetzen();
+  schieneSetzen(true);
   renderPanel();
   observeNew();
 })();
