@@ -78,15 +78,22 @@
     schieneSetzen(true);
   }
 
-  /* Die Linie unter den Reitern gleitet mit einer Feder von einem zum nächsten. Beim ersten
-     Zeichnen und nach Größenänderungen wird sie gesetzt, nicht bewegt. */
+  /* Die Linie unter den Reitern gleitet mit einer Feder von einem zum nächsten. Die Breite
+     wird sofort gesetzt; bewegt wird nur transform — Verschiebung und ein Maßstab, der von
+     der alten Breite zur neuen läuft (FLIP). Beim ersten Zeichnen und nach Größenänderungen
+     wird sie gesetzt, nicht bewegt. */
   function schieneSetzen(sofort) {
     const leiste = $('#tr-tabs'), schiene = $('.tr-schiene', leiste);
     const aktiv = $('.tr-tab[aria-pressed="true"]', leiste);
     if (!schiene || !aktiv) return;
-    const ziel = { x: aktiv.offsetLeft, width: aktiv.offsetWidth };
-    if (sofort === true || !M || !mScale()) { schiene.style.transform = `translateX(${ziel.x}px)`; schiene.style.width = ziel.width + 'px'; return; }
-    M.animate(schiene, ziel, B.feder.gesetzt);
+    const x = aktiv.offsetLeft, breite = aktiv.offsetWidth;
+    const vorher = schiene.offsetWidth || breite;
+    const alt = /translateX\(([-\d.]+)px\)/.exec(schiene.style.transform || '');
+    const xAlt = alt ? parseFloat(alt[1]) : x;
+    schiene.style.width = breite + 'px';
+    schiene.style.transformOrigin = '0 50%';
+    if (sofort === true || !M || !mScale()) { schiene.style.transform = `translateX(${x}px)`; return; }
+    M.animate(schiene, { x: [xAlt, x], scaleX: [vorher / breite, 1] }, B.feder.gesetzt);
   }
   addEventListener('resize', () => schieneSetzen(true), { passive: true });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => schieneSetzen(true));
@@ -160,6 +167,11 @@
      Bewegungen auf einer transform überschrieben sich. */
   let rects = null;
   function flipStart() { rects = {}; $$('.g-item').forEach(el => { rects[el.dataset.fid] = el.getBoundingClientRect(); }); }
+  /* Motion schreibt die Endwerte im Renderschritt des folgenden Bildes noch einmal (wie in
+     js/bewegung.js, zeigen()); ein Aufräumen direkt im .then() kam deshalb wieder zurück —
+     beobachtet nach zwei schnellen Filterwechseln hintereinander, wo neu erscheinende Blätter
+     mit style.opacity="1"/transform="none" hängen blieben. Deshalb hier ebenso erst zwei
+     Renderschritte später leeren. */
   function flipPlay() {
     const s = mScale(); if (!s || !M) { $$('.g-item').forEach(el => B.sofort(el)); return; }
     const t = B.tempo(); let neu = 0;
@@ -168,13 +180,14 @@
       B.sofort(el);
       if (!r0) {
         M.animate(el, { opacity: [0, 1], y: [16, 0] }, { duration: t.dauer * 0.6 * s, delay: Math.min(neu++, 6) * 0.05 * s, ease: t.kurve })
-          .then(() => { el.style.opacity = ''; el.style.transform = ''; });
+          .then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.opacity = ''; el.style.transform = ''; })));
         return;
       }
       const dx = r0.left - r1.left, dy = r0.top - r1.top, sw = r0.width / r1.width;
       if (Math.abs(dx) + Math.abs(dy) > 1 || Math.abs(sw - 1) > 0.01) {
         el.style.transformOrigin = '0 0';
-        M.animate(el, { x: [dx, 0], y: [dy, 0], scale: [sw, 1] }, B.feder.gesetzt).then(() => { el.style.transform = ''; });
+        M.animate(el, { x: [dx, 0], y: [dy, 0], scale: [sw, 1] }, B.feder.gesetzt)
+          .then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.transform = ''; })));
       }
     });
   }
@@ -183,17 +196,25 @@
     const weg = $$('.g-item').filter(el => !bleiben.has(el.dataset.fid));
     if (weg.length) await M.animate(weg, { opacity: 0, scale: 0.98 }, { duration: B.tempo().kurz * 0.5 * s, ease: B.tempo().kurve });
   }
+  /* Klickt jemand weiter, bevor der Austritt zu Ende ist, zeichnet nur der letzte Lauf. */
+  let filterLauf = 0;
   async function chip(patch) {
+    const lauf = ++filterLauf;
     const vorher = Object.assign({}, S);
     Object.assign(S, patch);
     const bleiben = new Set(filtered().map(w => w.id));
     Object.assign(S, vorher);
     await austritt(bleiben);
+    if (lauf !== filterLauf) return;
     flipStart(); Object.assign(S, patch); renderChips(); renderGrid(); flipPlay();
   }
   function setLayout(k) { if (k === S.layout) return; flipStart(); S.layout = k; $('#g-list').dataset.layout = k; zaehlerNachfuehren(); flipPlay(); }
   /* Die Waschung beim Trägerwechsel, je Richtung: A zieht Tusche von oben herunter, B blendet
      ins Schwarz, C schiebt ein Blatt von links. Gebaut mit Motion, Dauern aus tempo(). */
+  /* Läuft schon eine Waschung, lässt ein zweiter Klick sie in Ruhe: Zwei Motion-Animationen
+     auf demselben #gwash überschrieben sich sonst (zwei Richtungswechsel kurz hintereinander,
+     etwa beim schnellen Durchklicken der Reiter). */
+  let waescht = false;
   function washAnim(w, ein) {
     const t = B.tempo(), s = Math.max(mScale(), 0.01), r = S.richtung;
     const dauer = (ein ? t.wasch.ein : t.wasch.aus) * s;
@@ -203,21 +224,23 @@
     return M.animate(w, { scaleY: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve });
   }
   function setTraeger(tr, sofort) {
-    if (tr === S.traeger) return;
+    if (tr === S.traeger || waescht) return;
     const s = mScale(), wash = $('#gwash');
     const apply = () => { Object.assign(S, { traeger: tr, fOrt: null, fMotiv: null, fSerie: null, fJahr: null }); renderWerke(); };
     if (sofort || !s || !M || !wash) { apply(); return; }
+    waescht = true;
     washAnim(wash, true).then(() => {
       apply();
       const t = B.tempo(), items = $$('.g-item');
       items.forEach(el => B.sofort(el));
-      washAnim(wash, false);
+      washAnim(wash, false).then(() => { waescht = false; });
+      /* Dieselbe Nachschreib-Falle wie in flipPlay(): erst zwei Renderschritte später leeren. */
       items.forEach((el, k) => M.animate(el, B.eintritt(el), { duration: t.dauer * 0.5 * s, delay: (t.wasch.aus * 0.55 + Math.min(k * 0.032, 0.2)) * s, ease: t.kurve })
-        .then(() => { el.style.opacity = ''; el.style.transform = ''; el.style.clipPath = ''; el.style.filter = ''; }));
+        .then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.opacity = ''; el.style.transform = ''; el.style.clipPath = ''; el.style.filter = ''; }))));
     });
   }
   $('#tr-tabs').addEventListener('click', e => {
-    const b = e.target.closest('[data-tr]'); if (!b) return;
+    const b = e.target.closest('[data-tr]'); if (!b || waescht) return;
     $$('.tr-tab').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     schieneSetzen();
     setTraeger(b.dataset.tr);
@@ -525,7 +548,7 @@
   renderWerke();
   renderFlash();
   renderGrafik();
-  schieneSetzen();
+  schieneSetzen(true);
   renderPanel();
   observeNew();
 })();

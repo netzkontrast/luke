@@ -276,6 +276,19 @@ pruefung('werke: drei Spalten, Blätter gedreht abgelegt, Filter mit Austritt', 
   }));
   t.gleich(vorher, 6, 'alle Werke vorher'); t.gleich(nachher.n, 2, 'Köpfe nachher'); t.ok(nachher.sichtbar, 'gefilterte Blätter sichtbar, aufgeräumt');
   await t.bild('werke-gefiltert');
+  /* Klickt jemand weiter, während der Austritt des ersten Klicks noch läuft (Richtung A:
+     rund 225 ms), darf nur der letzte Lauf zeichnen — sonst gewinnt, wer zufällig zuerst
+     fertig wird, und ein überholter Filterstand blitzt auf. Beide Klicks bewusst ohne
+     Wartezeit dazwischen. */
+  await page.click('.chip[data-v="Befreiung der Körperlichkeit"]');
+  await page.click('.chip[data-f="fSerie"][data-v=""]');
+  await t.warten(1600);
+  const rennen = await page.evaluate(() => ({
+    n: document.querySelectorAll('.g-item').length,
+    sichtbar: Array.from(document.querySelectorAll('.g-item')).every(el => getComputedStyle(el).opacity === '1' && el.classList.contains('on') && !el.style.transform)
+  }));
+  t.gleich(rennen.n, 6, 'nach schnellem Weiterklicken wieder alle sechs Werke');
+  t.ok(rennen.sichtbar, 'alle sechs aufgeräumt, kein überholter Lauf hat mitgezeichnet');
 });
 
 pruefung('werke: Hover hebt das Bildfeld, nicht mehr', 'schreibtisch', async (page, t) => {
