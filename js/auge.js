@@ -1,10 +1,10 @@
 /* Das Auge.
 
-   Das Auge aus der Handschrift sieht den Leser an. Es sitzt zweimal auf der Seite: klein in
-   der Kopfleiste, vor dem Namen, wo es von der ersten bis zur letzten Zeile mitliest; und
-   groß im Abschnitt Handschrift, am Ende der langen Linie, sobald die Signatur geschrieben
-   ist (js/abschnitte.js). Beide sind dasselbe Auge: Sie blicken dorthin, wo der Zeiger ist,
-   und blinzeln im selben Augenblick.
+   Das Auge aus der Handschrift sieht den Leser an. Es sitzt rechts in der Kopfleiste, am
+   Ende der langen Linie: Erst schreibt sich dort die Signatur (unten, „Die Handschrift in der
+   Kopfleiste“), dann liest das Auge von der ersten bis zur letzten Zeile mit. Es blickt
+   dorthin, wo der Zeiger ist, und blinzelt. Weitere Augen meldet an, wer eines braucht;
+   alle blicken und blinzeln zugleich.
 
    Gezeichnet wird aus drei Teilen, die scripts/bilder.py aus dem Video der Signatur zieht:
    das letzte Bild der Folge ohne Iris (auge-leer), die Iris allein (iris) und fünf Bilder,
@@ -194,15 +194,59 @@
   const app = document.querySelector('.app');
   if (app) new MutationObserver(() => { augen.forEach(x => { x.neu = true; }); starten(); }).observe(app, { attributes: true, attributeFilter: ['data-bewegung'] });
 
-  /* Das Auge in der Kopfleiste: der Ausschnitt um das Auge, ohne Linie und Signatur. Es
-     lädt erst, wenn die Seite steht — das Auftaktvideo soll die Leitung zuerst haben — und
-     blendet dann ein. */
-  const nav = document.querySelector('.nav-auge');
-  if (nav) {
-    anmelden(nav, { quelle: [772, 78, 196, 124] });
-    const los = () => laden().then(ok => { if (ok) nav.classList.add('da'); });
-    if (document.readyState === 'complete') setTimeout(los, 300);
-    else addEventListener('load', () => setTimeout(los, 300), { once: true });
+  /* Die Handschrift in der Kopfleiste. Die Folge in klein (kopf-01 … kopf-36, scripts/bilder.py)
+     läuft einmal durch, nach der Zeit, nicht nach dem Scrollweg: Die Leiste ist immer zu sehen.
+     Die lange Linie zieht sich, die Signatur schreibt sich, das Auge öffnet sich; dann übernimmt
+     das Auge dasselbe Canvas und blickt dem Zeiger nach. Das letzte Bild der Folge und das
+     offene Auge in der Mitte sind dasselbe Bild, der Übergang ist unsichtbar.
+
+     Geladen wird erst, wenn die Seite steht: Das Auftaktvideo soll die Leitung zuerst haben.
+     Ohne Bewegung läuft nichts, und das Standbild bleibt stehen; ebenso, wenn die Folge nicht
+     lädt. Mit Bewegung ist das Standbild bis dahin verborgen (css/site.css), sonst stünde die
+     fertige Zeichnung da und spränge zum Anfang zurück. */
+  const kopf = document.querySelector('.nav-hand');
+  const kv = kopf && kopf.querySelector('.nav-hand-folge');
+  if (kv && SIG.kopf) {
+    const DAUER = 3200;
+    const kurve = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+    const still = () => kopf.classList.add('still');
+    /* Ohne Bewegung, oder wo die Handschrift gar nicht steht (Richtung B zeigt dort den Namen),
+       wird nichts geladen. */
+    if (!stark() || getComputedStyle(kopf).display === 'none') still();
+    else {
+      const n = SIG.folge, folge = new Array(n);
+      const datei = k => SIG.pfad + 'kopf-' + String(k + 1).padStart(2, '0') + '.webp';
+      const auge = anmelden(kv, { quelle: [0, 0, SIG.w, SIG.h], an: false });
+      const ctx = kv.getContext('2d');
+      function bildZeigen(p) {
+        const f = p * (n - 1), i = Math.min(n - 1, Math.floor(f)), t = f - i;
+        ctx.globalAlpha = 1;
+        ctx.drawImage(folge[i], 0, 0, kv.width, kv.height);
+        if (t > 0.02 && folge[i + 1]) { ctx.globalAlpha = t; ctx.drawImage(folge[i + 1], 0, 0, kv.width, kv.height); ctx.globalAlpha = 1; }
+      }
+      function spielen() {
+        kopf.classList.add('lebt');
+        const beginn = performance.now();
+        const lauf = jetzt => {
+          const t = Math.min(1, (jetzt - beginn) / DAUER);
+          bildZeigen(kurve(t));
+          if (t < 1) requestAnimationFrame(lauf);
+          else auge.an(true);
+        };
+        requestAnimationFrame(lauf);
+      }
+      const bild = k => new Promise(ok => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(() => { folge[k] = img; ok(true); });
+        img.onerror = () => ok(false);
+        img.src = datei(k);
+      });
+      const los = () => Promise.all([laden(), ...Array.from({ length: n }, (_, k) => bild(k))])
+        .then(([teileDa, ...da]) => (teileDa && da.every(Boolean) ? spielen() : still()));
+      if (document.readyState === 'complete') setTimeout(los, 300);
+      else addEventListener('load', () => setTimeout(los, 300), { once: true });
+    }
   }
 
   L.auge = {

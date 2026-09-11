@@ -30,7 +30,7 @@ js/bewegung.js        Grundlage aller Bewegung: Motion, Stärke, Tempo je Richtu
 js/auftakt.js         Der Auftakt: ein Blatt in der Ecke der Seite, Zeichenvideo, Schnitt, Standbild
 js/blattfolge.js      Die Blattfolge: ein Blatt nach dem anderen; das Scrollen wählt, die Zeit wechselt
 js/abschnitte.js      Kleine Bewegungen je Abschnitt: Aktuell, Handschrift (Bildfolge), Atelier
-js/auge.js            Das Auge aus der Handschrift: in der Kopfleiste und am Ende der Handschrift, folgt dem Zeiger, blinzelt
+js/auge.js            Die Handschrift in der Kopfleiste: schreibt sich einmal, dann folgt das Auge dem Zeiger und blinzelt
 js/tropfspur.js       Die Tropfspur aus PR #2: Canvas mit multiply, läuft dem Lesen nach und nie zurück, staut, spritzt, trocknet vor dem Atelier
 js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand; auf der Werkschau liest ihn die Tropfspur (Tabelle LUKE.ABSCHNITTE in index.html)
 vendor/motion/        Motion 13.2.0, lokal gehostet (siehe HERKUNFT.md)
@@ -134,8 +134,8 @@ Grafiken, nicht quer durch beides.
 - Das Blatt der knienden Figur hat links ein breites leeres Drittel. Der Kasten schneidet es rechtsbündig weg
   (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten. Die Breiten der Kästen
   folgen aus ihren Höhen, darum rechnet `sizes` in vh.
-- Was nicht gleich gebraucht wird, lädt später: Die Bildfolge der Handschrift erst, wenn der Abschnitt ein Fenster
-  weit heranrückt, das Auge der Kopfleiste nach dem Laden der Seite; die Blätter 2 bis 7 der Blattfolge erst, wenn der Leser sich ihnen nähert. Beim Start lädt so gut
+- Was nicht gleich gebraucht wird, lädt später: Die Handschrift der Kopfleiste samt Auge erst nach dem Laden der
+  Seite; die Blätter 2 bis 7 der Blattfolge erst, wenn der Leser sich ihnen nähert. Beim Start lädt so gut
   ein Megabyte weniger (Telefon: gut zwei), und das Auftaktvideo hat die Leitung für sich.
 - Vorschaubild für soziale Netzwerke: `assets/img/og-bild.jpg`, 1200 × 630, dieselbe Zeichnung auf Weiß.
 - Sprite für die Skizze: `assets/img/zeichnung-sprite.webp`, 48 Bilder der Zeichenanimation, 8 × 6 Kacheln zu
@@ -144,15 +144,18 @@ Grafiken, nicht quer durch beides.
   und danach `ffmpeg -framerate 8 -i f-%03d.png -frames:v 48 -filter_complex "tile=8x6:color=white,format=rgb24" -c:v libwebp -quality 68 …`
 - Handschrift: eine Bildfolge statt eines Videos. `scripts/bilder.py` zieht aus `assets/original/gestaltung-signatur.mp4`
   36 Bilder bis zum offenen Auge, fünf Bilder des Lidschlags, das letzte Bild ohne Iris und die Iris allein
-  (`assets/img/signatur/`, Angaben in `LUKE.SIGNATUR`). Beim Scrollen schreibt sich die Signatur (Canvas, zwischen zwei
-  Bildern überblendet); ist sie fertig, blickt das Auge dem Zeiger nach und blinzelt ab und zu. Vorher wurde ein
-  Video gespult: Auf dem iPhone blieb es beim Standbild (ohne Abspielen lädt Safari keine Bilder), auf schwächeren
-  Geräten stockte es. Die Bildfolge läuft überall gleich und ist mit 640 kB kleiner als das Video (1,5 MB).
-- Das Auge sitzt außerdem in der Kopfleiste, vor dem Namen, und liest von der ersten bis zur letzten Zeile mit
-  (`js/auge.js`). Ohne Maus folgt es dem Finger und sieht sich sonst von selbst um. Mittelpunkt, Radius und die
-  Öffnung zwischen den Lidern stehen in `scripts/bilder.py` (`SIGNATUR`), von Hand an der Zeichnung abgenommen.
-- Der Name im Kopf der Seite und in der Kopfleiste ist die Signatur aus dem Video, freigestellt und vierfach
-  hochgerechnet (`assets/img/signatur/handschrift.webp`); im Auftakt schreibt sie sich von links nach rechts.
+  (`assets/img/signatur/`, Angaben in `LUKE.SIGNATUR`), dieselbe Folge klein für die Kopfleiste (`kopf-01` bis
+  `kopf-36`, 640 px breit, 288 kB). Vorher wurde ein Video gespult: Auf dem iPhone blieb es beim Standbild (ohne
+  Abspielen lädt Safari keine Bilder), auf schwächeren Geräten stockte es.
+- Die Handschrift steht rechts in der Kopfleiste, die Einträge links (`js/auge.js`). Nach dem Laden der Seite schreibt
+  sie sich einmal (3,2 s, Canvas, zwischen zwei Bildern überblendet); dann übernimmt das Auge dasselbe Canvas, blickt
+  dem Zeiger nach und blinzelt. Ohne Maus folgt es dem Finger und sieht sich sonst von selbst um. Auf dem Schreibtisch
+  ist die Leiste dafür rund 100 px hoch, auf dem Telefon bleibt sie schmal. Ohne Bewegung steht das letzte Bild; in
+  Richtung B steht statt der Zeichnung der Name. Im Abschnitt Handschrift steht die Zeichnung als Standbild.
+  Mittelpunkt, Radius und die Öffnung zwischen den Lidern stehen in `scripts/bilder.py` (`SIGNATUR`), von Hand an der
+  Zeichnung abgenommen.
+- Der Name im Kopf der Seite ist die Signatur aus dem Video, freigestellt und vierfach hochgerechnet
+  (`assets/img/signatur/handschrift.webp`); im Auftakt schreibt sie sich von links nach rechts.
 - „Neuordnung des Speichers“: Die zwölf Blätter sind vom schwarzen Holz freigestellt und stehen in einem Raster auf
   Weiß (`scripts/bilder.py`, `art='kacheln'`). Die Galerie zeigt jedes Blatt als Ausschnitt aus diesem Bildbogen und
   lässt, solange das Werk zu sehen ist, alle paar Sekunden zwei die Plätze tauschen (`js/site.js`, `neuordnen()`).
