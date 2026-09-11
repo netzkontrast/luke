@@ -13,7 +13,6 @@
   const B = L.bewegung, M = B && B.M;
   const prm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const params = new URLSearchParams(location.search);
-  const pick = (v, opts, d) => (opts.includes(v) ? v : d);
 
   /* ---------- Zustand ---------- */
   const S = {
@@ -21,15 +20,12 @@
        .app übertragen, als einzige Stelle, die die Adresse dafür liest. Hier wird nur
        noch gelesen, nicht ein zweites Mal geparst. */
     richtung: app.dataset.richtung || 'a',
-    /* Auf dem Telefon ist die Schiene die Voreinstellung: ein Blatt pro Bildschirm,
-       zum Wischen. Am großen Bildschirm bleibt es beim Mauerwerk. */
-    layout: pick(params.get('layout'), ['mauerwerk', 'buendig', 'schiene'],
-      matchMedia('(max-width: 700px)').matches ? 'schiene' : 'mauerwerk'),
     bewegung: prm ? 'aus' : (app.dataset.bewegung || 'voll'),
     dichte: 'luftig', rotspur: 'spur', sequenz: 'voll', korn: 'aus',
     panel: params.has('proto'), panelOpen: true,
     traeger: 'alles', fOrt: null, fMotiv: null, fSerie: null, fJahr: null,
-    open: null
+    /* Die Werkansicht: welches Werk offen ist und welches seiner Blätter gezeigt wird. */
+    open: null, teil: 0
   };
   const mScale = () => ({ aus: 0, dezent: 0.55, voll: 1 })[S.bewegung];
 
@@ -42,16 +38,25 @@
   if (einTraeger && traegerDa.length) S.traeger = traegerDa[0];
   /* Ein Eintrag ohne Bild wird übergangen. Früher stand an seiner Stelle eine erzeugte
      Tuschzeichnung; die ist raus, weil auf dieser Seite nur stehen soll, was es gibt. */
-  const isReal = w => !!w.src;
+  const isReal = w => L.blaetter(w).length > 0;
   /* Tuscheblätter kommen mit multiply auf die Seite: Das Papier verschwindet, stehen
      bleibt nur die Zeichnung. Ein Foto mit dunklem Grund darf das nicht, sonst säuft
      die ganze Fläche ab. Wann was gilt, steht in js/works.js. */
   const bildKlasse = w => (L.istTuschblatt(w) ? 'ink-img' : 'photo-img');
-  const ratio = w => `${w.w} / ${w.h}`;
-  const meta = w => (w.tr === 'haut' ? `Nr. ${w.nr} — Haut, ${w.ort}, ${w.jahr}` : `Nr. ${w.nr} — ${w.technik}, ${w.jahr}`);
-  const altText = w => (w.tr === 'haut' ? `${w.t}, Blackwork auf ${w.ort}, ${w.jahr}.` : `${w.t}, ${w.technik}, ${w.jahr}.`) + ' Werkansicht öffnen.';
-  function bildHTML(w, sizes, alt) {
-    return `<img class="${bildKlasse(w)}" src="${esc(w.src)}"${w.srcset ? ` srcset="${esc(w.srcset)}"` : ''} sizes="${sizes}" width="${w.w}" height="${w.h}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
+  const verh = b => (b.w / b.h).toFixed(4);
+  const ZAHLWORT = ['', 'ein', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn', 'elf', 'zwölf'];
+  const blaetterText = n => `${ZAHLWORT[n] || n} Blätter`;
+  /* Die Zahl der Blätter steht in der Zeile, wenn ein Werk aus mehreren besteht — außer die
+     Technik nennt sie schon („zwölf Blätter“ bei einer einzigen Aufnahme). */
+  function meta(w) {
+    if (w.tr === 'haut') return `Nr. ${w.nr} — Haut, ${w.ort}, ${w.jahr}`;
+    const n = L.blaetter(w).length;
+    return `Nr. ${w.nr} — ${w.technik}${n > 1 ? ', ' + blaetterText(n) : ''}, ${w.jahr}`;
+  }
+  const blattName = (w, i, n) => (n > 1 ? `${w.t}, Bild ${i + 1} von ${n}` : w.t);
+  const altText = (w, i, n) => blattName(w, i, n) + (w.tr === 'haut' ? `, Blackwork auf ${w.ort}, ${w.jahr}.` : `, ${w.technik}, ${w.jahr}.`) + ' Werkansicht öffnen.';
+  function bildHTML(w, b, sizes, alt) {
+    return `<img class="${bildKlasse(w)}" src="${esc(b.src)}" srcset="${esc(b.srcset)}" sizes="${sizes}" width="${b.w}" height="${b.h}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
   }
   function filtered() {
     let list = W.filter(isReal);
@@ -118,45 +123,35 @@
     el.innerHTML = teile.join('<span class="chip-gap"></span>');
     el.hidden = !teile.length;
   }
+  /* Die Hängung. Jedes Werk steht für sich, alle in derselben Höhe (--hoehe im Stylesheet),
+     so wie Bilder an einer Wand auf einer Linie hängen. Ein Werk aus mehreren Blättern steht
+     als Reihe: Die Blätter teilen sich die Breite nach ihrem Seitenverhältnis (--r) und sind
+     dadurch gleich hoch, ohne dass hier eine Pixelzahl gerechnet wird. flex-grow ist das
+     Seitenverhältnis mal tausend: Unter eins verteilte Flexbox nur einen Teil des Platzes,
+     und ein einzelnes Hochformat bliebe schmaler als sein Werk. --r des ganzen Werks
+     ist die Summe, --n die Zahl der Fugen plus eins; daraus setzt das Stylesheet die Breite.
+     Jedes Blatt ist ein eigener Knopf und öffnet die Werkansicht bei sich. Beim Enthüllen
+     legen sich die Blätter eines Werks nacheinander ab, die Beschriftung kommt zuletzt. */
   function renderGrid() {
     const list = filtered();
     const lead = $('#werke-lead-text');
     if (lead && einTraeger && CFG.werkeVorspannEinTraeger) lead.textContent = CFG.werkeVorspannEinTraeger;
     $('#werke-count').textContent = list.length === 1 ? 'Ein Werk.' : list.length + ' Werke.';
-    const gl = $('#g-list'); gl.dataset.layout = S.layout;
-    const wall = gl.closest('.g-wall');
-    if (wall) wall.dataset.schiene = S.layout === 'schiene' ? 'an' : 'aus';
-    const cols = Math.max(1, parseInt(getComputedStyle(app).getPropertyValue('--cols'), 10) || 2);
-    gl.innerHTML = list.map((w, i) => `<button type="button" class="g-item rv" data-eintritt="blatt" data-versatz="${i % cols}" data-fid="${w.id}" aria-label="${esc(altText(w))}"><span class="tin"><span class="cnr" aria-hidden="true">${w.nr}</span><span class="g-ph" style="aspect-ratio:${ratio(w)};">${bildHTML(w, '(max-width: 540px) 92vw, (max-width: 900px) 46vw, 380px')}</span><span class="g-meta"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></span></span></button>`).join('');
-    if (B) B.heben($$('.g-item', gl), { um: 4, feld: '.g-ph' });
+    const gl = $('#g-list');
+    gl.innerHTML = list.map(w => {
+      const bl = L.blaetter(w), n = bl.length;
+      const summe = bl.reduce((s, b) => s + b.w / b.h, 0);
+      /* sizes: auf dem Telefon der Anteil an der vollen Breite, sonst die Breite bei der
+         vollen Höhe von 560 px, gedeckelt durch die Spalte der Seite. */
+      const sizes = b => { const r = b.w / b.h; return `(max-width: 700px) ${Math.round(92 * r / summe)}vw, ${Math.round(Math.min(560 * r, 1100 * r / summe))}px`; };
+      const blaetter = bl.map((b, i) => `<button type="button" class="g-blatt rv" data-eintritt="blatt" data-versatz="${i}" data-teil="${i}" style="--r:${verh(b)};flex-grow:${Math.round(1000 * b.w / b.h)}" aria-label="${esc(altText(w, i, n))}"><span class="g-bild">${bildHTML(w, b, sizes(b))}</span></button>`).join('');
+      return `<figure class="g-item${n > 1 ? ' g-item--teile' : ''}" data-fid="${esc(w.id)}" style="--r:${summe.toFixed(4)};--n:${n}">`
+        + `<span class="cnr" aria-hidden="true">${esc(w.nr)}</span><div class="g-ph">${blaetter}</div>`
+        + `<figcaption class="g-meta rv" data-versatz="${n}"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></figcaption></figure>`;
+    }).join('');
+    if (B) B.heben($$('.g-blatt', gl), { um: 4, feld: '.g-bild' });
   }
-  function renderWerke() { renderTabs(); renderChips(); renderGrid(); zaehlerNachfuehren(); }
-
-  /* Zeigt in der Schiene, das wievielte Blatt gerade in der Mitte steht. Ohne diesen
-     Hinweis weiß beim Wischen niemand, wie viel noch kommt. */
-  function zaehlerNachfuehren() {
-    const gl = $('#g-list'), z = $('#g-zaehler');
-    if (!gl || !z) return;
-    const items = $$('.g-item', gl);
-    if (S.layout !== 'schiene' || !items.length) { z.textContent = ''; return; }
-    const mitte = gl.scrollLeft + gl.clientWidth / 2;
-    let nah = 0, beste = Infinity;
-    items.forEach((el, i) => {
-      const c = el.offsetLeft + el.offsetWidth / 2;
-      const d = Math.abs(c - mitte);
-      if (d < beste) { beste = d; nah = i; }
-    });
-    z.textContent = `${nah + 1} von ${items.length}`;
-  }
-  (function schienenZaehler() {
-    const gl = $('#g-list'); if (!gl) return;
-    let warte = 0;
-    gl.addEventListener('scroll', () => {
-      if (warte) return;
-      warte = requestAnimationFrame(() => { warte = 0; zaehlerNachfuehren(); });
-    }, { passive: true });
-    addEventListener('resize', zaehlerNachfuehren, { passive: true });
-  })();
+  function renderWerke() { renderTabs(); renderChips(); renderGrid(); }
 
   /* Übergänge der Galerie. Was verschwindet, geht zuerst, und zwar schneller als es kam;
      dann wird neu gezeichnet; was bleibt, gleitet an seinen neuen Platz (FLIP), was neu ist,
@@ -169,12 +164,15 @@
      beobachtet nach zwei schnellen Filterwechseln hintereinander, wo neu erscheinende Blätter
      mit style.opacity="1"/transform="none" hängen blieben. Deshalb hier ebenso erst zwei
      Renderschritte später leeren. */
+  /* Die Blätter und die Beschriftung eines Werks tragen .rv; nach einem Filterwechsel zeigt
+     die Galerie sie selbst, im Ganzen, statt sie einzeln enthüllen zu lassen. */
+  const werkSofort = el => { if (B) $$('.rv', el).forEach(x => B.sofort(x)); };
   function flipPlay() {
-    const s = mScale(); if (!s || !M) { $$('.g-item').forEach(el => B.sofort(el)); return; }
+    const s = mScale(); if (!s || !M) { $$('.g-item').forEach(werkSofort); return; }
     const t = B.tempo(); let neu = 0;
     $$('.g-item').forEach(el => {
       const r0 = rects && rects[el.dataset.fid], r1 = el.getBoundingClientRect();
-      B.sofort(el);
+      werkSofort(el);
       if (!r0) {
         M.animate(el, { opacity: [0, 1], y: [16, 0] }, { duration: t.dauer * 0.6 * s, delay: Math.min(neu++, 6) * 0.05 * s, ease: t.kurve })
           .then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.opacity = ''; el.style.transform = ''; })));
@@ -205,7 +203,6 @@
     if (lauf !== filterLauf) return;
     flipStart(); Object.assign(S, patch); renderChips(); renderGrid(); flipPlay();
   }
-  function setLayout(k) { if (k === S.layout) return; flipStart(); S.layout = k; $('#g-list').dataset.layout = k; zaehlerNachfuehren(); flipPlay(); }
   /* Die Waschung beim Trägerwechsel, je Richtung: A zieht Tusche von oben herunter, B blendet
      ins Schwarz, C schiebt ein Blatt von links. Gebaut mit Motion, Dauern aus tempo(). */
   /* Läuft schon eine Waschung, lässt ein zweiter Klick sie in Ruhe: Zwei Motion-Animationen
@@ -229,7 +226,7 @@
     washAnim(wash, true).then(() => {
       apply();
       const t = B.tempo(), items = $$('.g-item');
-      items.forEach(el => B.sofort(el));
+      items.forEach(werkSofort);
       washAnim(wash, false).then(() => { waescht = false; });
       /* Dieselbe Nachschreib-Falle wie in flipPlay(): erst zwei Renderschritte später leeren. */
       items.forEach((el, k) => M.animate(el, B.eintritt(el), { duration: t.dauer * 0.5 * s, delay: (t.wasch.aus * 0.55 + Math.min(k * 0.032, 0.2)) * s, ease: t.kurve })
@@ -249,7 +246,10 @@
     if (nv !== null && S[f] === nv) nv = null;
     chip({ [f]: nv });
   });
-  $('#g-list').addEventListener('click', e => { const b = e.target.closest('.g-item'); if (b) openWerk(b.dataset.fid, b); });
+  $('#g-list').addEventListener('click', e => {
+    const b = e.target.closest('.g-blatt'), w = b && b.closest('.g-item');
+    if (w) openWerk(w.dataset.fid, b, Number(b.dataset.teil) || 0);
+  });
 
   /* ---------- Werkansicht ---------- */
   let ret = null, rect0 = null;
@@ -258,32 +258,49 @@
      eigenen Reihe, nicht quer durch beides. */
   const istGrafik = o => !!o && !!o.art;
   const finde = id => W.find(w => w.id === id) || GRAFIK.find(g => g.id === id);
-  const ovListe = o => (istGrafik(o) ? GRAFIK : filtered());
+  const ovListe = o => (istGrafik(o) ? GRAFIK : filtered()).filter(isReal);
+  /* Geblättert wird Blatt für Blatt: durch die Blätter eines Werks, dann weiter zum nächsten
+     Werk. Wer ein dreiteiliges Werk ansieht, soll nicht nach dem ersten Blatt herausfliegen. */
+  const ovFolge = o => ovListe(o).flatMap(w => L.blaetter(w).map((b, i) => ({ id: w.id, teil: i })));
   function ovZeilen(o) {
     if (istGrafik(o)) {
       const r = [{ k: 'Gattung', v: o.art }];
       if (o.fuer) r.push({ k: 'Für', v: o.fuer });
-      r.push({ k: 'Jahr', v: String(o.jahr) });
+      if (o.jahr) r.push({ k: 'Jahr', v: String(o.jahr) });
       if (o.notiz) r.push({ k: 'Anlass', v: o.notiz });
       return r;
     }
     const r = [{ k: 'Werknummer', v: 'Nr. ' + o.nr }, { k: 'Träger', v: o.tr === 'haut' ? 'Haut' : 'Papier' }, { k: 'Jahr', v: String(o.jahr) }];
     if (o.tr === 'haut') r.push({ k: 'Körperstelle', v: o.ort }, { k: 'Sitzungen', v: o.sitzungen + (o.sitzungen > 1 ? ' Sitzungen' : ' Sitzung') }, { k: 'Zustand', v: o.zustand });
-    else r.push({ k: 'Technik', v: o.technik }, { k: 'Maße', v: o.masse }, { k: 'Serie', v: o.serie });
+    else {
+      r.push({ k: 'Technik', v: o.technik });
+      const n = L.blaetter(o).length;
+      if (n > 1) r.push({ k: 'Umfang', v: blaetterText(n) });
+      r.push({ k: 'Maße', v: o.masse });
+      if (o.serie) r.push({ k: 'Serie', v: o.serie });
+      if (o.gezeigt) r.push({ k: 'Gezeigt', v: o.gezeigt });
+    }
     return r;
   }
   function renderOverlay() {
     const root = $('#ov-root'); const ow = finde(S.open);
     if (!ow) { root.innerHTML = ''; return; }
+    const bl = L.blaetter(ow), n = bl.length;
+    const teil = Math.max(0, Math.min(S.teil || 0, n - 1)), b = bl[teil];
     const liste = ovListe(ow);
     const stelle = liste.findIndex(w => w.id === ow.id);
     const rows = ovZeilen(ow);
     /* Die Bildfläche hat eine feste Höhe und zeigt das Blatt vollständig. Ein gerechnetes
        Seitenverhältnis brauchte für jedes Format eine Ausnahme und ergab auf dem Telefon
        entweder einen Streifen oder eine Fläche, die nicht mehr aufs Bild passte. */
-    const bild = `<img class="${bildKlasse(ow)}" src="${esc(ow.src)}"${ow.srcset ? ` srcset="${esc(ow.srcset)}"` : ''} sizes="(max-width: 700px) 96vw, 620px" width="${ow.w}" height="${ow.h}" alt="${esc(ow.t)}" decoding="async">`;
-    const zaehler = liste.length > 1 ? `<span class="ov-zaehler">${stelle + 1} von ${liste.length}</span>` : '';
-    root.innerHTML = `<div id="ov" role="dialog" aria-modal="true" aria-label="${esc(ow.t)}"><div id="ov-bg"></div><div class="ov-card"><figure id="ov-fig" class="ov-fig">${bild}</figure><div class="ov-info"><h3 class="hd">${esc(ow.t)}</h3><div class="ov-rows">${rows.map(x => `<div class="ov-row"><div class="mut">${esc(x.k)}</div><div>${esc(x.v)}</div></div>`).join('')}</div><div class="ov-actions">${zaehler}<button type="button" id="ov-prev" class="btn">Zurück</button><button type="button" id="ov-next" class="btn">Weiter</button><button type="button" id="ov-close" class="btn primary" style="padding:10px 20px;font-size:16px;">Schließen</button></div></div></div></div>`;
+    const bild = `<img class="${bildKlasse(ow)}" src="${esc(b.src)}" srcset="${esc(b.srcset)}" sizes="(max-width: 700px) 96vw, 620px" width="${b.w}" height="${b.h}" alt="${esc(blattName(ow, teil, n))}" decoding="async">`;
+    /* Bei einem Werk aus mehreren Blättern zählt die Ansicht die Blätter, sonst die Werke. */
+    const zahl = n > 1 ? `Bild ${teil + 1} von ${n}` : (liste.length > 1 ? `${stelle + 1} von ${liste.length}` : '');
+    const zaehler = zahl ? `<span class="ov-zaehler">${zahl}</span>` : '';
+    /* Die Blätter des Werks klein nebeneinander, in der Reihenfolge der Hängung: Man sieht,
+       wo man steht, und kann direkt zu einem anderen springen. */
+    const leiste = n > 1 ? `<div class="ov-teile" role="group" aria-label="Die ${blaetterText(n)} dieses Werks">${bl.map((x, i) => `<button type="button" class="ov-teil" data-teil="${i}" aria-pressed="${i === teil}" aria-label="Bild ${i + 1} von ${n}" style="--r:${verh(x)}"><img class="${bildKlasse(ow)}" src="${esc(x.src)}" srcset="${esc(x.srcset)}" sizes="72px" width="${x.w}" height="${x.h}" alt="" decoding="async"></button>`).join('')}</div>` : '';
+    root.innerHTML = `<div id="ov" role="dialog" aria-modal="true" aria-label="${esc(ow.t)}"><div id="ov-bg"></div><div class="ov-card"><figure id="ov-fig" class="ov-fig">${bild}</figure><div class="ov-info"><h3 class="hd">${esc(ow.t)}</h3><div class="ov-rows">${rows.map(x => `<div class="ov-row"><div class="mut">${esc(x.k)}</div><div>${esc(x.v)}</div></div>`).join('')}</div>${leiste}<div class="ov-actions">${zaehler}<button type="button" id="ov-prev" class="btn">Zurück</button><button type="button" id="ov-next" class="btn">Weiter</button><button type="button" id="ov-close" class="btn primary" style="padding:10px 20px;font-size:16px;">Schließen</button></div></div></div></div>`;
     wischen($('#ov'));
   }
 
@@ -328,11 +345,21 @@
     const teile = info ? Array.from(info.children) : [];
     if (teile.length) M.animate(teile, { opacity: [0, 1], y: [12, 0] }, { duration: t.dauer * 0.5 * s, delay: M.stagger(0.05 * s, { startDelay: 0.15 * s }), ease: t.kurve });
   }
-  function openWerk(id, btn) {
+  /* Die Bildfläche eines Knopfs in der Galerie: das Blatt selbst oder die Karte der Grafik. */
+  const flaeche = btn => btn && (btn.querySelector('.g-bild, .gr-ph') || btn);
+  function openWerk(id, btn, teil) {
     ret = btn || null;
-    const ph = btn && btn.querySelector('.g-ph, .gr-ph'); rect0 = ph ? ph.getBoundingClientRect() : null;
-    S.open = id; renderOverlay(); animateOvIn();
-    const c = $('#ov-close'); if (c) c.focus();
+    const ph = flaeche(btn); rect0 = ph ? ph.getBoundingClientRect() : null;
+    S.open = id; S.teil = teil || 0; renderOverlay(); animateOvIn();
+    /* preventScroll: Auf dem Telefon scrollt die Karte, und der Fokus auf „Schließen“ ganz
+       unten schöbe sonst das Blatt aus dem Bild, bevor man es gesehen hat. */
+    const c = $('#ov-close'); if (c) c.focus({ preventScroll: true });
+  }
+  /* Wohin die Werkansicht zurückgeht: zu dem Blatt, das sie zuletzt gezeigt hat — nach dem
+     Blättern ist das nicht mehr das, von dem sie kam. */
+  function heimkehr() {
+    const id = window.CSS && CSS.escape ? CSS.escape(S.open) : S.open;
+    return $(`.g-item[data-fid="${id}"] .g-blatt[data-teil="${S.teil || 0}"]`) || $(`.gr-item[data-gid="${id}"]`) || ret;
   }
   /* Schließen: umgekehrt und kürzer. Der Dialog bleibt, bis das Bild zurück am Blatt ist;
      erst dann geht er aus dem Dokument und der Fokus zurück. */
@@ -342,8 +369,9 @@
     schliesst = true;
     const s = mScale(), t = B.tempo();
     const fig = $('#ov-fig'), bg = $('#ov-bg'), info = $('.ov-info');
+    const zurueck = heimkehr();
     if (s && M) {
-      const ziel = ret && ret.querySelector('.g-ph, .gr-ph');
+      const ziel = flaeche(zurueck);
       const r0 = ziel ? ziel.getBoundingClientRect() : null;
       const wartet = [];
       if (info) wartet.push(M.animate(Array.from(info.children), { opacity: 0, y: 8 }, { duration: t.kurz * 0.5 * s, ease: t.kurve }));
@@ -355,29 +383,45 @@
       if (bg) wartet.push(M.animate(bg, { opacity: 0 }, { duration: t.kurz * s, delay: t.kurz * 0.3 * s, ease: t.kurve }));
       await Promise.all(wartet);
     }
-    S.open = null; renderOverlay(); schliesst = false;
-    if (ret) ret.focus();
+    S.open = null; S.teil = 0; renderOverlay(); schliesst = false;
+    if (zurueck) zurueck.focus();
   }
 
-  /* Blättern: das alte Bild geht kurz zur Seite, das neue kommt von der anderen. */
-  async function ovStep(dir) {
-    const list = ovListe(finde(S.open)); if (!list.length || schliesst) return;
-    const i = list.findIndex(w => w.id === S.open);
-    const nx = list[(i + dir + list.length) % list.length];
+  /* Blättern: das alte Bild geht kurz zur Seite, das neue kommt von der anderen. Bleibt es
+     beim selben Werk, bleiben auch Titel und Zeilen stehen; nur das Blatt wechselt. */
+  /* Wer schneller drückt, als das Blatt geht, überspringt nichts und verheddert nichts: Solange
+     ein Wechsel läuft, zählt der nächste Druck nicht. Zwei Wechsel zugleich rechneten beide
+     vom selben Blatt aus, und der langsamere gewann. */
+  let blaettert = false;
+  async function ovGehe(ziel, dir, fokus) {
+    if (!ziel || schliesst || blaettert) return;
     const s = mScale(), t = B.tempo(), fig = $('#ov-fig');
+    const werkWechsel = ziel.id !== S.open;
+    blaettert = true;
     if (s && M && fig) await M.animate(fig, { opacity: 0, x: -14 * dir }, { duration: 0.18 * s, ease: t.kurve });
-    rect0 = null; S.open = nx.id; renderOverlay();
+    blaettert = false;
+    if (schliesst || S.open == null) return;
+    rect0 = null; S.open = ziel.id; S.teil = ziel.teil; renderOverlay();
     if (s && M) {
       const f2 = $('#ov-fig'), zeilen = [$('.ov-info h3'), $('.ov-rows')].filter(Boolean);
       /* Dieselbe Nachschreib-Falle wie oben bei animateOvIn: erst zwei Renderschritte später leeren. */
       if (f2) M.animate(f2, { opacity: [0, 1], x: [14 * dir, 0] }, { duration: 0.35 * s, ease: t.kurve })
         .then(() => M.frame.postRender(() => M.frame.postRender(() => { f2.style.transform = ''; })));
-      if (zeilen.length) M.animate(zeilen, { opacity: [0, 1] }, { duration: 0.3 * s, ease: t.kurve });
+      if (werkWechsel && zeilen.length) M.animate(zeilen, { opacity: [0, 1] }, { duration: 0.3 * s, ease: t.kurve });
     }
-    const c = $('#ov-close'); if (c) c.focus();
+    const f = (fokus && $(fokus)) || $('#ov-close'); if (f) f.focus({ preventScroll: true });
+  }
+  function ovStep(dir) {
+    const folge = ovFolge(finde(S.open)); if (!folge.length) return;
+    const i = folge.findIndex(x => x.id === S.open && x.teil === (S.teil || 0));
+    ovGehe(folge[(i + dir + folge.length) % folge.length], dir, dir > 0 ? '#ov-next' : '#ov-prev');
   }
   $('#ov-root').addEventListener('click', e => {
-    if (e.target.closest('#ov-close') || e.target.id === 'ov-bg') closeOv();
+    const teil = e.target.closest('.ov-teil');
+    if (teil) {
+      const i = Number(teil.dataset.teil) || 0;
+      if (i !== S.teil) ovGehe({ id: S.open, teil: i }, i > S.teil ? 1 : -1, `.ov-teil[data-teil="${i}"]`);
+    } else if (e.target.closest('#ov-close') || e.target.id === 'ov-bg') closeOv();
     else if (e.target.closest('#ov-prev')) ovStep(-1);
     else if (e.target.closest('#ov-next')) ovStep(1);
   });
@@ -393,21 +437,26 @@
   }
 
   /* ---------- Grafik ---------- */
-  /* Plakate, Cover und Signets. Sie behalten ihren dunklen Grund: multiply würde aus einem
+  /* Plakate, Flyer, Cover und Signets. Sie behalten ihren Grund: multiply würde aus einem
      schwarzen Plakat ein Loch in der Seite machen. Jede Karte trägt ihr eigenes Format,
-     ein Plakat wird also nicht auf quadratisch gestutzt. */
+     ein Plakat wird also nicht auf quadratisch gestutzt.
+
+     Gehängt wird in Reihen gleicher Höhe, wie an einer Plakatwand: Jede Karte wächst nach
+     ihrem Seitenverhältnis (--r), dadurch ist jede Reihe bündig und innen gleich hoch, ohne
+     dass hier gemessen wird. Die Karte nennt nur Titel, Gattung und Jahr; für wen und zu
+     welchem Anlass steht in der Werkansicht. */
   function renderGrafik() {
     const el = $('#grafik-list'); if (!el) return;
-    abschnittZeigen('grafik', GRAFIK.length > 0);
-    el.innerHTML = GRAFIK.map((g, i) => {
-      const zeile = [g.art, g.fuer, g.jahr].filter(Boolean).join(', ');
-      const alt = `${g.t}, ${g.art}${g.fuer ? ' ' + g.fuer : ''}, ${g.jahr}. Größer ansehen.`;
-      return `<button type="button" class="gr-item rv" data-eintritt="druck" data-versatz="${i % 2}" data-gid="${esc(g.id)}" aria-label="${esc(alt)}">`
-        + `<span class="gr-ph" style="aspect-ratio:${g.w} / ${g.h};">`
-        + `<img class="photo-img" src="${esc(g.src)}" srcset="${esc(g.srcset)}" sizes="(max-width: 700px) 92vw, (max-width: 1180px) 46vw, 568px" width="${g.w}" height="${g.h}" alt="" loading="lazy" decoding="async">`
-        + `</span><span class="gr-meta"><span class="gr-t">${esc(g.t)}</span><span class="gr-m">${esc(zeile)}</span>`
-        + (g.notiz ? `<span class="gr-n">${esc(g.notiz)}</span>` : '')
-        + `</span></button>`;
+    const da = GRAFIK.map(g => ({ g, b: L.bild(g.bild) })).filter(x => x.b);
+    abschnittZeigen('grafik', da.length > 0);
+    el.innerHTML = da.map(({ g, b }, i) => {
+      const r = b.w / b.h;
+      const zeile = [g.art, g.jahr].filter(Boolean).join(', ');
+      const alt = [g.t, g.art + (g.fuer ? ' ' + g.fuer : ''), g.jahr].filter(Boolean).join(', ') + '. Größer ansehen.';
+      return `<button type="button" class="gr-item rv" data-eintritt="druck" data-versatz="${i % 3}" data-gid="${esc(g.id)}" style="--r:${verh(b)}" aria-label="${esc(alt)}">`
+        + `<span class="gr-ph">`
+        + `<img class="photo-img" src="${esc(b.src)}" srcset="${esc(b.srcset)}" sizes="(max-width: 700px) ${Math.round(Math.min(92, 48 * r))}vw, ${Math.round(Math.min(1100, 380 * r))}px" width="${b.w}" height="${b.h}" alt="" loading="lazy" decoding="async">`
+        + `</span><span class="gr-meta"><span class="gr-t">${esc(g.t)}</span><span class="gr-m">${esc(zeile)}</span></span></button>`;
     }).join('');
     if (B) B.heben($$('.gr-item', el), { um: 3, feld: '.gr-ph' });
   }
@@ -525,7 +574,7 @@
     panel.addEventListener('click', e => {
       const b = e.target.closest('[data-set]'); if (!b) return;
       const k = b.dataset.set, v = b.dataset.val;
-      if (k === 'layout') setLayout(v); else { S[k] = v; applyTheme(); }
+      S[k] = v; applyTheme();
       renderPanel();
     });
     $('#panel-zu').addEventListener('click', () => { S.panelOpen = false; renderPanel(); });

@@ -22,8 +22,9 @@ index.html            Startseite (Auftakt, Sequenz, Aktuell, Werke, Handschrift,
 impressum.html        Impressum (Platzhalter, vor Veröffentlichung ausfüllen)
 datenschutz.html      Datenschutzerklärung (Platzhalter, vor Veröffentlichung prüfen)
 css/site.css          Alle Stile, drei Richtungen über .app[data-richtung]
-js/works.js           Werkdaten, Flash-Blätter, Filterlisten, Konfiguration
-js/site.js            Seitenlogik: Galerie, Filter, Werkansicht, Formular, Übergänge
+js/works.js           Werkdaten, Grafik, Flash-Blätter, Filterlisten, Konfiguration
+js/bilder.js          Maße und Breiten jedes Bildes, erzeugt von scripts/bilder.py (nicht von Hand ändern)
+js/site.js            Seitenlogik: Hängung der Werke, Plakatwand, Werkansicht, Formular, Übergänge
 js/bewegung.js        Grundlage aller Bewegung: Motion, Stärke, Tempo je Richtung, Enthüllen, Parallaxe, Zeiger
 js/auftakt.js         Der Auftakt: ein Blatt in der Ecke der Seite, Zeichenvideo, Schnitt, Standbild
 js/blattfolge.js      Die Blattfolge: ein Blatt nach dem anderen; das Scrollen wählt, die Zeit wechselt
@@ -31,6 +32,7 @@ js/abschnitte.js      Kleine Bewegungen je Abschnitt: Aktuell, Handschrift, Stud
 js/tropfspur.js       Die Tropfspur: Blut, kein Faden — hängt am Strang, bleibt stehen, wo sie lief, staut, wo man verweilt
 vendor/motion/        Motion 13.2.0, lokal gehostet (siehe HERKUNFT.md)
 scripts/pruefen.mjs   Prüft die Seite mit Playwright: Zusicherungen, leere Konsole, Bilder je Abschnitt
+scripts/bilder.py     Leitet alle Bilder aus assets/original/ ab: Zuschnitt, Papier auf Weiß, WebP je Breite
 skizze.html           Entwurf: ein Weltzustand fährt fliegende Blätter, Sprite und Tränen
 js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand, alle lesen daraus
 js/skizze.js          Die drei Systeme der Skizze
@@ -38,8 +40,8 @@ css/skizze.css        Stile nur für die Skizze
 docs/                 Der Claude-Design-Prompt zu diesem Entwurf
 vendor/htmx/          htmx 4.0.0 und hx-live, lokal (nur für die Anzeige der Skizze)
 assets/fonts/         Alegreya, Alegreya Sans, Big Shoulders als woff2 (latin, latin-ext) plus fonts.css
-assets/img/           Werkbilder, Atelierfoto, Poster, Favicon
-assets/original/      Jede Aufnahme, wie sie kam, unbearbeitet (wird nicht ausgeliefert)
+assets/img/           Abgeleitete Bilder als <name>-<breite>.webp, dazu Poster, Sprite, Favicon, og-bild.jpg
+assets/original/      Jede Aufnahme, wie sie kam, mit sprechendem Namen (wird nicht ausgeliefert, siehe LIESMICH.md)
 assets/video/         Zeichenanimationen (H.264, ohne Ton)
 NOTES.md              Offene Punkte aus dem Prototyp
 video/                Der Film zur Werkschau, gebaut mit Remotion (eigene README)
@@ -49,73 +51,80 @@ scripts/make-gifs.sh  Erzeugt GIF-Fassungen der Zeichenanimationen
 
 ## Bilder und Videos austauschen
 
-Werke stehen in `js/works.js` unter `LUKE.WERKE`. Ein Eintrag braucht `src`, `w` und `h`; ohne `src` wird er
-übergangen. Erzeugte Tuschzeichnungen als Platzhalter gibt es nicht mehr — auch nicht im Hintergrund, auch nicht
-in der Sequenz. Auf der Seite steht nur, was es gibt.
+Jedes Bild beginnt als Original unter `assets/original/`, so wie Luke es geschickt hat, nur mit
+sprechendem Namen (die Zuordnung zu den Dateinamen vom Telefon steht in `assets/original/LIESMICH.md`).
+`scripts/bilder.py` leitet daraus ab, was ausgeliefert wird:
+
+```
+python scripts/bilder.py            # alles neu (braucht Pillow mit WebP und numpy)
+python scripts/bilder.py befreiung  # nur Bilder, deren Name das Wort enthält
+```
+
+Das Skript schneidet zu, zieht bei Papierarbeiten den Papierton auf Weiß, rechnet jedes Bild in zwei bis vier
+Breiten und schreibt `assets/img/<name>-<breite>.webp`. Dazu `js/bilder.js` mit Maßen und Breiten; die Seite
+baut `srcset` daraus. In `js/works.js` stehen Bilder darum nur beim Namen. Ein neues Bild: Original ablegen,
+in `BILDER` im Skript eintragen, Skript laufen lassen, Namen in `js/works.js` verwenden.
+
+Werke stehen in `js/works.js` unter `LUKE.WERKE`. Ein Werk nennt seine Bilder in `bilder`, in der Reihenfolge
+der Hängung; ohne Bild wird es übergangen. Besteht es aus mehreren Blättern — wie „Befreiung der
+Körperlichkeit“, Werk I und Werk II, je drei —, stehen die Blätter in der Galerie nebeneinander und gleich
+hoch, die Werkansicht blättert Blatt für Blatt, und die Blattfolge zieht jedes einzeln vorbei. Erzeugte
+Tuschzeichnungen als Platzhalter gibt es nicht mehr. Auf der Seite steht nur, was es gibt.
 
 Die Seite richtet sich nach den Daten. Gibt es nur einen Träger, verschwinden die Reiter „Haut / Papier / Alles"
 und der Abschnitt bekommt stattdessen eine gewöhnliche Überschrift. Ein Filter erscheint nur, wenn es darin mehr als
 eine Möglichkeit gibt. Ist `LUKE.FLASH` leer, verschwindet der Abschnitt „Flash" samt Eintrag in der Navigation. Ein
-Kapitel der 3D-Sequenz erscheint nur, wenn es dafür Aufnahmen gibt; bleibt keines übrig, entfällt der ganze
+Kapitel der Blattfolge erscheint nur, wenn es dafür Aufnahmen gibt; bleibt keines übrig, entfällt der ganze
 Abschnitt. Nichts davon muss von Hand geschaltet werden — Einträge ergänzen genügt.
 
 Nicht jedes Blatt auf der Seite ist ein Werk. Drei tragen die Gestaltung, ohne im Verzeichnis zu stehen:
-das Profil mit dem roten Strang (Auftaktvideo, Tiefenebenen, Sprite), das Auge mit der Signatur (Abschnitt
-„Handschrift“) und die kniende Figur (Kopf der Seite). Sie liegen unter `LUKE.GESTALTUNG` und heißen
-`assets/img/gestaltung-*`, damit die Rolle am Dateinamen ablesbar ist. Wer eines davon ausstellen will,
+das Profil mit dem roten Strang (Auftaktvideo, Sprite), das Auge mit der Signatur (Abschnitt „Handschrift“) und
+die kniende Figur (Kopf der Seite). Luke hat sie als „Beiwerk“ geschickt. Sie liegen unter `LUKE.GESTALTUNG`
+und heißen `gestaltung-*`, damit die Rolle am Dateinamen ablesbar ist. Wer eines davon ausstellen will,
 verschiebt den Eintrag nach `LUKE.WERKE` und gibt ihm eine Nummer.
 
 Beispiel für einen Werkeintrag:
 
 ```js
-{ id: 'w7', nr: 'VII', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025,
-  sitzungen: 2, zustand: 'abgeheilt',
-  src: 'assets/img/werk-7-schwarzdorn-1200.jpg',
-  srcset: 'assets/img/werk-7-schwarzdorn-800.jpg 800w, assets/img/werk-7-schwarzdorn-1200.jpg 1200w',
-  w: 1200, h: 1500 }
+{ id: 'w5', nr: 'V', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025,
+  sitzungen: 2, zustand: 'abgeheilt', bilder: ['werk-schwarzdorn'] }
 ```
 
-Empfohlene Größen: 800, 1200 und Originalbreite als JPG, Seitenverhältnis frei (die Galerie richtet sich danach).
-Flash-Blätter (`LUKE.FLASH`) nehmen ebenfalls ein `src`.
+Flash-Blätter (`LUKE.FLASH`) nehmen ein `src`.
 
-### Aufnahmen von Papierarbeiten vorbereiten
+### Aufnahmen von Papierarbeiten
 
 Ein Blatt mit `tr: 'papier'` wird mit `mix-blend-mode: multiply` auf die Seite gelegt: Das Papier verschwindet,
-die Zeichnung steht frei auf Weiß. Damit das aufgeht, muss die Aufnahme zugeschnitten und der Papierton auf
-reines Weiß gezogen sein. Für die Blätter III bis VI lief dafür (mit ffmpeg):
-
-```
-crop=<Papierbreite>:<Höhe>:<x>:0,
-colorlevels=rimin=0.02:gimin=0.02:bimin=0.02:rimax=<R>:gimax=<G>:bimax=<B>,
-scale=<Breite>:<Höhe>:flags=lanczos,setsar=1
-```
-
-`R`, `G`, `B` sind der gemessene Papierton geteilt durch 255 (hier rund 0,92). `setsar=1` und `-map_metadata -1`
-sind wichtig: Ohne sie schreibt ffmpeg eine Pixelseitenverhältnis-Korrektur in den JFIF-Kopf.
+die Zeichnung steht frei auf Weiß. Damit das aufgeht, muss die Aufnahme zugeschnitten und der Papierton überall auf
+reines Weiß gezogen sein, auch in den Ecken, wo das Licht schwächer war. `scripts/bilder.py` (`art='papier'`) sucht
+dafür die Kante des Blatts auf dem dunklen Grund, in zwölf Streifen, damit ein schräg liegendes Blatt keinen Keil
+vom Grund behält; legt je Farbkanal eine flache Fläche durch die Papierpixel und teilt das Bild dadurch; und setzt
+Schwarz- und Weißpunkt knapp innerhalb. Wo die Kante zu blass ist („Ansichten“: cremefarbenes Papier auf
+hellgrauem Grund), steht ein fester Ausschnitt im Skript.
 
 Eine Aufnahme, die ihren dunklen Hintergrund behalten soll, bekommt stattdessen `grund: 'foto'`. Sie wird dann
-nicht multipliziert und bleibt aus der Blättersequenz heraus. Beispiel: Werk VI, die zwölf Köpfe auf schwarzem Holz.
+nicht multipliziert und bleibt aus der Blattfolge heraus. Beispiel: „Neuordnung des Speichers“, die zwölf Blätter
+auf schwarzem Holz.
 
 ### Grafik
 
-Plakate, Cover und Signets stehen getrennt in `LUKE.GRAFIK`. Sie sind keine Werke im Sinne der Galerie: Sie haben
-einen Auftraggeber und einen Anlass statt Träger, Serie und Maße, und sie behalten immer ihren dunklen Grund.
+Plakate, Flyer, Cover und Signets stehen getrennt in `LUKE.GRAFIK`, elf Arbeiten. Sie sind keine Werke im Sinne
+der Galerie: Sie haben einen Auftraggeber und einen Anlass statt Träger, Serie und Maße, und sie behalten immer ihren
+Grund. Gehängt werden sie wie an einer Plakatwand, in bündigen Reihen gleicher Höhe.
 
 ```js
-{ id: 'gr2', t: 'nebelgrau', art: 'Plakat', fuer: 'Kollektiv Noir und Tränentrinker', jahr: 2026,
-  notiz: '21. Februar 2026, 23 Uhr, Live Music Hall, Köln',
-  src: 'assets/img/grafik-2-nebelgrau-900.jpg',
-  srcset: 'assets/img/grafik-2-nebelgrau-480.jpg 480w, assets/img/grafik-2-nebelgrau-900.jpg 900w, assets/img/grafik-2-nebelgrau-1400.jpg 1400w',
-  w: 1400, h: 1980 }
+{ id: 'gr2', t: 'Noir', art: 'Flyer für die Clubnacht', fuer: 'Kollektiv Noir', jahr: 2026,
+  notiz: '19. September 2026, 23 Uhr, MTC', bild: 'grafik-flyer-noir-2026-09-19' }
 ```
 
-`fuer` und `notiz` dürfen fehlen, dann entfallen die Zeilen. Jede Karte behält ihr eigenes Format, ein Plakat wird
+`fuer`, `jahr` und `notiz` dürfen fehlen, dann entfallen die Zeilen. Ein Jahr steht nur, wo es sich belegen lässt
+(auf Plakaten und Flyern steht das Datum); bei Signets und Covern steht keins. Jede Karte behält ihr eigenes Format, ein Plakat wird
 also nicht auf quadratisch gestutzt. Die Werkansicht ist dieselbe wie bei den Werken; geblättert wird innerhalb der
 Grafiken, nicht quer durch beides.
 
 - Der Auftakt zeigt ein Blatt in der Ecke der Seite: oben an der Leiste, rechts an der Kante, auf jeder Breite
   (`js/auftakt.js`, `css/site.css`: `.hero-fig`). Zu sehen ist `assets/video/gestaltung-profil-zeichnung.webm`
-  (Safari: `.mp4`), einmal abgespielt; stehen bleibt danach `gestaltung-kniend-*.jpg`. Das sind zwei verschiedene
+  (Safari: `.mp4`), einmal abgespielt; stehen bleibt danach `gestaltung-kniend-*.webp`. Das sind zwei verschiedene
   Blätter, und so soll es auch gelesen werden: Eine Arbeit entsteht, eine andere steht. Dazwischen liegt eine knappe
   Leerstelle, damit der Übergang als Schnitt liest und nicht als Verwandlung. Die grauen Tiefenebenen einer früheren
   Fassung sind raus: Ihre Hüllen waren eigene Stapelkontexte, `multiply` griff darin nicht, und über dem Video lag eine
@@ -125,7 +134,7 @@ Grafiken, nicht quer durch beides.
   (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten. Die Breite des Kastens
   folgt aus seiner Höhe (78 vh, auf dem Telefon 52 vh), darum rechnet `sizes` in vh.
 - Was nicht gleich gebraucht wird, lädt später: Das Signaturvideo der Handschrift erst, wenn der Abschnitt ein Fenster
-  weit heranrückt; die Blätter 2 bis 5 der Blattfolge erst, wenn der Leser sich ihnen nähert. Beim Start lädt so gut
+  weit heranrückt; die Blätter 2 bis 7 der Blattfolge erst, wenn der Leser sich ihnen nähert. Beim Start lädt so gut
   ein Megabyte weniger (Telefon: gut zwei), und das Auftaktvideo hat die Leitung für sich.
 - Vorschaubild für soziale Netzwerke: `assets/img/og-bild.jpg`, 1200 × 630, dieselbe Zeichnung auf Weiß.
 - Sprite für die Skizze: `assets/img/zeichnung-sprite.webp`, 48 Bilder der Zeichenanimation, 8 × 6 Kacheln zu
@@ -133,7 +142,7 @@ Grafiken, nicht quer durch beides.
   `ffmpeg -i assets/video/gestaltung-profil-zeichnung.mp4 -vf "fps=48/6.04,scale=160:-2" -frames:v 48 f-%03d.png`
   und danach `ffmpeg -framerate 8 -i f-%03d.png -frames:v 48 -filter_complex "tile=8x6:color=white,format=rgb24" -c:v libwebp -quality 68 …`
 - Handschrift: `assets/video/gestaltung-signatur.mp4` startet beim Scrollen und bleibt auf dem letzten Bild (Signatur) stehen.
-- Studio: `assets/img/luke-atelier-*.jpg`.
+- Studio: `assets/img/luke-atelier-*.webp`.
 
 ## Konfiguration (`js/works.js`, `LUKE.CONFIG`)
 
@@ -148,7 +157,10 @@ Der Prototyp hatte drei Gestaltungsrichtungen. Alle drei sind enthalten, Standar
 
 - Bedienfeld einblenden: `Shift + B` oder `index.html?proto`
 - Richtung direkt aufrufen: `index.html?richtung=b` (oder `c`)
-- Weitere URL-Parameter: `layout=mauerwerk|buendig|schiene`, `bewegung=aus|dezent|voll`
+- Weiterer URL-Parameter: `bewegung=aus|dezent|voll`
+
+Die Umschaltung des Galerie-Layouts (Mauerwerk, Bündig, Schiene) ist raus: Seit ein Werk aus mehreren
+Blättern bestehen kann, richtet sich die Hängung nach den Werken selbst.
 
 Bei aktivierter Systemeinstellung „reduzierte Bewegung“ starten alle Animationen ausgeschaltet.
 

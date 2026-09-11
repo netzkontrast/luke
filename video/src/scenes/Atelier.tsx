@@ -21,7 +21,7 @@ export const Atelier: React.FC<{ ende: number }> = ({ ende }) => {
         }}
       >
         <Foto
-          datei="img/luke-atelier-1536.jpg"
+          datei="img/luke-atelier.jpg"
           ab={0}
           raus={ende - 0.5}
           weite={0.11}

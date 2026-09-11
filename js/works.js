@@ -1,6 +1,7 @@
-/* Werkdaten, Flash-Blätter und Konfiguration für lukewtf.
-   Bilder liegen unter assets/img/, Videos unter assets/video/.
-   Ein Werk ohne `src` bekommt automatisch eine generierte Tuschzeichnung als Platzhalter. */
+/* Werkdaten, Grafik, Flash-Blätter und Konfiguration für lukewtf.
+   Bilder werden hier nur beim Namen genannt. Maße und Breiten stehen in js/bilder.js, das
+   scripts/bilder.py aus den Originalen in assets/original/ erzeugt; LUKE.bild() macht aus
+   einem Namen src und srcset. Videos liegen unter assets/video/. */
 window.LUKE = window.LUKE || {};
 
 LUKE.CONFIG = {
@@ -27,60 +28,59 @@ LUKE.CONFIG = {
   werkeVorspannEinTraeger: 'Arbeiten auf Papier. Tusche und Farbe, jedes Blatt ein Original.'
 };
 
-/* Filterlisten in Anzeigereihenfolge. */
+/* Filterlisten in Anzeigereihenfolge. Ein Filter erscheint nur, wenn unter den vorhandenen
+   Werken mehr als eine Möglichkeit vorkommt. */
 LUKE.FILTER = {
   orte: ['Arm', 'Bein', 'Brust', 'Rücken', 'Hand'],
   motive: ['Botanik', 'Tier', 'Figur', 'Schrift'],
-  serien: ['Befreiung der Körperlichkeit', 'Köpfe'],
-  /* Nur Jahre, in denen es Papierarbeiten gibt. Sonst führt ein Reiter ins Leere.
-     Kommen ältere Blätter dazu, gehören sie hier wieder hin. */
+  serien: ['Befreiung der Körperlichkeit'],
   jahre: [2026]
 };
 
-/* Felder:
+/* Ein Bild beim Namen, so wie scripts/bilder.py es abgelegt hat: { name, src, srcset, w, h }.
+   src ist die Fassung um 800 Pixel, für Browser, die srcset nicht lesen. Unbekannte Namen
+   geben null, damit ein Tippfehler ein fehlendes Blatt ergibt und kein kaputtes. */
+LUKE.bild = function (name) {
+  const b = (LUKE.BILDER || {})[name];
+  if (!b) return null;
+  const datei = breite => `assets/img/${name}-${breite}.webp`;
+  const mittel = b.breiten.find(x => x >= 800) || b.breiten[b.breiten.length - 1];
+  return { name, src: datei(mittel), srcset: b.breiten.map(x => `${datei(x)} ${x}w`).join(', '), w: b.w, h: b.h };
+};
+
+/* Felder eines Werks:
    id, nr, t (Titel), tr ('haut' | 'papier'), jahr
-   Papier: serie, technik, masse
-   Haut:   ort, ortKey (Filter), motiv, sitzungen, zustand
-   Bild:   src, srcset (optional), w, h (Pixelmaße), video (optional, Zeichenanimation)
-           grund: 'foto' für Aufnahmen mit dunklem Hintergrund, die nicht mit multiply
-           auf die Seite gelegt werden dürfen
-   Ein Eintrag ohne `src` wird übergangen. Erzeugte Platzhalterzeichnungen gibt es nicht
-   mehr: Auf dieser Seite steht nur, was es gibt. */
-/* Nicht alles, was auf der Seite zu sehen ist, ist ein Werk. Das Profil mit dem roten
-   Strang, das Auge mit der Signatur und die kniende Figur tragen die Gestaltung: Sie stehen
-   im Kopf der Seite, im Auftaktvideo, in der Handschrift und im Sprite. Im Werkverzeichnis
-   stehen sie nicht — dort steht, was ausgestellt wird. Siehe LUKE.GESTALTUNG weiter unten. */
+   bilder   Namen der Bilder, in der Reihenfolge der Hängung. Ein Werk aus mehreren Blättern
+            nennt alle; auf der Seite stehen sie dann nebeneinander, gleich hoch.
+   Papier:  serie (optional), technik, masse, gezeigt (optional: wo es ausgestellt ist)
+   Haut:    ort, ortKey (Filter), motiv, sitzungen, zustand
+   grund:   'foto' für Aufnahmen mit dunklem Hintergrund, die nicht mit multiply auf die
+            Seite gelegt werden dürfen
+   Ein Werk ohne Bild wird übergangen: Auf dieser Seite steht nur, was es gibt.
+
+   Titel und Reihenfolge folgen den Dateinamen, unter denen Luke die Aufnahmen geschickt hat
+   („Befreiung der Körperlichkeit Werk I Bild 1“ …, „ansichten“, „neuordnung des speichers“).
+   Nicht alles, was auf der Seite zu sehen ist, ist ein Werk; siehe LUKE.GESTALTUNG unten. */
 LUKE.WERKE = [
-  { id: 'w1', nr: 'I', t: 'Befreiung der Körperlichkeit, Werk I', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
-    src: 'assets/img/werk-1-strang-728.jpg',
-    srcset: 'assets/img/werk-1-strang-480.jpg 480w, assets/img/werk-1-strang-728.jpg 728w',
-    w: 728, h: 1350 },
-  { id: 'w2', nr: 'II', t: 'Befreiung der Körperlichkeit, Werk II', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
-    src: 'assets/img/werk-2-beugung-822.jpg',
-    srcset: 'assets/img/werk-2-beugung-480.jpg 480w, assets/img/werk-2-beugung-822.jpg 822w',
-    w: 822, h: 1350 },
-  { id: 'w3', nr: 'III', t: 'Befreiung der Körperlichkeit, Werk III', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
-    src: 'assets/img/werk-3-fall-720.jpg',
-    srcset: 'assets/img/werk-3-fall-480.jpg 480w, assets/img/werk-3-fall-720.jpg 720w',
-    w: 720, h: 1350 },
-  { id: 'w4', nr: 'IV', t: 'Befreiung der Körperlichkeit, Werk IV', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026, technik: 'Tusche auf Papier', masse: 'Maße folgen',
-    src: 'assets/img/werk-4-schlinge-808.jpg',
-    srcset: 'assets/img/werk-4-schlinge-480.jpg 480w, assets/img/werk-4-schlinge-808.jpg 808w',
-    w: 808, h: 1350 },
+  { id: 'w1', nr: 'I', t: 'Befreiung der Körperlichkeit, Werk I', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026,
+    technik: 'Tusche auf Papier', masse: 'Maße folgen', gezeigt: 'Gruppenausstellung „Red“, Stage Gallery, Köln, 2026',
+    bilder: ['werk-befreiung-1-bild-1', 'werk-befreiung-1-bild-2', 'werk-befreiung-1-bild-3'] },
+  { id: 'w2', nr: 'II', t: 'Befreiung der Körperlichkeit, Werk II', tr: 'papier', serie: 'Befreiung der Körperlichkeit', jahr: 2026,
+    technik: 'Tusche auf Papier', masse: 'Maße folgen', gezeigt: 'Gruppenausstellung „Red“, Stage Gallery, Köln, 2026',
+    bilder: ['werk-befreiung-2-bild-1', 'werk-befreiung-2-bild-2', 'werk-befreiung-2-bild-3'] },
   /* Kein Tusche-, sondern ein Farbblatt: breiter Pinsel, dunkles Rot, cremefarbenes Papier.
      Der Papierton ist beim Aufbereiten auf Weiß gezogen, damit multiply auch hier trägt. */
-  { id: 'w5', nr: 'V', t: 'Kopf', tr: 'papier', serie: 'Köpfe', jahr: 2026, technik: 'Farbe auf Papier', masse: 'Maße folgen',
-    src: 'assets/img/werk-5-kopf-828.jpg',
-    srcset: 'assets/img/werk-5-kopf-480.jpg 480w, assets/img/werk-5-kopf-828.jpg 828w',
-    w: 828, h: 1130 },
+  { id: 'w3', nr: 'III', t: 'Ansichten', tr: 'papier', jahr: 2026, technik: 'Farbe auf Papier', masse: 'Maße folgen',
+    bilder: ['werk-ansichten'] },
   /* Zwölf kleine Blätter, auf schwarzem Holz ausgelegt und dort fotografiert. Das Bild
      behält seinen dunklen Grund: `grund: 'foto'` nimmt es von der multiply-Behandlung aus
-     und hält es aus der Blättersequenz heraus. */
-  { id: 'w6', nr: 'VI', t: 'Zwölf Köpfe', tr: 'papier', serie: 'Köpfe', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
-    src: 'assets/img/werk-6-koepfe-800.jpg',
-    srcset: 'assets/img/werk-6-koepfe-480.jpg 480w, assets/img/werk-6-koepfe-800.jpg 800w, assets/img/werk-6-koepfe-1600.jpg 1600w',
-    w: 1600, h: 1790 }
+     und hält es aus der Blattfolge heraus. */
+  { id: 'w4', nr: 'IV', t: 'Neuordnung des Speichers', tr: 'papier', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
+    bilder: ['werk-neuordnung-des-speichers'] }
 ];
+
+/* Die Bilder eines Werks (oder einer Grafik), aufgelöst. */
+LUKE.blaetter = w => ((w && (w.bilder || (w.bild ? [w.bild] : []))) || []).map(LUKE.bild).filter(Boolean);
 
 /* Wer Blätter zeigt, fragt hier — und schreibt die Regel nicht noch einmal auf.
 
@@ -89,14 +89,21 @@ LUKE.WERKE = [
    wäre dort ein schwarzes Rechteck. Diese Regel stand zwischenzeitlich in vier Modulen,
    und die vierte Fassung hatte den Träger schon vergessen. */
 LUKE.istTuschblatt = w => !!w && w.tr === 'papier' && w.grund !== 'foto';
-LUKE.helleAufnahmen = tr =>
-  (LUKE.WERKE || []).filter(w => w.src && w.grund !== 'foto' && (!tr || w.tr === tr));
+/* Alle hellen Blätter, einzeln, in der Reihenfolge der Werke: { src, srcset, w, h, werk,
+   teil, teile }. Ein Werk aus drei Blättern gibt drei Einträge. */
+LUKE.helleBlaetter = tr => (LUKE.WERKE || [])
+  .filter(w => w.grund !== 'foto' && (!tr || w.tr === tr))
+  .flatMap(w => {
+    const alle = LUKE.blaetter(w);
+    return alle.map((b, i) => Object.assign({}, b, { werk: w, teil: i + 1, teile: alle.length }));
+  });
 
 /* Gestaltung. Drei Blätter, die die Seite tragen, ohne im Verzeichnis zu stehen:
-   Sie sind das Material der Bewegung, nicht der Gegenstand der Ausstellung.
+   Sie sind das Material der Bewegung, nicht der Gegenstand der Ausstellung. Luke hat sie
+   unter „Beiwerk“ geschickt.
 
-   profil     Kopf im Profil mit rotem Strang. Läuft als Zeichenanimation im Auftakt,
-              liefert die Tiefenebenen des Live-Auftakts und die 48 Bilder des Sprites.
+   profil     Kopf im Profil mit rotem Strang. Läuft als Zeichenanimation im Auftakt und
+              liefert die 48 Bilder des Sprites.
    signatur   Auge am Ende einer langen Linie, mit Signatur. Quer. Trägt den Abschnitt
               „Handschrift", scrollgeführt.
    kniend     Kniende Figur. Das Blatt, das im Kopf der Seite steht.
@@ -106,26 +113,15 @@ LUKE.helleAufnahmen = tr =>
    bleibt. */
 LUKE.GESTALTUNG = {
   profil: {
-    t: 'Profil mit rotem Strang', technik: 'Tusche auf Papier', jahr: 2026,
-    src: 'assets/img/gestaltung-profil-1200.jpg',
-    srcset: 'assets/img/gestaltung-profil-800.jpg 800w, assets/img/gestaltung-profil-1200.jpg 1200w, assets/img/gestaltung-profil-1900.jpg 1900w',
-    w: 1900, h: 3085,
+    t: 'Profil mit rotem Strang', technik: 'Tusche auf Papier', jahr: 2026, bild: 'gestaltung-profil',
     video: 'assets/video/gestaltung-profil-zeichnung.mp4',
     sprite: { src: 'assets/img/zeichnung-sprite.webp', spalten: 8, zeilen: 6, bilder: 48 }
   },
   signatur: {
-    t: 'Auge mit Signatur', technik: 'Tusche auf Papier', jahr: 2026,
-    src: 'assets/img/gestaltung-signatur-1200.jpg',
-    srcset: 'assets/img/gestaltung-signatur-1200.jpg 1200w, assets/img/gestaltung-signatur-1800.jpg 1800w',
-    w: 1800, h: 480,
+    t: 'Auge mit Signatur', technik: 'Tusche auf Papier', jahr: 2026, bild: 'gestaltung-signatur',
     video: 'assets/video/gestaltung-signatur.mp4'
   },
-  kniend: {
-    t: 'Kniende Figur', technik: 'Tusche auf Papier', jahr: 2026,
-    src: 'assets/img/gestaltung-kniend-1200.jpg',
-    srcset: 'assets/img/gestaltung-kniend-800.jpg 800w, assets/img/gestaltung-kniend-1200.jpg 1200w, assets/img/gestaltung-kniend-1900.jpg 1900w',
-    w: 1900, h: 2536
-  }
+  kniend: { t: 'Kniende Figur', technik: 'Tusche auf Papier', jahr: 2026, bild: 'gestaltung-kniend' }
 };
 
 /* Flash-Blätter. Leer, bis es Aufnahmen gibt: Der Abschnitt „Flash" blendet sich dann
@@ -133,34 +129,31 @@ LUKE.GESTALTUNG = {
    `motiv`, `status` ('verfügbar' | 'vergeben'), optional `preis` und `src`. */
 LUKE.FLASH = [];
 
-/* Grafik. Auftragsarbeiten neben dem Tätowieren: Plakate, Cover, Signets. Anders als die
-   Werke haben sie einen Anlass und einen Auftraggeber, deshalb eigene Felder statt Träger,
-   Serie und Maße. Sie behalten immer ihren dunklen Grund, werden also nicht multipliziert.
-   Felder: id, t (Titel), art (Gattung), fuer (für wen), jahr, notiz (Anlass, optional),
-           src, srcset, w, h */
+/* Grafik. Auftragsarbeiten neben dem Tätowieren: Plakate, Flyer, Cover, Signets. Anders als
+   die Werke haben sie einen Anlass und einen Auftraggeber, deshalb eigene Felder statt
+   Träger, Serie und Maße. Sie behalten immer ihren Grund, werden also nicht multipliziert.
+   Felder: id, t (Titel), art (Gattung), fuer (für wen, optional), jahr (optional),
+           notiz (Anlass, optional), bild
+   Ein Jahr steht nur, wo es sich belegen lässt: Die Termine auf Plakaten und Flyern fallen
+   2026 alle auf einen Samstag, in keinem Nachbarjahr. Bei Signets und Covern steht keins. */
 LUKE.GRAFIK = [
-  { id: 'gr1', t: 'Bluthandwerk', art: 'Titelbild für den Podcast', fuer: 'mit Kiya Noir', jahr: 2026,
-    notiz: '„Nicht noch ein Tattoo-Podcast!“',
-    src: 'assets/img/grafik-1-bluthandwerk-900.jpg',
-    srcset: 'assets/img/grafik-1-bluthandwerk-480.jpg 480w, assets/img/grafik-1-bluthandwerk-900.jpg 900w, assets/img/grafik-1-bluthandwerk-1400.jpg 1400w',
-    w: 1400, h: 1402 },
-  { id: 'gr2', t: 'nebelgrau', art: 'Plakat', fuer: 'Kollektiv Noir und Tränentrinker', jahr: 2026,
-    notiz: '21. Februar 2026, 23 Uhr, Live Music Hall, Köln',
-    src: 'assets/img/grafik-2-nebelgrau-900.jpg',
-    srcset: 'assets/img/grafik-2-nebelgrau-480.jpg 480w, assets/img/grafik-2-nebelgrau-900.jpg 900w, assets/img/grafik-2-nebelgrau-1400.jpg 1400w',
-    w: 1400, h: 1980 },
-  { id: 'gr3', t: 'Kollektiv Noir', art: 'Signet', fuer: 'Kollektiv Noir', jahr: 2025,
-    notiz: 'Dark Electro, Post-Punk, Synthie, Shoegaze, Wave',
-    src: 'assets/img/grafik-4-kollektiv-900.jpg',
-    srcset: 'assets/img/grafik-4-kollektiv-480.jpg 480w, assets/img/grafik-4-kollektiv-900.jpg 900w, assets/img/grafik-4-kollektiv-1228.jpg 1228w',
-    w: 1228, h: 898 },
-  { id: 'gr4', t: 'Spleen', art: 'Signet für eine Clubnacht', fuer: 'Kollektiv Noir', jahr: 2025,
-    notiz: 'Dark Electro, Synth, Coldwave, EBM, Minimal',
-    src: 'assets/img/grafik-3-spleen-844.jpg',
-    srcset: 'assets/img/grafik-3-spleen-480.jpg 480w, assets/img/grafik-3-spleen-844.jpg 844w',
-    w: 844, h: 844 },
-  { id: 'gr5', t: 'Requiem: Zerfall', art: 'Albumcover', fuer: '', jahr: 2025,
-    src: 'assets/img/grafik-5-requiem-900.jpg',
-    srcset: 'assets/img/grafik-5-requiem-480.jpg 480w, assets/img/grafik-5-requiem-900.jpg 900w, assets/img/grafik-5-requiem-1400.jpg 1400w',
-    w: 1400, h: 1400 }
+  { id: 'gr1', t: 'nebelgrau', art: 'Plakat', fuer: 'Kollektiv Noir und Tränentrinker', jahr: 2026,
+    notiz: '5. Dezember 2026, Live Music Hall, Köln', bild: 'grafik-plakat-nebelgrau-2026-12-05' },
+  { id: 'gr2', t: 'Noir', art: 'Flyer für die Clubnacht', fuer: 'Kollektiv Noir', jahr: 2026,
+    notiz: '19. September 2026, 23 Uhr, MTC', bild: 'grafik-flyer-noir-2026-09-19' },
+  { id: 'gr3', t: 'Noir', art: 'Flyer für die Clubnacht', fuer: 'Kollektiv Noir', jahr: 2026,
+    notiz: '25. Juli 2026, 23 Uhr, MTC', bild: 'grafik-flyer-noir-2026-07-25' },
+  { id: 'gr4', t: 'Drei Jahre Noir', art: 'Flyer für die Clubnacht', fuer: 'Kollektiv Noir', jahr: 2026,
+    notiz: '18. April 2026, 23 Uhr, MTC', bild: 'grafik-flyer-noir-2026-04-18' },
+  { id: 'gr5', t: 'nebelgrau', art: 'Plakat', fuer: 'Kollektiv Noir und Tränentrinker', jahr: 2026,
+    notiz: '21. Februar 2026, 23 Uhr, Live Music Hall, Köln', bild: 'grafik-plakat-nebelgrau-2026-02-21' },
+  { id: 'gr6', t: 'Bluthandwerk', art: 'Titelbild für den Podcast', fuer: 'mit Kiya Noir',
+    notiz: '„Nicht noch ein Tattoo-Podcast!“', bild: 'grafik-cover-bluthandwerk' },
+  { id: 'gr7', t: 'Requiem: Zerfall', art: 'Albumcover', bild: 'grafik-cover-requiem-zerfall' },
+  { id: 'gr8', t: 'Kollektiv Noir', art: 'Signet', fuer: 'Kollektiv Noir', bild: 'grafik-signet-kollektiv-noir' },
+  { id: 'gr9', t: 'Kollektiv Noir', art: 'Wortmarke', fuer: 'Kollektiv Noir',
+    notiz: 'Dark Electro, Post-Punk, Synthie, Shoegaze, Wave', bild: 'grafik-wortmarke-noir' },
+  { id: 'gr10', t: 'Spleen', art: 'Signet für eine Clubnacht', fuer: 'Kollektiv Noir',
+    notiz: 'Dark Electro, Synth, Coldwave, EBM, Minimal', bild: 'grafik-signet-spleen' },
+  { id: 'gr11', t: 'NOX', art: 'Signet', bild: 'grafik-signet-nox' }
 ];

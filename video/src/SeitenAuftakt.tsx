@@ -132,7 +132,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
       {/* Ebene 1, ganz hinten: ein großes, sehr blasses Blatt. */}
       <Ebene tiefe={0.14} zeiger={zeiger} drift={0.6}>
         <Img
-          src={staticFile('img/gestaltung-profil-1200.jpg')}
+          src={staticFile('img/gestaltung-profil-1200.webp')}
           style={{
             width: '100%',
             height: '100%',
@@ -151,7 +151,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
       {/* Ebene 2: dasselbe Blatt näher, seitlich versetzt, immer noch blass. */}
       <Ebene tiefe={0.3} zeiger={zeiger} drift={0.8}>
         <Img
-          src={staticFile('img/gestaltung-profil-1200.jpg')}
+          src={staticFile('img/gestaltung-profil-1200.webp')}
           style={{
             width: '100%',
             height: '100%',
@@ -189,7 +189,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
           Das Blatt hat links ein breites leeres Drittel, das hier wegfällt. */}
       <Ebene tiefe={0.48} zeiger={zeiger}>
         <Img
-          src={staticFile('img/gestaltung-kniend-1200.jpg')}
+          src={staticFile('img/gestaltung-kniend-1200.webp')}
           style={{
             width: '100%',
             height: '100%',
@@ -210,7 +210,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
           nähme ihr die Wirkung. */}
       <Ebene tiefe={0.95} zeiger={zeiger} drift={0.4}>
         <Img
-          src={staticFile('img/gestaltung-profil-1200.jpg')}
+          src={staticFile('img/gestaltung-profil-1200.webp')}
           style={{
             width: '100%',
             height: '100%',
