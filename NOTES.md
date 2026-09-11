@@ -1,6 +1,16 @@
 # Offene Punkte (aus den Umsetzungsnotizen des Prototyps)
 
-Vor Veröffentlichung klären beziehungsweise erledigen:
+Vor Veröffentlichung klären beziehungsweise erledigen. Die Fragen, die nur Luke beantworten kann,
+stehen gesammelt und zum Weiterleiten in `docs/fragen-an-luke.md`.
+
+- [ ] **Veröffentlichen.** Die Seite liegt noch nirgends: Im Vercel-Konto (Team „netzkontrast's projects“) gibt
+      es kein Projekt. Technisch ist alles bereit (`vercel.json`, `.vercelignore`, kein Build-Schritt). Es fehlen
+      nur die Angaben von Luke für Impressum und Datenschutz (Name, E-Mail, Umsatzsteuer, Anschrift); ohne sie
+      darf die Seite nicht öffentlich werden (§ 5 DDG). Danach: das Repository `netzkontrast/luke` in Vercel
+      importieren (Dashboard → Add New → Project, oder im Gespräch mit Claude über den Vercel-Connector,
+      `create_git_project`). Jeder Push auf `main` geht dann live. In der Datenschutzerklärung steht Vercel schon
+      als Anbieter; die DPF-Zertifizierung und die Speicherdauer der Logs sind in eckigen Klammern zu prüfen.
+      Damit der Streifen „Aktuell“ noch jemandem nützt, sollte das vor der Vernissage am 23. September sein.
 
 - [ ] **Impressum** nach § 5 DDG ausfüllen (`impressum.html`): Name, Anschrift, E-Mail, ggf. USt-IdNr.
 - [ ] **Datenschutzerklärung** prüfen und ergänzen (`datenschutz.html`): Hoster, Speicherdauer, Datum.
@@ -94,6 +104,19 @@ Bereits umgesetzt:
       Beschriftung von Werk I, mit Ausstellungszeile. Jetzt stehen dort die drei Blätter von Werk I als Reihe, gleich
       hoch, wie in der Hängung der Seite; sie legen sich nacheinander ab, die Beschriftung kommt zuletzt („Tusche auf
       Papier, drei Blätter, 2026“). Das Profil bleibt Material des Auftakts und heißt im Film nicht mehr Werk I.
+
+- [x] **Kopfleiste auf dem Telefon.** Name und vier Einträge brauchten 427 px, „Atelier“ stand auf jedem Telefon
+      halb unter dem Verlauf. Jetzt passt die Leiste ab 360 px in eine Zeile; darunter scrollt sie wie vorher.
+- [x] **Blattfolge kürzer.** 48 svh je Blatt (Telefon 44) statt 70 (60): Die Bühne nahm über zwei Fünftel der
+      Seite ein, bevor ein Werk mit Titel zu sehen war. Das Tempo gibt weiter die Zeit vor.
+- [x] **Prüfung läuft auch unter Windows.** `scripts/pruefen.mjs` nimmt `playwright-core` und das installierte
+      Chrome oder Edge (Aufruf im Kopf der Datei). Drei Prüfungen des Auges warteten eine feste Zeit und fielen im
+      vollen Lauf gelegentlich durch; sie warten jetzt, bis das Auge hinsieht oder sich umsieht. Alle 49 in Ordnung.
+- [x] **Ankündigung zur Vernissage.** `video/`, Komposition `Vernissage`, 15 s, 9:16: die beiden Werke
+      untereinander (je Werk eine `Haengung`), dann die Tafel mit Ausstellung, Ort, Vernissage, Enddatum und
+      @lukewtf. Rot steht nie zweimal im Bild: Der Faden kommt erst, wenn die Blätter fort sind. Termine und Ort stehen
+      jetzt in `LUKE.CONFIG.ausstellung` (js/works.js); Abspann und Ankündigung lesen von dort. Ob sie so raus darf,
+      fragt `docs/fragen-an-luke.md`.
 
 Beim nächsten Durchgang anzusehen:
 
