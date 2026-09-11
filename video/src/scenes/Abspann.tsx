@@ -7,25 +7,11 @@ import { useForm } from '../layout';
 import { BlattBild } from '../components/Blatt';
 import { Zeile, Eintritt } from '../components/Typo';
 import { Faden } from '../components/Faden';
-import { AUSSTELLUNG } from '../werke';
-
-const MONATE = [
-  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
-];
-
-/* Aus dem Datum in js/works.js, damit Film und Website nicht auseinanderlaufen. */
-const bisText = (): string => {
-  const roh = (AUSSTELLUNG as { bis?: string }).bis;
-  if (!roh) return '';
-  const [j, m, t] = roh.split('-').map(Number);
-  if (!j || !m || !t) return '';
-  return `${t}. ${MONATE[m - 1]} ${j}`;
-};
+import { ausstellung, tagText, vernissageText } from '../datum';
 
 export const Abspann: React.FC<{ ende: number }> = ({ ende }) => {
   const f = useForm();
-  const bis = bisText();
+  const bis = tagText(ausstellung.bis, true);
   return (
     <AbsoluteFill>
       {/* Der Faden endet über der Zeile. Liefe er weiter, striche er den Titel durch. */}
@@ -53,7 +39,7 @@ export const Abspann: React.FC<{ ende: number }> = ({ ende }) => {
               color: theme.farben.gedaempft,
             }}
           >
-            Gruppenausstellung
+            {ausstellung.art}
           </div>
         </Zeile>
 
@@ -67,7 +53,7 @@ export const Abspann: React.FC<{ ende: number }> = ({ ende }) => {
               color: theme.farben.tusche,
             }}
           >
-            Red
+            {ausstellung.titel}
           </div>
         </Zeile>
 
@@ -82,9 +68,9 @@ export const Abspann: React.FC<{ ende: number }> = ({ ende }) => {
               marginTop: f.klein * 0.4,
             }}
           >
-            Stage Gallery, Köln
+            {ausstellung.ort}
             <br />
-            Vernissage 23. September, 19 bis 21 Uhr
+            Vernissage {vernissageText()}
             {bis ? (
               <>
                 <br />

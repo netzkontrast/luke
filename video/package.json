@@ -9,8 +9,10 @@
     "prestudio": "npm run assets",
     "studio": "remotion studio src/index.ts",
     "prerender": "npm run assets",
-    "render": "remotion render src/index.ts Werkschau out/werkschau.mp4 --codec h264 --crf 17",
-    "render:hoch": "remotion render src/index.ts WerkschauHoch out/werkschau-hoch.mp4 --codec h264 --crf 17",
+    "render": "remotion render src/index.ts Werkschau out/werkschau.mp4 --codec h264 --crf 17 --muted",
+    "render:hoch": "remotion render src/index.ts WerkschauHoch out/werkschau-hoch.mp4 --codec h264 --crf 17 --muted",
+    "prerender:vernissage": "npm run assets",
+    "render:vernissage": "remotion render src/index.ts Vernissage out/vernissage-story.mp4 --codec h264 --crf 19 --muted",
     "build:player": "node scripts/build-player.mjs"
   },
   "dependencies": {

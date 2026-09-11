@@ -2,6 +2,7 @@ import React from 'react';
 import { Composition } from 'remotion';
 import { Werkschau, gesamtDauer } from './Werkschau';
 import { SeitenAuftakt, auftaktDauer, auftaktStandard } from './SeitenAuftakt';
+import { Vernissage, vernissageDauer } from './Vernissage';
 
 const FPS = 30;
 
@@ -23,6 +24,15 @@ export const RemotionRoot: React.FC = () => {
         id="WerkschauHoch"
         component={Werkschau}
         durationInFrames={gesamtDauer(FPS)}
+        fps={FPS}
+        width={1080}
+        height={1920}
+      />
+      {/* Die Ankündigung zur Vernissage, 15 Sekunden, für Story und Reel. */}
+      <Composition
+        id="Vernissage"
+        component={Vernissage}
+        durationInFrames={vernissageDauer(FPS)}
         fps={FPS}
         width={1080}
         height={1920}

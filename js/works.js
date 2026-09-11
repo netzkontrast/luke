@@ -9,8 +9,15 @@ LUKE.CONFIG = {
   instagram: 'https://instagram.com/lukewtf',
   handle: '@lukewtf',
 
-  /* Der Streifen „Aktuell“ wird nach diesem Datum automatisch ausgeblendet (einschließlich). */
-  ausstellung: { bis: '2026-09-27' }
+  /* Die Ausstellung. Der Streifen „Aktuell“ wird nach `bis` automatisch ausgeblendet
+     (einschließlich). Titel, Ort und Vernissage liest der Film (video/, über
+     scripts/werke-uebernehmen.mjs) für Abspann und Ankündigung; der Streifen auf der Seite
+     steht als Text in index.html. */
+  ausstellung: {
+    titel: 'Red', art: 'Gruppenausstellung', ort: 'Stage Gallery, Köln',
+    vernissage: { datum: '2026-09-23', von: 19, bis: 21 },
+    bis: '2026-09-27'
+  }
 };
 
 /* Filterlisten in Anzeigereihenfolge. Ein Filter erscheint nur, wenn unter den vorhandenen
