@@ -55,11 +55,13 @@ LUKE.WERKE = [
      Der Papierton ist beim Aufbereiten auf Weiß gezogen, damit multiply auch hier trägt. */
   { id: 'w3', nr: 'III', t: 'Ansichten', jahr: 2026, technik: 'Farbe auf Papier', masse: 'Maße folgen',
     bilder: ['werk-ansichten'] },
-  /* Zwölf kleine Blätter, auf schwarzem Holz ausgelegt und dort fotografiert. Das Bild
-     behält seinen dunklen Grund: `grund: 'foto'` nimmt es von der multiply-Behandlung aus
-     und hält es aus der Blattfolge heraus. */
-  { id: 'w4', nr: 'IV', t: 'Neuordnung des Speichers', jahr: 2026, technik: 'Tusche auf Papier, zwölf Blätter', masse: 'Maße folgen', grund: 'foto',
-    bilder: ['werk-neuordnung-des-speichers'] }
+  /* Zwölf kleine Blätter, auf schwarzem Holz ausgelegt und dort fotografiert. Das Holz ist
+     beim Aufbereiten weggefallen: Die Blätter stehen freigestellt in einem Raster auf Weiß
+     (scripts/bilder.py). `kacheln` sagt, wie das Raster geteilt ist; die Galerie zeigt jedes
+     Blatt einzeln und lässt sie die Plätze tauschen. Aus der Blattfolge bleibt das Werk
+     heraus — zwölf Blätter auf einmal sind kein Blatt, das vorbeizieht. */
+  { id: 'w4', nr: 'IV', t: 'Neuordnung des Speichers', jahr: 2026, technik: 'Tusche und Farbe auf Papier, zwölf Blätter', masse: 'Maße folgen',
+    kacheln: { spalten: 3, zeilen: 4 }, bilder: ['werk-neuordnung-des-speichers'] }
 ];
 
 /* Die Bilder eines Werks (oder einer Grafik), aufgelöst. */
@@ -75,7 +77,7 @@ LUKE.istTuschblatt = w => !!w && !w.art && w.grund !== 'foto';
 /* Alle hellen Blätter, einzeln, in der Reihenfolge der Werke: { src, srcset, w, h, werk,
    teil, teile }. Ein Werk aus drei Blättern gibt drei Einträge. */
 LUKE.helleBlaetter = () => (LUKE.WERKE || [])
-  .filter(LUKE.istTuschblatt)
+  .filter(w => LUKE.istTuschblatt(w) && !w.kacheln)
   .flatMap(w => {
     const alle = LUKE.blaetter(w);
     return alle.map((b, i) => Object.assign({}, b, { werk: w, teil: i + 1, teile: alle.length }));
@@ -88,7 +90,9 @@ LUKE.helleBlaetter = () => (LUKE.WERKE || [])
    profil     Kopf im Profil mit rotem Strang. Läuft als Zeichenanimation im Auftakt und
               liefert die 48 Bilder des Sprites.
    signatur   Auge am Ende einer langen Linie, mit Signatur. Quer. Trägt den Abschnitt
-              „Handschrift", scrollgeführt.
+              „Handschrift" als Bildfolge (assets/img/signatur/, LUKE.SIGNATUR); das Auge
+              daraus sitzt in der Kopfleiste und blickt dem Zeiger nach (js/auge.js), die
+              Signatur steht als Name im Kopf der Seite.
    kniend     Kniende Figur. Das Blatt, das im Kopf der Seite steht.
 
    Wer eines davon doch ausstellen will, verschiebt es nach LUKE.WERKE und gibt ihm eine

@@ -51,6 +51,18 @@
   function bildHTML(w, b, sizes, alt) {
     return `<img class="${bildKlasse(w)}" src="${esc(b.src)}" srcset="${esc(b.srcset)}" sizes="${sizes}" width="${b.w}" height="${b.h}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
   }
+  /* Ein Werk aus vielen kleinen Blättern, die in einem Raster liegen (w.kacheln): Jedes Blatt
+     ist ein Ausschnitt aus demselben Bild, das damit zugleich Bildbogen ist. Welche Breite
+     geladen wird, entscheidet die Pixeldichte; eine Datei für alle zwölf. */
+  function kachelnHTML(w, b) {
+    const { spalten, zeilen } = w.kacheln, B0 = (L.BILDER || {})[b.name];
+    const breite = B0 ? (B0.breiten.find(x => x >= (window.devicePixelRatio > 1.3 ? 1200 : 800)) || B0.breiten[B0.breiten.length - 1]) : 0;
+    /* Absolut: Ein url() in einer CSS-Variablen löst der Browser dort auf, wo sie benutzt
+       wird, also relativ zu css/site.css — und fände das Bild nicht. */
+    const bogen = new URL(breite ? `assets/img/${b.name}-${breite}.webp` : b.src, document.baseURI).href;
+    const stuecke = Array.from({ length: spalten * zeilen }, (_, i) => `<span class="kachel" style="--sx:${i % spalten};--sy:${Math.floor(i / spalten)}"></span>`).join('');
+    return `<span class="kacheln ${bildKlasse(w)}" style="--spalten:${spalten};--zeilen:${zeilen};--bogen:url('${esc(bogen)}')" aria-hidden="true">${stuecke}</span>`;
+  }
   function filtered() {
     let list = W.filter(isReal);
     if (S.fSerie) list = list.filter(w => w.serie === S.fSerie);
@@ -96,12 +108,45 @@
       /* sizes: auf dem Telefon der Anteil an der vollen Breite, sonst die Breite bei der
          vollen Höhe von 560 px, gedeckelt durch die Spalte der Seite. */
       const sizes = b => { const r = b.w / b.h; return `(max-width: 700px) ${Math.round(92 * r / summe)}vw, ${Math.round(Math.min(560 * r, 1100 * r / summe))}px`; };
-      const blaetter = bl.map((b, i) => `<button type="button" class="g-blatt rv" data-eintritt="blatt" data-versatz="${i}" data-teil="${i}" style="--r:${verh(b)};flex-grow:${Math.round(1000 * b.w / b.h)}" aria-label="${esc(altText(w, i, n))}"><span class="g-bild">${bildHTML(w, b, sizes(b))}</span></button>`).join('');
+      const blaetter = bl.map((b, i) => `<button type="button" class="g-blatt rv" data-eintritt="blatt" data-versatz="${i}" data-teil="${i}" style="--r:${verh(b)};flex-grow:${Math.round(1000 * b.w / b.h)}" aria-label="${esc(altText(w, i, n))}"><span class="g-bild">${w.kacheln ? kachelnHTML(w, b) : bildHTML(w, b, sizes(b))}</span></button>`).join('');
       return `<figure class="g-item${n > 1 ? ' g-item--teile' : ''}" data-fid="${esc(w.id)}" style="--r:${summe.toFixed(4)};--n:${n}">`
         + `<span class="cnr" aria-hidden="true">${esc(w.nr)}</span><div class="g-ph">${blaetter}</div>`
         + `<figcaption class="g-meta rv" data-versatz="${n}"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></figcaption></figure>`;
     }).join('');
     if (B) B.heben($$('.g-blatt', gl), { um: 4, feld: '.g-bild' });
+    neuordnen(gl);
+  }
+
+  /* Neuordnung des Speichers: Solange das Werk zu sehen ist, tauschen alle paar Sekunden zwei
+     seiner Blätter die Plätze — der Speicher ordnet sich neu, er steht nie ganz still. Unter
+     dem Zeiger halten sie still, damit man hinsehen kann. Getauscht wird im Raster (die
+     Knoten wechseln die Stelle), die Bewegung dazwischen ist ein FLIP mit der Feder der
+     Richtung. Ohne Bewegung bleibt die Ordnung, wie sie lag. */
+  function neuordnen(root) {
+    if (!M) return;
+    $$('.kacheln', root).forEach(el => {
+      let timer = 0;
+      const tauschen = () => {
+        if (!el.isConnected) return;
+        timer = setTimeout(tauschen, 2600 + Math.random() * 2200);
+        if (!mScale() || el.matches(':hover') || document.hidden) return;
+        const k = $$('.kachel', el), n = k.length;
+        if (n < 2) return;
+        const i = Math.floor(Math.random() * n);
+        let j = Math.floor(Math.random() * (n - 1)); if (j >= i) j++;
+        const a = k[i], b = k[j], ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+        /* Die beiden Knoten tauschen ihre Stelle im Raster. */
+        const platz = document.createComment('');
+        a.replaceWith(platz); b.replaceWith(a); platz.replaceWith(b);
+        const na = a.getBoundingClientRect(), nb = b.getBoundingClientRect();
+        [[a, ra, na], [b, rb, nb]].forEach(([el2, vorher, nachher], z) => {
+          el2.style.zIndex = String(2 - z);
+          M.animate(el2, { x: [vorher.left - nachher.left, 0], y: [vorher.top - nachher.top, 0], scale: [1, 1.06, 1] }, Object.assign({}, B.feder.gesetzt, { scale: { duration: 0.7 * mScale(), ease: B.tempo().kurve } }))
+            .then(() => M.frame.postRender(() => M.frame.postRender(() => { el2.style.transform = ''; el2.style.zIndex = ''; })));
+        });
+      };
+      M.inView(el, () => { clearTimeout(timer); timer = setTimeout(tauschen, 1400); return () => clearTimeout(timer); }, { amount: 0.3 });
+    });
   }
   function renderWerke() { renderChips(); renderGrid(); }
 

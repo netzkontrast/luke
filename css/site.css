@@ -98,8 +98,14 @@ h2.hd { font-size: clamp(30px,4vw,52px); margin: 0 0 12px; }
 /* ---------- Navigation ---------- */
 .top { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--line); transition: background-color calc(var(--m)*.7s), border-color calc(var(--m)*.7s); }
 .top .wrap { padding-top: 14px; padding-bottom: 14px; display: flex; align-items: baseline; gap: clamp(14px,3vw,32px); overflow-x: auto; white-space: nowrap; }
-.top a { text-decoration: none; font-size: 16px; }
-.top .brand { font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: 21px; }
+.top a { text-decoration: none; font-size: 16px; flex: 0 0 auto; }
+.top .brand { font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: 21px; display: inline-flex; align-items: center; gap: 10px; align-self: center; }
+/* Das Auge in der Kopfleiste (js/auge.js): der Ausschnitt um das Auge, so hoch wie die
+   Schrift daneben etwa zweimal. Es blendet ein, wenn es geladen ist. Auf dunklem Grund
+   (Richtung B) hätte es ein weißes Rechteck um sich; dort bleibt es weg. */
+.nav-auge { display: block; width: 46px; height: 29px; opacity: 0; transition: opacity calc(var(--m) * .6s + .01s) var(--e); }
+.nav-auge.da { opacity: 1; }
+.app[data-richtung="b"] .nav-auge { display: none; }
 
 /* ---------- Auftakt ---------- */
 #auftakt { overflow: hidden; }
@@ -112,6 +118,13 @@ h2.hd { font-size: clamp(30px,4vw,52px); margin: 0 0 12px; }
 .hero-grid { display: grid; grid-template-columns: minmax(260px, 5fr) minmax(300px, 7fr); align-items: end; gap: 4vw; min-height: 76vh; }
 .hero-text { padding: 48px 0 clamp(40px,8vh,90px); }
 .hero-text h1 { font-size: clamp(46px,7vw,96px); line-height: .95; margin: 0 0 18px; letter-spacing: -0.01em; }
+/* Der Name ist die Signatur (schwarze Tusche auf durchsichtigem Grund). Auf dunklem Papier
+   (Richtung B) wird sie hell. */
+.hero-name { line-height: 0; margin-bottom: 26px; }
+.hero-name .handschrift { display: block; width: clamp(230px, 29vw, 430px); height: auto; }
+.top .brand .handschrift { display: block; height: 26px; width: auto; }
+.app[data-richtung="b"] .handschrift { filter: invert(1); }
+.app[data-richtung="b"] .hero-grid .hero-name .handschrift { margin: 0 auto; }
 .hero-text p { margin: 0; max-width: 34ch; color: var(--mut); font-size: 20px; line-height: 1.55; text-wrap: pretty; }
 .hero-draw { display: flex; justify-content: flex-end; }
 /* Das Format des Zeichenvideos (432 × 704), damit Video und Standbild exakt übereinander
@@ -241,6 +254,12 @@ html[data-js="an"] .bf:not([data-stand]) { min-height: 100svh; }
 /* Ein Foto liegt auf dem Papier und deckt die Tropfspur; ein Tuscheblatt lässt sie durch. */
 .g-bild:has(> .photo-img) { position: relative; z-index: 2; }
 .g-bild > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* Ein Werk aus vielen Blättern im Raster (js/site.js, kachelnHTML): jedes Blatt ein
+   Ausschnitt aus demselben Bildbogen. Zellen gleich groß, das Blatt sitzt in seiner Mitte. */
+.kacheln { display: grid; grid-template-columns: repeat(var(--spalten), 1fr); grid-template-rows: repeat(var(--zeilen), 1fr); width: 100%; height: 100%; }
+.kachel { position: relative; background-image: var(--bogen); background-repeat: no-repeat;
+  background-size: calc(var(--spalten) * 100%) calc(var(--zeilen) * 100%);
+  background-position: calc(var(--sx) * 100% / (var(--spalten) - 1)) calc(var(--sy) * 100% / (var(--zeilen) - 1)); }
 .g-meta { display: block; padding: 14px 2px 0; max-width: 62ch; }
 .g-t { display: block; font-weight: 500; }
 .g-m { display: block; color: var(--mut); font-size: 15.5px; margin-top: 3px; }
@@ -287,8 +306,14 @@ html[data-js="an"] .bf:not([data-stand]) { min-height: 100svh; }
 .hand-grid p { margin: 0 0 20px; max-width: 58ch; text-wrap: pretty; }
 .hand-grid p:last-child { margin-bottom: 0; }
 .band-fig { margin: clamp(36px,5vw,64px) 0 0; }
-.band-video { width: 100%; height: auto; aspect-ratio: 1072 / 272; }
-.app[data-richtung="b"] .band-video { opacity: .9; }
+/* Die Handschrift: Standbild und Bildfolge liegen übereinander, im Format der Zeichnung.
+   Das Standbild steht, bis die Folge ihr erstes Bild gezeichnet hat (.lebt). */
+.band-rahmen { position: relative; aspect-ratio: 1072 / 272; }
+.band-rahmen > img, .band-rahmen > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.band-folge { visibility: hidden; }
+.band-rahmen.lebt .band-folge { visibility: visible; }
+.band-rahmen.lebt .band-standbild { visibility: hidden; }
+.app[data-richtung="b"] .band-rahmen { opacity: .9; }
 
 /* ---------- Grafik ---------- */
 /* Plakate, Flyer, Cover und Signets bringen ihren eigenen Grund mit. Sie werden deshalb
@@ -400,13 +425,15 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
   .chip { padding: 9px 16px; }
 }
 @media (max-width: 540px) {
-  /* Die Navigation scrollt seitlich. Ein Verlauf am rechten Rand zeigt, dass es weitergeht. */
-  .top { position: relative; }
+  /* Die Navigation scrollt seitlich. Ein Verlauf am rechten Rand zeigt, dass es weitergeht.
+     Sie bleibt oben stehen wie auf dem Schreibtisch: Darin sitzt das Auge, das mitliest. */
   .top .wrap { gap: 18px; padding-right: 34px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .top .wrap::-webkit-scrollbar { display: none; }
   .top::after { content: ''; position: absolute; top: 0; right: 0; bottom: 1px; width: 34px; pointer-events: none;
     background: linear-gradient(90deg, rgba(255,255,255,0), var(--bg) 78%); }
-  .top .brand { font-size: 19px; }
+  .top .brand { font-size: 19px; gap: 7px; }
+  .nav-auge { width: 38px; height: 24px; }
+  .top .brand .handschrift { height: 21px; }
   .top a { font-size: 15.5px; }
   .app { --sp: clamp(44px, 11vw, 64px) !important; font-size: 17px; }
   .hero-fig, .app[data-richtung="b"] .hero-fig { height: min(52vh, 150vw); }

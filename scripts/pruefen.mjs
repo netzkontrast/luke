@@ -218,9 +218,9 @@ pruefung('blattfolge: sieben Blätter, eins zur Zeit, keines kürzer als eine Se
     const bf = document.getElementById('blattfolge');
     return { stand: bf && bf.dataset.stand, n: bf ? bf.querySelectorAll('.bf-blatt').length : 0,
       h: bf ? bf.getBoundingClientRect().height : 0, oben: bf ? bf.getBoundingClientRect().top + scrollY : 0,
-      vh: innerHeight, alt: !!document.querySelector('werk-sequenz, canvas:not(#tropfspur)'), mindestens: window.LUKE.blattfolge.mindestens };
+      vh: innerHeight, alt: !!document.querySelector('werk-sequenz, #sequenz canvas'), mindestens: window.LUKE.blattfolge.mindestens };
   });
-  t.gleich(r.stand, 'voll', 'Stand'); t.gleich(r.n, 7, 'Blätter'); t.ok(!r.alt, 'kein <werk-sequenz>, kein Canvas außer der Tropfspur');
+  t.gleich(r.stand, 'voll', 'Stand'); t.gleich(r.n, 7, 'Blätter'); t.ok(!r.alt, 'kein <werk-sequenz>, kein Canvas in der Blattfolge');
   t.ok(r.h >= r.vh * (t.mobil ? 4.4 : 5.2), 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
   t.gleich(r.mindestens, 1000, 'Mindeststand eines Blatts in ms');
   const strecke = r.h - r.vh;
@@ -389,6 +389,47 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
   await t.bild('werke-gehaengt');
 });
 
+/* Neuordnung des Speichers: zwölf Blätter, freigestellt, ohne das schwarze Holz; solange
+   das Werk zu sehen ist, tauschen sie die Plätze. Ohne Bewegung bleibt die Ordnung. */
+const ordnung = page => page.evaluate(() => Array.from(document.querySelectorAll('.g-item[data-fid="w4"] .kachel')).map(k => k.style.getPropertyValue('--sx') + k.style.getPropertyValue('--sy')).join(' '));
+pruefung('neuordnung: zwölf Blätter ohne Holz, sie tauschen die Plätze', 'schreibtisch', async (page, t) => {
+  const r = await page.evaluate(() => {
+    const k = document.querySelector('.g-item[data-fid="w4"] .kacheln');
+    return { n: k ? k.querySelectorAll('.kachel').length : 0, bogen: k ? getComputedStyle(k.querySelector('.kachel')).backgroundImage : '',
+      blend: k ? getComputedStyle(k).mixBlendMode : '' };
+  });
+  t.gleich(r.n, 12, 'zwölf Blätter');
+  t.ok(/werk-neuordnung-des-speichers-\d+\.webp/.test(r.bogen), 'jedes Blatt ein Ausschnitt aus dem Bildbogen: ' + r.bogen);
+  t.gleich(r.blend, 'multiply', 'liegt mit multiply auf dem Papier, kein dunkler Grund mehr');
+  /* Der Bildbogen hat weiße Ecken: Das Holz ist weg. */
+  const ecke = await page.evaluate(async () => {
+    const img = new Image(); img.src = 'assets/img/werk-neuordnung-des-speichers-480.webp'; await img.decode();
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0);
+    return Array.from(x.getImageData(2, 2, 1, 1).data).slice(0, 3);
+  });
+  t.ok(ecke.every(v => v > 240), 'Ecke des Bildbogens ist weiß: ' + ecke.join(','));
+  const vorher = await ordnung(page);
+  await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben + 1400); await t.warten(300);
+  await page.evaluate(() => document.querySelector('.g-item[data-fid="w4"]').scrollIntoView({ block: 'center' }));
+  await page.mouse.move(2, 2);
+  await t.warten(8000);
+  const nachher = await ordnung(page);
+  t.ok(nachher !== vorher, 'die Blätter haben die Plätze getauscht: ' + vorher + ' → ' + nachher);
+  t.gleich(nachher.split(' ').sort().join(' '), vorher.split(' ').sort().join(' '), 'dieselben zwölf, nur anders geordnet');
+  const haengt = await page.evaluate(() => Array.from(document.querySelectorAll('.kachel')).filter(k => k.style.transform && k.style.transform !== 'none').length);
+  await t.warten(1200);
+  await t.bild('neuordnung');
+  t.ok(haengt <= 2, 'höchstens die zwei, die gerade tauschen, sind unterwegs: ' + haengt);
+});
+
+pruefung('neuordnung: ohne Bewegung bleibt die Ordnung', 'schreibtisch', async (page, t) => {
+  const vorher = await ordnung(page);
+  await page.evaluate(() => document.querySelector('.g-item[data-fid="w4"]').scrollIntoView({ block: 'center' }));
+  await t.warten(6000);
+  t.gleich(await ordnung(page), vorher, 'Ordnung unverändert');
+}, { ruhig: true });
+
 pruefung('werke: Hover hebt das Bildfeld, nicht mehr', 'schreibtisch', async (page, t) => {
   await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1600);
   const box = await page.locator('.g-blatt').first().boundingBox();
@@ -479,8 +520,81 @@ pruefung('bilder: jedes Bild lädt, alle als WebP aus assets/img', 'schreibtisch
   const kaputt = r.filter(x => !x.w);
   t.ok(r.length >= 25, 'Bilder gefunden: ' + r.length);
   t.ok(!kaputt.length, 'Bilder ohne Inhalt: ' + kaputt.map(x => x.src).join(', '));
-  t.ok(r.every(x => /\/assets\/img\/[a-z0-9-]+-\d+\.webp$/.test(x.src)), 'nur WebP mit Breite im Namen: ' + r.filter(x => !/\.webp$/.test(x.src)).map(x => x.src).join(', '));
+  /* Werke, Grafik und Gestaltung tragen die Breite im Namen; die Teile der Handschrift
+     (Signatur, Bildfolge, Auge) liegen unter assets/img/signatur/ und haben nur eine Größe. */
+  const muster = /\/assets\/img\/([a-z0-9-]+-\d+|signatur\/[a-z0-9-]+)\.webp$/;
+  t.ok(r.every(x => muster.test(x.src)), 'nur WebP aus assets/img: ' + r.filter(x => !muster.test(x.src)).map(x => x.src).join(', '));
 });
+
+/* Die Handschrift als Bildfolge: Die Signatur schreibt sich beim Scrollen, danach blickt
+   das Auge dem Zeiger nach. Auf dem Telefon, ohne Maus, sieht es sich von selbst um. */
+pruefung('handschrift: die Signatur schreibt sich, dann folgt das Auge dem Zeiger', 'beide', async (page, t) => {
+  const fig = await page.evaluate(() => { const r = document.querySelector('.band-fig').getBoundingClientRect(); return { oben: r.top + scrollY, h: r.height }; });
+  const vh = await page.evaluate(() => innerHeight);
+  /* Langsam heran: Die Bilder laden der Reihe nach, die Folge läuft mit. */
+  for (let y = fig.oben - vh; y <= fig.oben - vh * 0.2; y += 80) { await t.zu(y); await t.warten(60); }
+  await t.warten(1500);
+  const r = await page.evaluate(() => {
+    const cv = document.querySelector('.band-folge'), k = document.createElement('canvas');
+    k.width = cv.width; k.height = cv.height;
+    const c = k.getContext('2d', { willReadFrequently: true }); c.drawImage(cv, 0, 0);
+    const d = c.getImageData(0, 0, k.width, k.height).data;
+    let dunkel = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] < 200) dunkel++;
+    const auge = window.LUKE.auge.zustand();
+    return { lebt: document.querySelector('.band-rahmen').classList.contains('lebt'), dunkel, anteil: dunkel / (k.width * k.height),
+      video: document.querySelectorAll('#handschrift video').length, geladen: auge.geladen, band: auge.augen[1],
+      blend: getComputedStyle(cv).mixBlendMode, depth: document.querySelector('.band-fig').hasAttribute('data-depth') };
+  });
+  t.ok(r.lebt, 'die Bildfolge steht statt des Standbilds');
+  t.gleich(r.video, 0, 'kein Video mehr in der Handschrift');
+  t.ok(r.anteil > 0.04 && r.anteil < 0.5, 'auf dem Canvas steht die Zeichnung: ' + (r.anteil * 100).toFixed(1) + ' % dunkel');
+  t.gleich(r.blend, 'multiply', 'liegt mit multiply auf dem Grund');
+  t.ok(!r.depth, 'keine Parallaxe auf der Figur, sonst stünde sie als weißer Kasten da');
+  t.ok(r.geladen && r.band && r.band.an, 'das Auge ist wach, sobald die Signatur geschrieben ist: ' + JSON.stringify(r.band));
+  if (!t.mobil) {
+    const box = await page.evaluate(() => { const b = document.querySelector('.band-folge').getBoundingClientRect(); return { l: b.left, t: b.top, w: b.width, h: b.height }; });
+    await page.mouse.move(box.l + 10, box.t + box.h / 2); await t.warten(900);
+    const links = await page.evaluate(() => window.LUKE.auge.zustand().augen[1]);
+    await page.mouse.move(box.l + box.w - 2, Math.max(4, box.t - 160)); await t.warten(900);
+    const rechts = await page.evaluate(() => window.LUKE.auge.zustand().augen[1]);
+    t.ok(links.x < -5, 'blickt nach links zum Zeiger: ' + links.x);
+    t.ok(rechts.x > 3 && rechts.y < -1, 'blickt nach rechts oben zum Zeiger: ' + rechts.x + ', ' + rechts.y);
+    await t.bild('handschrift-auge');
+  } else {
+    const a = await page.evaluate(() => window.LUKE.auge.zustand().augen[1]);
+    await t.warten(4500);
+    const b = await page.evaluate(() => window.LUKE.auge.zustand().augen[1]);
+    t.ok(Math.abs(a.x - b.x) + Math.abs(a.y - b.y) > 0.5, 'ohne Maus sieht es sich um: ' + JSON.stringify([a, b]));
+  }
+});
+
+/* Das Auge in der Kopfleiste: klein, vor dem Namen, immer da, und es blickt mit. */
+pruefung('auge: sitzt in der Kopfleiste, bleibt beim Scrollen, folgt dem Zeiger', 'beide', async (page, t) => {
+  await t.warten(1500);
+  const a = await page.evaluate(() => { const cv = document.querySelector('.top .nav-auge'), r = cv.getBoundingClientRect();
+    return { da: cv.classList.contains('da'), b: r.width, h: r.height, op: getComputedStyle(cv).opacity, top: getComputedStyle(document.querySelector('.top')).position }; });
+  t.ok(a.da && a.op === '1', 'das Auge ist geladen und eingeblendet');
+  t.ok(a.b > 30 && a.b < 70, 'klein, so hoch wie zwei Zeilen: ' + a.b + ' × ' + a.h);
+  t.gleich(a.top, 'sticky', 'die Kopfleiste bleibt oben stehen, auch auf dem Telefon');
+  await t.zu(4000); await t.warten(400);
+  const oben = await page.evaluate(() => { const r = document.querySelector('.top .nav-auge').getBoundingClientRect(); return { top: r.top, sichtbar: window.LUKE.auge.zustand().augen[0].sichtbar }; });
+  t.ok(oben.top >= 0 && oben.top < 40 && oben.sichtbar, 'nach dem Scrollen noch oben zu sehen: ' + JSON.stringify(oben));
+  if (!t.mobil) {
+    await page.mouse.move(1400, 880); await t.warten(900);
+    const z = await page.evaluate(() => window.LUKE.auge.zustand().augen[0]);
+    t.ok(z.x > 5 && z.y > 2, 'blickt nach rechts unten zum Zeiger: ' + z.x + ', ' + z.y);
+  }
+});
+
+pruefung('auge: ohne Bewegung steht es still und blickt geradeaus', 'schreibtisch', async (page, t) => {
+  await t.warten(1500);
+  const r = await page.evaluate(() => ({ z: window.LUKE.auge.zustand(), standbild: getComputedStyle(document.querySelector('.band-standbild')).visibility }));
+  await page.mouse.move(1400, 880); await t.warten(600);
+  const n = await page.evaluate(() => window.LUKE.auge.zustand().augen[0]);
+  t.ok(r.z.geladen, 'die Teile sind geladen');
+  t.ok(n.x === 0 && n.y === 0, 'blickt geradeaus: ' + JSON.stringify(n));
+  t.gleich(r.standbild, 'visible', 'die Handschrift steht als Standbild');
+}, { ruhig: true });
 
 pruefung('abschnitte: Linien wachsen, das Foto wächst, das Band folgt', 'schreibtisch', async (page, t) => {
   const vorher = await page.evaluate(() => ({
@@ -491,13 +605,13 @@ pruefung('abschnitte: Linien wachsen, das Foto wächst, das Band folgt', 'schrei
   const nachher = await page.evaluate(() => ({
     aktuell: getComputedStyle(document.getElementById('aktuell')).getPropertyValue('--strich').trim(),
     foto: getComputedStyle(document.querySelector('.atelier-rahmen img')).transform,
-    band: document.querySelector('.band-video').currentTime,
+    band: { lebt: document.querySelector('.band-rahmen').classList.contains('lebt'), auge: window.LUKE.auge.zustand().augen[1] },
     text: Array.from(document.querySelectorAll('#aktuell .rv')).every(el => el.classList.contains('on'))
   }));
   t.gleich(nachher.aktuell, '1', 'die Linien von Aktuell sind gewachsen');
   t.ok(nachher.text, 'Aktuell-Text enthüllt');
   t.ok(/matrix\(1\.0[0-9]/.test(nachher.foto), 'das Foto ist scrollgebunden gewachsen: ' + nachher.foto);
-  t.ok(nachher.band > 5, 'das Signaturvideo ist am Ende der Handschrift weit gespult: ' + nachher.band);
+  t.ok(nachher.band.lebt, 'die Handschrift zeichnet ihre Bildfolge');
 });
 
 /* Die Seite ist eine Werkschau. Was zum Tätowieren gehörte — Anfrage, Ablauf, Flash, der
@@ -505,7 +619,7 @@ pruefung('abschnitte: Linien wachsen, das Foto wächst, das Band folgt', 'schrei
 pruefung('werkschau: keine Anfrage, kein Flash, keine Haut, kein Tattoo', 'beide', async (page, t) => {
   const r = await page.evaluate(() => ({
     teile: ['anfrage', 'flash', 'studio', 'tr-tabs', 'af-form'].filter(id => document.getElementById(id)),
-    nav: Array.from(document.querySelectorAll('.top a')).filter(a => !a.hidden).map(a => a.textContent.trim()).join(','),
+    nav: Array.from(document.querySelectorAll('.top a')).filter(a => !a.hidden).map(a => (a.querySelector('img') ? a.querySelector('img').alt : a.textContent).trim()).join(','),
     text: /tätow|tattoo|walk-in|blackwork|körperstelle|sitzung/i.exec(document.body.innerText + ' ' + document.title + ' ' + (document.querySelector('meta[name="description"]') || {}).content),
     formular: document.querySelectorAll('form, input, textarea, select').length
   }));
@@ -524,7 +638,7 @@ for (const r of ['b', 'c']) {
       const r = el.getBoundingClientRect();
       if (r.right <= 0 || r.left >= innerWidth) return false;
       /* Nicht auf genau 1 prüfen: Richtung B dimmt das Handschriftvideo dauerhaft auf
-         0.9 (.app[data-richtung="b"] .band-video, aus dem ursprünglichen Prototyp, nicht
+         0.9 (.app[data-richtung="b"] .band-rahmen, aus dem ursprünglichen Prototyp, nicht
          Teil dieses Umbaus). Enthüllt ist enthüllt, auch wenn die Ruhelage nicht 1 heißt —
          hängengeblieben ist nur, was noch nahe der versteckten Deckkraft 0 steht. */
       return !el.classList.contains('on') || parseFloat(getComputedStyle(el).opacity) < 0.5;

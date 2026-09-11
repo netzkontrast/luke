@@ -61,13 +61,18 @@
     if (motiv) motiv.style.transform = '';
     if (video) { video.style.opacity = ''; video.pause(); }
     if (kniend) { kniend.style.opacity = ''; kniend.style.transform = ''; }
-    if (titel) { titel.style.opacity = '1'; titel.style.transform = ''; }
+    if (titel) { titel.style.opacity = '1'; titel.style.transform = ''; const h = titel.querySelector('.handschrift'); if (h) h.style.clipPath = ''; }
     if (zeile) { zeile.style.opacity = '1'; zeile.style.transform = ''; }
   }
   if (!M || !s || sparsam || !video) { nurBild(); return; }
 
   /* Der Ablauf, Sekunden ab jetzt. */
-  if (titel) titelAnim = M.animate(titel, { opacity: [0, 1], y: [18, 0] }, { duration: 1.1 * s, ease: KB });
+  /* Der Name ist die Signatur: Sie schreibt sich von links nach rechts, so wie die Hand sie
+     zieht, während das Profil zu entstehen beginnt. */
+  const handschrift = titel && titel.querySelector('.handschrift');
+  if (titel) titelAnim = M.animate(titel, { opacity: [0, 1], y: [10, 0] }, { duration: 0.6 * s, ease: KB });
+  if (handschrift) M.animate(handschrift, { clipPath: ['inset(-10% 100% -10% -4%)', 'inset(-10% -4% -10% -4%)'] }, { duration: 2.2 * s, delay: 0.15 * s, ease: [0.45, 0.05, 0.25, 1] })
+    .then(() => M.frame.postRender(() => M.frame.postRender(() => { handschrift.style.clipPath = ''; })));
   if (zeile) zeileAnim = M.animate(zeile, { opacity: [0, 1], y: [14, 0] }, { duration: 1.0 * s, delay: 0.3 * s, ease: KB });
   if (motiv) motivAnim = M.animate(motiv, { scale: [1.045, 1] }, { duration: 9.4 * s, ease: K });
   videoAnim = M.animate(video, { opacity: [0, 1] }, { duration: 0.5 * s, delay: 0.35 * s, ease: KB });

@@ -12,6 +12,10 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
       „Neuordnung des Speichers“. Gesetzt, nicht gewusst, sind noch: das Jahr (überall 2026), die Werknummern III und
       IV für die beiden Einzelblätter und die Reihenfolge dieser beiden. Änderungen gehören in `js/works.js`, danach
       `node video/scripts/werke-uebernehmen.mjs`.
+- [ ] **Signatur und Name.** Die Signatur im Video lautet „L. M. Klvser“; sie steht jetzt als Name im Kopf der Seite
+      und in der Kopfleiste (Alternativtext „Luke WTF“). Ob das so gewollt ist, bestätigt Luke.
+- [ ] **Technik von „Neuordnung des Speichers“ prüfen.** Eingetragen ist jetzt „Tusche und Farbe auf Papier“, weil
+      die Hälfte der Blätter rot bemalt ist.
 - [ ] **Technik von „Ansichten“ prüfen.** Eingetragen ist „Farbe auf Papier“, weil sich Acryl und Gouache auf dem Foto nicht
       unterscheiden lassen. Wenn es feststeht, genauer eintragen.
 - [ ] **Auflösung von „Ansichten“.** Die Vorlage kam mit 896 × 1195 Bildpunkten, nach dem Zuschnitt bleiben 828 × 1130. Das
@@ -79,6 +83,13 @@ Bereits umgesetzt:
 - [x] **Werkschau statt Studioseite.** Anfrage und Ablauf, Flash, der Träger „Haut“ mit Reitern, Filtern und
       Waschung, die Teamliste, Telefon, Termine und der Podcast im Fuß sind raus. „Studio“ heißt jetzt „Atelier“:
       das Foto und Kontakt über Instagram. Kein Formular mehr, also auch keins in der Datenschutzerklärung.
+
+- [x] **Blutspur aus PR #2** übernommen: Canvas, Tabelle je Abschnitt, Stauung, Spritzer, trocknet vor dem Atelier.
+- [x] **Auftakt:** Das Video bleibt mit seinem letzten Bild stehen; die kniende Figur legt sich daneben (ab 1100 px)
+      oder liegt blass im Hintergrund.
+- [x] **Handschrift als Bildfolge** statt gespultem Video: läuft auf jedem Gerät. Danach blickt das Auge dem Zeiger
+      nach; dasselbe Auge sitzt in der Kopfleiste. Der Name ist die Signatur.
+- [x] **Neuordnung des Speichers** ohne Holz, die Blätter tauschen die Plätze.
 
 Beim nächsten Durchgang anzusehen:
 

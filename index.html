@@ -40,7 +40,9 @@
 
   <nav class="top" aria-label="Hauptnavigation">
     <div class="wrap">
-      <a class="brand" href="#auftakt">Luke WTF</a>
+      <!-- Das Auge aus der Handschrift liest mit: Es blickt dem Zeiger nach und blinzelt
+           (js/auge.js). Ohne JavaScript bleibt der Kasten leer. -->
+      <a class="brand" href="#auftakt"><canvas class="nav-auge ink-img" aria-hidden="true"></canvas><img class="handschrift" src="assets/img/signatur/handschrift.webp" width="1150" height="294" alt="Luke WTF" decoding="async"></a>
       <span class="sp"></span>
       <a href="#aktuell" data-nav="aktuell">Aktuell</a>
       <a href="#werke">Werke</a>
@@ -54,7 +56,9 @@
       <div class="wrap">
         <div class="hero-grid">
           <div class="hero-text" data-depth="0.10">
-            <h1 class="hd">Luke WTF</h1>
+            <!-- Der Name in seiner Handschrift, aus dem Video der Signatur geschnitten
+                 (scripts/bilder.py). Er schreibt sich im Auftakt von links nach rechts. -->
+            <h1 class="hd hero-name"><img class="handschrift" src="assets/img/signatur/handschrift.webp" width="1150" height="294" alt="Luke WTF" fetchpriority="high" decoding="async"></h1>
             <p>Zeichner in Köln-Ehrenfeld. Tusche und Farbe auf Papier, dazu Grafik für Clubnächte und Kollektive.</p>
           </div>
           <div class="hero-draw" id="hero-par">
@@ -128,13 +132,17 @@
             <p class="rv">Manches bleibt ein einzelnes Blatt, manches wird eine Folge. „Befreiung der Körperlichkeit“ hängt als zwei Werke zu je drei Blättern: In Werk I sind die Gesichter zu sehen, in Werk II sind sie abgewandt.</p>
           </div>
         </div>
-        <figure class="band-fig" data-depth="0.06">
-          <video class="band-video ink-img rv" data-eintritt="block" muted playsinline preload="metadata"
-                 poster="assets/img/gestaltung-signatur-poster.jpg"
-                 aria-label="Tuschzeichnung eines Auges am Ende einer langen Linie, dazu die handschriftliche Signatur">
-            <source src="assets/video/gestaltung-signatur.webm" type="video/webm">
-            <source src="assets/video/gestaltung-signatur.mp4" type="video/mp4">
-          </video>
+        <!-- Die Handschrift als Bildfolge auf einem Canvas: Beim Scrollen schreibt sich die
+             Signatur, danach blickt das Auge dem Zeiger nach (js/abschnitte.js, js/auge.js).
+             Ohne Bewegung steht das letzte Bild der Folge. Keine Parallaxe hier: Sie machte die
+             Figur zu einer eigenen Ebene, in der multiply nicht bis zum grauen Grund reicht,
+             und die Zeichnung stand als weißer Kasten da. -->
+        <figure class="band-fig">
+          <div class="band-rahmen rv" data-eintritt="block">
+            <img class="band-standbild ink-img" src="assets/img/signatur/folge-36.webp" width="1072" height="272" loading="lazy" decoding="async"
+                 alt="Tuschzeichnung eines Auges am Ende einer langen Linie, dazu die handschriftliche Signatur">
+            <canvas class="band-folge ink-img" width="1072" height="272" aria-hidden="true"></canvas>
+          </div>
         </figure>
       </div>
     </section>
@@ -238,6 +246,7 @@
 <script src="js/auftakt.js"></script>
 <script src="js/blattfolge.js"></script>
 <script src="js/site.js"></script>
+<script src="js/auge.js"></script>
 <script src="js/abschnitte.js"></script>
 <!-- Die Tabelle des Weltzustands (js/weltzustand.js): ein Eintrag je Abschnitt, in der
      Reihenfolge der Seite. `fassung` sagt, wie beisammen die Seite dort ist, 1 ganz,
