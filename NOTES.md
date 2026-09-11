@@ -3,7 +3,7 @@
 Vor Veröffentlichung klären beziehungsweise erledigen:
 
 - [ ] **Impressum** nach § 5 DDG ausfüllen (`impressum.html`): Name, Anschrift, E-Mail, ggf. USt-IdNr.
-- [ ] **Datenschutzerklärung** prüfen und ergänzen (`datenschutz.html`): Hoster, Formularweg, Speicherdauer, Datum.
+- [ ] **Datenschutzerklärung** prüfen und ergänzen (`datenschutz.html`): Hoster, Speicherdauer, Datum.
 - [ ] **Urheberschaft Werk I / Werk II** klären (Beitrag laut Instagram geteilt mit @lmklvser). Welche Blätter Werk I
       und Werk II sind, steht seit den Originalen fest: je drei Blätter mit Strang, benannt von Luke. Das Profil mit
       dem roten Strang und das Auge mit der Signatur hat er als „Beiwerk“ geschickt, sie sind keine Werke.
@@ -12,6 +12,10 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
       „Neuordnung des Speichers“. Gesetzt, nicht gewusst, sind noch: das Jahr (überall 2026), die Werknummern III und
       IV für die beiden Einzelblätter und die Reihenfolge dieser beiden. Änderungen gehören in `js/works.js`, danach
       `node video/scripts/werke-uebernehmen.mjs`.
+- [ ] **Signatur und Name.** Die Signatur im Video lautet „L. M. Klvser“; sie steht jetzt als Name im Kopf der Seite
+      und in der Kopfleiste (Alternativtext „Luke WTF“). Ob das so gewollt ist, bestätigt Luke.
+- [ ] **Technik von „Neuordnung des Speichers“ prüfen.** Eingetragen ist jetzt „Tusche und Farbe auf Papier“, weil
+      die Hälfte der Blätter rot bemalt ist.
 - [ ] **Technik von „Ansichten“ prüfen.** Eingetragen ist „Farbe auf Papier“, weil sich Acryl und Gouache auf dem Foto nicht
       unterscheiden lassen. Wenn es feststeht, genauer eintragen.
 - [ ] **Auflösung von „Ansichten“.** Die Vorlage kam mit 896 × 1195 Bildpunkten, nach dem Zuschnitt bleiben 828 × 1130. Das
@@ -23,19 +27,13 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
       Auftragsarbeiten jemand mitgenannt werden muss.
 - [ ] **Signet Kollektiv Noir als Vektor.** Die Datei hat 7441 × 8268 Bildpunkte, ist aber hochgerechnet und
       unscharf. Für die Seite reicht es; eine SVG- oder PDF-Fassung vom Kollektiv wäre besser.
-- [ ] **Podcast verlinken.** Der Fuß nennt „Bluthandwerk — Nicht noch ein Tattoo-Podcast!“, im Abschnitt Grafik steht
-      das Titelbild. Sobald es eine Adresse gibt, gehört sie an beide Stellen.
-- [ ] **Einwilligung** der tätowierten Personen schriftlich einholen, bevor Werkfotos (Haut) eingesetzt werden.
-- [ ] **Hautarbeiten und Flash fehlen ganz.** Die erfundenen Platzhalter sind raus: Die Seite zeigt nur noch, was es
-      gibt. Damit sind auch die Reiter „Haut / Papier / Alles", die Filter nach Körperstelle und Motiv und der ganze
-      Abschnitt „Flash" verschwunden — nicht gelöscht, sondern ausgeblendet. Sobald Einträge mit `src` in
-      `LUKE.WERKE` (`tr: 'haut'`) oder in `LUKE.FLASH` stehen, kommt alles von selbst zurück, samt Kapitel in der
-      Sequenz und Eintrag in der Navigation. Nichts davon muss von Hand wieder eingeschaltet werden.
+- [ ] **Texte von Luke absegnen lassen.** Mit dem Umbau zur Werkschau sind drei Texte neu: der Vorspann im Kopf
+      („Zeichner in Köln-Ehrenfeld …“), die Handschrift (von der Linie und von den beiden Werken der Serie) und der
+      Satz im Atelier. Sie sagen nichts, was nicht auf den Blättern zu sehen ist, sind aber nicht von ihm.
+- [ ] **Impressum und Bluthandwerk.** Im Impressum stehen noch Anschrift und Telefon des Studios. Ob das für eine
+      Werkschau die richtige Anschrift ist, entscheidet Luke; sonst nennt die Seite Bluthandwerk nur noch als
+      Titel des Podcasts im Abschnitt Grafik.
 - [ ] **Maße** der Papierarbeiten eintragen (`masse: 'Maße folgen'`).
-- [ ] **Öffnungszeiten und Anfahrt** im Studio-Block ergänzen („Anfahrt: Angabe folgt“).
-- [ ] **Formularversand** festlegen (`formEndpoint` oder `formEmail` in `js/works.js`); bis dahin zeigt die Seite den
-      Anfragetext zum Kopieren für die Instagram-DM.
-- [ ] **Team-Profile** (Kiya Noir, Jonas Dreyer, Kate Velvet, Stefan Gepting): „Profil folgt“.
 - [ ] **Ton für den Film** entscheiden: derzeit stumm. Wenn Ton, dann Raumton aus dem Atelier
       und Stiftgeräusche, kein Standard-Whoosh.
 - [ ] **Richtung festlegen**: A, B oder C (siehe README, Bedienfeld mit Shift + B). Standard ist A.
@@ -82,13 +80,24 @@ Bereits umgesetzt:
 - [x] **Grafik als Plakatwand.** Elf Arbeiten in bündigen Reihen gleicher Höhe; die Karte nennt Titel, Gattung und
       Jahr, der Rest steht in der Werkansicht.
 
+- [x] **Werkschau statt Studioseite.** Anfrage und Ablauf, Flash, der Träger „Haut“ mit Reitern, Filtern und
+      Waschung, die Teamliste, Telefon, Termine und der Podcast im Fuß sind raus. „Studio“ heißt jetzt „Atelier“:
+      das Foto und Kontakt über Instagram. Kein Formular mehr, also auch keins in der Datenschutzerklärung.
+
+- [x] **Blutspur aus PR #2** übernommen: Canvas, Tabelle je Abschnitt, Stauung, Spritzer, trocknet vor dem Atelier.
+- [x] **Auftakt:** Das Video bleibt mit seinem letzten Bild stehen; die kniende Figur legt sich daneben (ab 1100 px)
+      oder liegt blass im Hintergrund.
+- [x] **Handschrift als Bildfolge** statt gespultem Video: läuft auf jedem Gerät. Danach blickt das Auge dem Zeiger
+      nach; dasselbe Auge sitzt in der Kopfleiste. Der Name ist die Signatur.
+- [x] **Neuordnung des Speichers** ohne Holz, die Blätter tauschen die Plätze.
+
 Beim nächsten Durchgang anzusehen:
 
-- Ein zweites Raster für die Serie wäre eine Überlegung wert, sobald Fotos der Hautarbeiten dazukommen.
-- Das Auftaktvideo ist mit 1,7 MB (VP9) beziehungsweise 1,8 MB (H.264) der größte Posten beim Laden. Ein
-  Neukodieren aus `assets/original/` brachte bei gleicher Auflösung kaum etwas (H.264 CRF 24: 1,37 MB, VP9 CRF 34:
-  sogar größer): Die Zeichenanimation hat viel feines Korn. Kleiner würde sie nur mit einem Neu-Render ohne Korn aus
-  Remotion oder mit sichtbarem Qualitätsverlust — beides eine Entscheidung für Luke, nicht für ein Skript.
+- Das Auftaktvideo war mit 1,7 MB (VP9) beziehungsweise 1,8 MB (H.264) der größte Posten beim Laden. Jetzt steht AV1
+  vorn: 0,99 MB bei kaum sichtbarem Unterschied (PSNR 37,2 gegen 38,8 dB beim H.264; `scripts/videos.sh`). Eine
+  Bildfolge statt des Videos wurde gemessen und verworfen: Die Zeichnung verwandelt sich, alle Striche bewegen sich
+  in jedem Bild, 145 Bilder als WebP wären 4 MB. Das Korn per AV1 nachzubilden (film-grain) spart noch einmal ein
+  Viertel, glättet aber die dichte Schraffur sichtbar — eine Entscheidung für Luke, nicht für ein Skript.
 - Nach dem Schnitt hängt die Tropfspur rund 7 % der Blatthöhe unter der Tusche der knienden Figur in der Luft: Der
   Strang des Videos tritt an der Unterkante aus, die Figur endet höher. Wollte man das schließen, müsste das Standbild
   unten beschnitten werden (Datei), nicht die Spur verschoben.

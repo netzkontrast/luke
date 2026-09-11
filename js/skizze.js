@@ -97,7 +97,7 @@
   function flugBauen() {
     const halter = document.getElementById('flug-buehne');
     if (!halter) return [];
-    const werke = L.helleBlaetter ? L.helleBlaetter('papier') : [];
+    const werke = L.helleBlaetter ? L.helleBlaetter() : [];
     if (!werke.length) return [];
     return BAHNEN.map((b, i) => {
       const w = werke[i % werke.length];

@@ -60,9 +60,9 @@ export const Auftakt: React.FC<{ ende: number }> = ({ ende }) => {
                 maxWidth: f.hoch ? '28ch' : '24ch',
               }}
             >
-              Tätowierer und Zeichner.
+              Zeichner.
               <br />
-              Bluthandwerk, Köln-Ehrenfeld.
+              Köln-Ehrenfeld.
             </div>
           </Zeile>
         </div>

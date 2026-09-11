@@ -25,16 +25,13 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const klemm = (v, a, b) => Math.max(a, Math.min(b, v));
 
-  /* Alle Kapitel, die die Folge kennt. Ein Kapitel ohne Aufnahmen bleibt weg — und kommt von
-     selbst, sobald Bilder in js/works.js stehen. */
+  /* Die Kapitel der Folge. Heute eines; ein zweites wäre ein Eintrag mehr, etwa für eine
+     neue Serie. Ein Kapitel ohne Aufnahmen bleibt weg. Je Blatt ein Stück: Ein Werk aus drei
+     Blättern zieht dreimal vorbei, Blatt für Blatt. */
   const ALLE = [
-    { key: 'haut', t: 'Haut', sub: 'Blackwork auf Arm, Rücken, Brust — seit 2012.' },
-    { key: 'papier', t: 'Papier', sub: 'Tusche, Originale — zuletzt „Befreiung der Körperlichkeit“.' },
-    { key: 'flash', t: 'Flash', sub: 'Fertige Blätter, jedes wird genau einmal gestochen.' }
+    { key: 'blaetter', t: 'Blätter', sub: 'Tusche und Farbe auf Papier — zuletzt „Befreiung der Körperlichkeit“.', blaetter: L.helleBlaetter ? L.helleBlaetter() : [] }
   ];
-  /* Je Blatt ein Stück: Ein Werk aus drei Blättern zieht dreimal vorbei, Blatt für Blatt. */
-  const aufnahmen = key => key === 'flash' ? (L.FLASH || []).filter(f => f.src) : (L.helleBlaetter ? L.helleBlaetter(key) : []);
-  const KAPITEL = ALLE.map(k => Object.assign({}, k, { blaetter: aufnahmen(k.key) })).filter(k => k.blaetter.length);
+  const KAPITEL = ALLE.filter(k => k.blaetter.length);
   const sec = halter.closest('section');
   if (!KAPITEL.length) { if (sec) sec.hidden = true; return; }
   /* Leichte Schräge im Wechsel, wie Blätter, die man ablegt. */
@@ -44,12 +41,11 @@
 
   /* Beschriftung aus den Daten, nichts erfunden. */
   function schriftHTML(s) {
-    if (s.n != null) return `<span class="bf-nr">Blatt ${esc(s.n)}</span><span class="bf-t">${esc(s.motiv)}</span><span class="bf-m">${esc(s.format)}</span>`;
-    const w = s.werk, m = w.tr === 'haut' ? `${w.ort}, ${w.jahr}` : `${w.technik}, ${w.jahr}`;
+    const w = s.werk, m = `${w.technik}, ${w.jahr}`;
     const teil = s.teile > 1 ? ` · Bild ${s.teil} von ${s.teile}` : '';
     return `<span class="bf-nr">Nr. ${esc(w.nr)}${teil}</span><span class="bf-t">${esc(w.t)}</span><span class="bf-m">${esc(m)}</span>`;
   }
-  const blattAlt = s => (s.werk ? (s.teile > 1 ? `${s.werk.t}, Bild ${s.teil} von ${s.teile}` : s.werk.t) : (s.motiv || ''));
+  const blattAlt = s => (s.teile > 1 ? `${s.werk.t}, Bild ${s.teil} von ${s.teile}` : s.werk.t);
 
   /* Aufbau. */
   const buehne = document.createElement('div'); buehne.className = 'bf-buehne';

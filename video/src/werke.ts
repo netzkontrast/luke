@@ -1,46 +1,42 @@
 /* Erzeugt von scripts/werke-uebernehmen.mjs aus js/works.js. Nicht von Hand ändern:
    Änderungen gehören in js/works.js, danach das Skript erneut laufen lassen. */
 export type Werk = {
-  nr: string; titel: string; traeger: 'haut' | 'papier'; jahr: number;
-  technik: string | null; ort: string | null; serie: string | null;
+  nr: string; titel: string; jahr: number;
+  technik: string | null; serie: string | null; blaetter: number;
 };
 
 export const WERKE: Werk[] = [
   {
     "nr": "I",
     "titel": "Befreiung der Körperlichkeit, Werk I",
-    "traeger": "papier",
     "jahr": 2026,
     "technik": "Tusche auf Papier",
-    "ort": null,
-    "serie": "Befreiung der Körperlichkeit"
+    "serie": "Befreiung der Körperlichkeit",
+    "blaetter": 3
   },
   {
     "nr": "II",
     "titel": "Befreiung der Körperlichkeit, Werk II",
-    "traeger": "papier",
     "jahr": 2026,
     "technik": "Tusche auf Papier",
-    "ort": null,
-    "serie": "Befreiung der Körperlichkeit"
+    "serie": "Befreiung der Körperlichkeit",
+    "blaetter": 3
   },
   {
     "nr": "III",
     "titel": "Ansichten",
-    "traeger": "papier",
     "jahr": 2026,
     "technik": "Farbe auf Papier",
-    "ort": null,
-    "serie": null
+    "serie": null,
+    "blaetter": 1
   },
   {
     "nr": "IV",
     "titel": "Neuordnung des Speichers",
-    "traeger": "papier",
     "jahr": 2026,
     "technik": "Tusche auf Papier, zwölf Blätter",
-    "ort": null,
-    "serie": null
+    "serie": null,
+    "blaetter": 1
   }
 ];
 

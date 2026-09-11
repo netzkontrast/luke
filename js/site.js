@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   const L = window.LUKE || {};
-  const CFG = L.CONFIG || {}, W = L.WERKE || [], FLASH = L.FLASH || [], FILTER = L.FILTER || {}, GRAFIK = L.GRAFIK || [];
+  const CFG = L.CONFIG || {}, W = L.WERKE || [], FILTER = L.FILTER || {}, GRAFIK = L.GRAFIK || [];
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -23,19 +23,13 @@
     bewegung: prm ? 'aus' : (app.dataset.bewegung || 'voll'),
     dichte: 'luftig', rotspur: 'spur', sequenz: 'voll', korn: 'aus',
     panel: params.has('proto'), panelOpen: true,
-    traeger: 'alles', fOrt: null, fMotiv: null, fSerie: null, fJahr: null,
+    fSerie: null, fJahr: null,
     /* Die Werkansicht: welches Werk offen ist und welches seiner Blätter gezeigt wird. */
     open: null, teil: 0
   };
   const mScale = () => ({ aus: 0, dezent: 0.55, voll: 1 })[S.bewegung];
 
   /* ---------- Werke ---------- */
-  /* Welche Träger es gibt, entscheidet sich an den Daten, nicht am Markup. Solange es nur
-     Arbeiten auf Papier gibt, wären Reiter für „Haut“ und „Alles“ drei Knöpfe, von denen
-     zwei ins Leere führen. Sie erscheinen wieder, sobald Hautfotos dazukommen. */
-  const traegerDa = ['haut', 'papier'].filter(t => W.some(w => w.tr === t));
-  const einTraeger = traegerDa.length < 2;
-  if (einTraeger && traegerDa.length) S.traeger = traegerDa[0];
   /* Ein Eintrag ohne Bild wird übergangen. Früher stand an seiner Stelle eine erzeugte
      Tuschzeichnung; die ist raus, weil auf dieser Seite nur stehen soll, was es gibt. */
   const isReal = w => L.blaetter(w).length > 0;
@@ -49,72 +43,46 @@
   /* Die Zahl der Blätter steht in der Zeile, wenn ein Werk aus mehreren besteht — außer die
      Technik nennt sie schon („zwölf Blätter“ bei einer einzigen Aufnahme). */
   function meta(w) {
-    if (w.tr === 'haut') return `Nr. ${w.nr} — Haut, ${w.ort}, ${w.jahr}`;
     const n = L.blaetter(w).length;
     return `Nr. ${w.nr} — ${w.technik}${n > 1 ? ', ' + blaetterText(n) : ''}, ${w.jahr}`;
   }
   const blattName = (w, i, n) => (n > 1 ? `${w.t}, Bild ${i + 1} von ${n}` : w.t);
-  const altText = (w, i, n) => blattName(w, i, n) + (w.tr === 'haut' ? `, Blackwork auf ${w.ort}, ${w.jahr}.` : `, ${w.technik}, ${w.jahr}.`) + ' Werkansicht öffnen.';
+  const altText = (w, i, n) => `${blattName(w, i, n)}, ${w.technik}, ${w.jahr}. Werkansicht öffnen.`;
   function bildHTML(w, b, sizes, alt) {
     return `<img class="${bildKlasse(w)}" src="${esc(b.src)}" srcset="${esc(b.srcset)}" sizes="${sizes}" width="${b.w}" height="${b.h}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
   }
+  /* Ein Werk aus vielen kleinen Blättern, die in einem Raster liegen (w.kacheln): Jedes Blatt
+     ist ein Ausschnitt aus demselben Bild, das damit zugleich Bildbogen ist. Welche Breite
+     geladen wird, entscheidet die Pixeldichte; eine Datei für alle zwölf. */
+  function kachelnHTML(w, b) {
+    const { spalten, zeilen } = w.kacheln, B0 = (L.BILDER || {})[b.name];
+    const breite = B0 ? (B0.breiten.find(x => x >= (window.devicePixelRatio > 1.3 ? 1200 : 800)) || B0.breiten[B0.breiten.length - 1]) : 0;
+    /* Absolut: Ein url() in einer CSS-Variablen löst der Browser dort auf, wo sie benutzt
+       wird, also relativ zu css/site.css — und fände das Bild nicht. */
+    const bogen = new URL(breite ? `assets/img/${b.name}-${breite}.webp` : b.src, document.baseURI).href;
+    const stuecke = Array.from({ length: spalten * zeilen }, (_, i) => `<span class="kachel" style="--sx:${i % spalten};--sy:${Math.floor(i / spalten)}"></span>`).join('');
+    /* Die Adresse des Bogens kommt erst, wenn das Werk heranrückt (neuordnen()): Ein
+       Hintergrundbild kennt kein loading="lazy" und lüde sonst gleich beim Start. */
+    return `<span class="kacheln ${bildKlasse(w)}" data-bogen="${esc(bogen)}" style="--spalten:${spalten};--zeilen:${zeilen}" aria-hidden="true">${stuecke}</span>`;
+  }
   function filtered() {
     let list = W.filter(isReal);
-    if (S.traeger !== 'alles') list = list.filter(w => w.tr === S.traeger);
-    if (S.traeger === 'haut') { if (S.fOrt) list = list.filter(w => w.ortKey === S.fOrt); if (S.fMotiv) list = list.filter(w => w.motiv === S.fMotiv); }
-    if (S.traeger === 'papier') { if (S.fSerie) list = list.filter(w => w.serie === S.fSerie); if (S.fJahr) list = list.filter(w => w.jahr === S.fJahr); }
+    if (S.fSerie) list = list.filter(w => w.serie === S.fSerie);
+    if (S.fJahr) list = list.filter(w => w.jahr === S.fJahr);
     return list;
   }
-  function renderTabs() {
-    const leiste = $('#tr-tabs'), titel = $('#werke-titel');
-    if (einTraeger) {
-      leiste.innerHTML = ''; leiste.hidden = true;
-      if (titel) titel.hidden = false;
-      return;
-    }
-    leiste.hidden = false;
-    if (titel) titel.hidden = true;
-    leiste.innerHTML = [['haut', 'Haut'], ['papier', 'Papier'], ['alles', 'Alles']]
-      .map(([k, label]) => `<button type="button" class="tr-tab" data-tr="${k}" aria-pressed="${S.traeger === k}">${label}</button>`).join('')
-      + '<span class="tr-schiene" aria-hidden="true"></span>';
-    schieneSetzen(true);
-  }
-
-  /* Die Linie unter den Reitern gleitet mit einer Feder von einem zum nächsten. Die Breite
-     wird sofort gesetzt; bewegt wird nur transform — Verschiebung und ein Maßstab, der von
-     der alten Breite zur neuen läuft (FLIP). Beim ersten Zeichnen und nach Größenänderungen
-     wird sie gesetzt, nicht bewegt. */
-  function schieneSetzen(sofort) {
-    const leiste = $('#tr-tabs'), schiene = $('.tr-schiene', leiste);
-    const aktiv = $('.tr-tab[aria-pressed="true"]', leiste);
-    if (!schiene || !aktiv) return;
-    const x = aktiv.offsetLeft, breite = aktiv.offsetWidth;
-    const vorher = schiene.offsetWidth || breite;
-    const alt = /translateX\(([-\d.]+)px\)/.exec(schiene.style.transform || '');
-    const xAlt = alt ? parseFloat(alt[1]) : x;
-    schiene.style.width = breite + 'px';
-    schiene.style.transformOrigin = '0 50%';
-    if (sofort === true || !M || !mScale()) { schiene.style.transform = `translateX(${x}px)`; return; }
-    M.animate(schiene, { x: [xAlt, x], scaleX: [vorher / breite, 1] }, B.feder.gesetzt);
-  }
-  addEventListener('resize', () => schieneSetzen(true), { passive: true });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => schieneSetzen(true));
-  /* Ein Reiter, hinter dem nichts steht, ist eine Sackgasse. Angeboten wird deshalb nur,
+  /* Ein Filter, hinter dem nichts steht, ist eine Sackgasse. Angeboten wird deshalb nur,
      was unter den vorhandenen Werken auch vorkommt — und nur dann, wenn es mehr als eine
-     Möglichkeit gibt. */
+     Möglichkeit gibt. Heute gibt es eine Serie und ein Jahr, also keinen Filter; er kommt
+     von selbst, sobald js/works.js mehr hergibt. */
   function vorhanden(liste, feld) {
-    const da = new Set(W.filter(w => w.tr === S.traeger).map(w => w[feld]));
+    const da = new Set(W.map(w => w[feld]));
     return (liste || []).filter(v => da.has(v));
   }
-  /* Welche Filter es je Träger gibt. Ein dritter Träger wäre eine Zeile mehr, kein
-     dritter Zweig. */
-  const FILTERGRUPPEN = {
-    haut: [['Alle Stellen', 'orte', 'ortKey', 'fOrt'], ['Alle Motive', 'motive', 'motiv', 'fMotiv']],
-    papier: [['Alle Serien', 'serien', 'serie', 'fSerie'], ['Alle Jahre', 'jahre', 'jahr', 'fJahr']]
-  };
+  const FILTERGRUPPEN = [['Alle Serien', 'serien', 'serie', 'fSerie'], ['Alle Jahre', 'jahre', 'jahr', 'fJahr']];
   function renderChips() {
     const chip = (label, active, f, v) => `<button type="button" class="chip" data-f="${f}" data-v="${esc(v == null ? '' : v)}" aria-pressed="${active}">${esc(label)}</button>`;
-    const teile = (FILTERGRUPPEN[S.traeger] || []).map(([label, liste, feld, f]) => {
+    const teile = FILTERGRUPPEN.map(([label, liste, feld, f]) => {
       const werte = vorhanden(FILTER[liste], feld);
       return werte.length < 2 ? ''
         : chip(label, !S[f], f, '') + werte.map(o => chip(String(o), S[f] === o, f, o)).join('');
@@ -134,8 +102,6 @@
      legen sich die Blätter eines Werks nacheinander ab, die Beschriftung kommt zuletzt. */
   function renderGrid() {
     const list = filtered();
-    const lead = $('#werke-lead-text');
-    if (lead && einTraeger && CFG.werkeVorspannEinTraeger) lead.textContent = CFG.werkeVorspannEinTraeger;
     $('#werke-count').textContent = list.length === 1 ? 'Ein Werk.' : list.length + ' Werke.';
     const gl = $('#g-list');
     gl.innerHTML = list.map(w => {
@@ -144,14 +110,51 @@
       /* sizes: auf dem Telefon der Anteil an der vollen Breite, sonst die Breite bei der
          vollen Höhe von 560 px, gedeckelt durch die Spalte der Seite. */
       const sizes = b => { const r = b.w / b.h; return `(max-width: 700px) ${Math.round(92 * r / summe)}vw, ${Math.round(Math.min(560 * r, 1100 * r / summe))}px`; };
-      const blaetter = bl.map((b, i) => `<button type="button" class="g-blatt rv" data-eintritt="blatt" data-versatz="${i}" data-teil="${i}" style="--r:${verh(b)};flex-grow:${Math.round(1000 * b.w / b.h)}" aria-label="${esc(altText(w, i, n))}"><span class="g-bild">${bildHTML(w, b, sizes(b))}</span></button>`).join('');
+      const blaetter = bl.map((b, i) => `<button type="button" class="g-blatt rv" data-eintritt="blatt" data-versatz="${i}" data-teil="${i}" style="--r:${verh(b)};flex-grow:${Math.round(1000 * b.w / b.h)}" aria-label="${esc(altText(w, i, n))}"><span class="g-bild">${w.kacheln ? kachelnHTML(w, b) : bildHTML(w, b, sizes(b))}</span></button>`).join('');
       return `<figure class="g-item${n > 1 ? ' g-item--teile' : ''}" data-fid="${esc(w.id)}" style="--r:${summe.toFixed(4)};--n:${n}">`
         + `<span class="cnr" aria-hidden="true">${esc(w.nr)}</span><div class="g-ph">${blaetter}</div>`
         + `<figcaption class="g-meta rv" data-versatz="${n}"><span class="g-t">${esc(w.t)}</span><span class="g-m">${esc(meta(w))}</span></figcaption></figure>`;
     }).join('');
     if (B) B.heben($$('.g-blatt', gl), { um: 4, feld: '.g-bild' });
+    neuordnen(gl);
   }
-  function renderWerke() { renderTabs(); renderChips(); renderGrid(); }
+
+  /* Neuordnung des Speichers: Solange das Werk zu sehen ist, tauschen alle paar Sekunden zwei
+     seiner Blätter die Plätze — der Speicher ordnet sich neu, er steht nie ganz still. Unter
+     dem Zeiger halten sie still, damit man hinsehen kann. Getauscht wird im Raster (die
+     Knoten wechseln die Stelle), die Bewegung dazwischen ist ein FLIP mit der Feder der
+     Richtung. Ohne Bewegung bleibt die Ordnung, wie sie lag. */
+  function neuordnen(root) {
+    $$('.kacheln', root).forEach(el => {
+      const zeigen = () => { if (el.dataset.bogen) { el.style.setProperty('--bogen', `url('${el.dataset.bogen}')`); delete el.dataset.bogen; } };
+      if (typeof IntersectionObserver === 'function') {
+        const io = new IntersectionObserver(e => { if (e[0].isIntersecting) { zeigen(); io.disconnect(); } }, { rootMargin: '100% 0px' });
+        io.observe(el);
+      } else zeigen();
+      let timer = 0;
+      const tauschen = () => {
+        if (!el.isConnected) return;
+        timer = setTimeout(tauschen, 2600 + Math.random() * 2200);
+        if (!mScale() || el.matches(':hover') || document.hidden) return;
+        const k = $$('.kachel', el), n = k.length;
+        if (n < 2) return;
+        const i = Math.floor(Math.random() * n);
+        let j = Math.floor(Math.random() * (n - 1)); if (j >= i) j++;
+        const a = k[i], b = k[j], ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+        /* Die beiden Knoten tauschen ihre Stelle im Raster. */
+        const platz = document.createComment('');
+        a.replaceWith(platz); b.replaceWith(a); platz.replaceWith(b);
+        const na = a.getBoundingClientRect(), nb = b.getBoundingClientRect();
+        [[a, ra, na], [b, rb, nb]].forEach(([el2, vorher, nachher], z) => {
+          el2.style.zIndex = String(2 - z);
+          M.animate(el2, { x: [vorher.left - nachher.left, 0], y: [vorher.top - nachher.top, 0], scale: [1, 1.06, 1] }, Object.assign({}, B.feder.gesetzt, { scale: { duration: 0.7 * mScale(), ease: B.tempo().kurve } }))
+            .then(() => M.frame.postRender(() => M.frame.postRender(() => { el2.style.transform = ''; el2.style.zIndex = ''; })));
+        });
+      };
+      if (M) M.inView(el, () => { clearTimeout(timer); timer = setTimeout(tauschen, 1400); return () => clearTimeout(timer); }, { amount: 0.3 });
+    });
+  }
+  function renderWerke() { renderChips(); renderGrid(); }
 
   /* Übergänge der Galerie. Was verschwindet, geht zuerst, und zwar schneller als es kam;
      dann wird neu gezeichnet; was bleibt, gleitet an seinen neuen Platz (FLIP), was neu ist,
@@ -203,42 +206,6 @@
     if (lauf !== filterLauf) return;
     flipStart(); Object.assign(S, patch); renderChips(); renderGrid(); flipPlay();
   }
-  /* Die Waschung beim Trägerwechsel, je Richtung: A zieht Tusche von oben herunter, B blendet
-     ins Schwarz, C schiebt ein Blatt von links. Gebaut mit Motion, Dauern aus tempo(). */
-  /* Läuft schon eine Waschung, lässt ein zweiter Klick sie in Ruhe: Zwei Motion-Animationen
-     auf demselben #gwash überschrieben sich sonst (zwei Richtungswechsel kurz hintereinander,
-     etwa beim schnellen Durchklicken der Reiter). */
-  let waescht = false;
-  function washAnim(w, ein) {
-    const t = B.tempo(), s = Math.max(mScale(), 0.01), r = S.richtung;
-    const dauer = (ein ? t.wasch.ein : t.wasch.aus) * s;
-    if (r === 'b') { w.style.transform = 'none'; w.style.background = '#000'; return M.animate(w, { opacity: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve }); }
-    if (r === 'c') { w.style.background = 'var(--sheet)'; w.style.transformOrigin = ein ? '0 50%' : '100% 50%'; return M.animate(w, { scaleX: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve }); }
-    w.style.background = 'var(--ink)'; w.style.transformOrigin = ein ? '50% 0%' : '50% 100%';
-    return M.animate(w, { scaleY: ein ? [0, 1] : [1, 0] }, { duration: dauer, ease: t.kurve });
-  }
-  function setTraeger(tr, sofort) {
-    if (tr === S.traeger || waescht) return;
-    const s = mScale(), wash = $('#gwash');
-    const apply = () => { Object.assign(S, { traeger: tr, fOrt: null, fMotiv: null, fSerie: null, fJahr: null }); renderWerke(); };
-    if (sofort || !s || !M || !wash) { apply(); return; }
-    waescht = true;
-    washAnim(wash, true).then(() => {
-      apply();
-      const t = B.tempo(), items = $$('.g-item');
-      items.forEach(werkSofort);
-      washAnim(wash, false).then(() => { waescht = false; });
-      /* Dieselbe Nachschreib-Falle wie in flipPlay(): erst zwei Renderschritte später leeren. */
-      items.forEach((el, k) => M.animate(el, B.eintritt(el), { duration: t.dauer * 0.5 * s, delay: (t.wasch.aus * 0.55 + Math.min(k * 0.032, 0.2)) * s, ease: t.kurve })
-        .then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.opacity = ''; el.style.transform = ''; el.style.clipPath = ''; el.style.filter = ''; }))));
-    });
-  }
-  $('#tr-tabs').addEventListener('click', e => {
-    const b = e.target.closest('[data-tr]'); if (!b || waescht) return;
-    $$('.tr-tab').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    schieneSetzen();
-    setTraeger(b.dataset.tr);
-  });
   $('#werke-filter').addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const f = b.dataset.f, v = b.dataset.v;
@@ -270,16 +237,12 @@
       if (o.notiz) r.push({ k: 'Anlass', v: o.notiz });
       return r;
     }
-    const r = [{ k: 'Werknummer', v: 'Nr. ' + o.nr }, { k: 'Träger', v: o.tr === 'haut' ? 'Haut' : 'Papier' }, { k: 'Jahr', v: String(o.jahr) }];
-    if (o.tr === 'haut') r.push({ k: 'Körperstelle', v: o.ort }, { k: 'Sitzungen', v: o.sitzungen + (o.sitzungen > 1 ? ' Sitzungen' : ' Sitzung') }, { k: 'Zustand', v: o.zustand });
-    else {
-      r.push({ k: 'Technik', v: o.technik });
-      const n = L.blaetter(o).length;
-      if (n > 1) r.push({ k: 'Umfang', v: blaetterText(n) });
-      r.push({ k: 'Maße', v: o.masse });
-      if (o.serie) r.push({ k: 'Serie', v: o.serie });
-      if (o.gezeigt) r.push({ k: 'Gezeigt', v: o.gezeigt });
-    }
+    const r = [{ k: 'Werknummer', v: 'Nr. ' + o.nr }, { k: 'Jahr', v: String(o.jahr) }, { k: 'Technik', v: o.technik }];
+    const n = L.blaetter(o).length;
+    if (n > 1) r.push({ k: 'Umfang', v: blaetterText(n) });
+    r.push({ k: 'Maße', v: o.masse });
+    if (o.serie) r.push({ k: 'Serie', v: o.serie });
+    if (o.gezeigt) r.push({ k: 'Gezeigt', v: o.gezeigt });
     return r;
   }
   function renderOverlay() {
@@ -464,90 +427,6 @@
     const b = e.target.closest('.gr-item'); if (b) openWerk(b.dataset.gid, b);
   });
 
-  /* ---------- Flash ---------- */
-  function renderFlash() {
-    const el = $('#flash-list'); if (!el) return;
-    /* Ohne Blätter kein Abschnitt. Erfundene Blätter wären das Gegenteil dessen, wofür
-       die Seite da ist. Ein Eintrag ohne Aufnahme zählt dabei nicht als Blatt. */
-    const blaetter = FLASH.filter(f => f.src);
-    abschnittZeigen('flash', blaetter.length > 0);
-    el.innerHTML = blaetter.map(f => {
-      const bild = `<img class="ink-img" src="${esc(f.src)}" alt="" loading="lazy" decoding="async">`;
-      const vergeben = f.status === 'vergeben';
-      return `<div class="sheet rv${vergeben ? ' vergeben' : ''}" data-eintritt="blatt"><div class="sheet-head"><span class="sheet-n">Blatt ${f.n}</span><span class="sheet-f">${esc(f.format)}</span></div><div class="sheet-ph">${bild}</div><div class="sheet-m">${esc(f.motiv)}</div><div class="sheet-row"><span class="mut">${esc(f.preis || 'auf Anfrage')}</span><span class="sheet-status">${esc(f.status)}</span></div></div>`;
-    }).join('');
-  }
-
-  /* ---------- Anfrage ---------- */
-  const form = $('#af-form');
-  function showErr(msg) {
-    const el = $('#af-err'); if (!el) return;
-    el.textContent = msg; el.hidden = !msg;
-    if (!msg) return;
-    /* Motion schreibt die Endwerte im Renderschritt des folgenden Bildes noch einmal (wie in
-       js/bewegung.js, zeigen()); deshalb erst zwei Renderschritte später leeren. */
-    if (M && mScale()) M.animate(el, { opacity: [0, 1], x: [-8, 0] }, { duration: B.tempo().kurz * mScale(), ease: B.tempo().kurve }).then(() => M.frame.postRender(() => M.frame.postRender(() => { el.style.transform = ''; })));
-    el.focus();
-  }
-  function done(mode, text) {
-    form.hidden = true;
-    const d = $('#af-done');
-    const ig = `<a href="${esc(CFG.instagram || '#')}" target="_blank" rel="noopener">${esc(CFG.handle || 'Instagram')}</a>`;
-    const copyBlock = `<textarea readonly aria-label="Anfragetext">${esc(text || '')}</textarea><button type="button" class="btn" data-copy>Text kopieren</button>`;
-    if (mode === 'sent') d.innerHTML = `<h3 class="hd">Angekommen.</h3><p>Du hörst von mir — in der Regel innerhalb einer Woche. Wenn es schneller gehen muss: DM an ${ig}.</p>`;
-    else if (mode === 'mail') d.innerHTML = `<h3 class="hd">Fast geschafft.</h3><p>Dein Mailprogramm sollte sich jetzt mit der Anfrage öffnen. Falls nicht: Text kopieren und per DM an ${ig} schicken.</p>${copyBlock}`;
-    else d.innerHTML = `<h3 class="hd">Fast geschafft.</h3><p>Kopier den Text und schick ihn mir per DM an ${ig}. Du hörst von mir — in der Regel innerhalb einer Woche.</p>${copyBlock}`;
-    d.hidden = false; d.classList.add('rv', 'on');
-    /* d ist schon sichtbar und trägt .on, bevor das Enthüllen es sähe — B.sofort() trägt es
-       trotzdem in gesehen ein, sonst griffe M.inView() später noch einmal zu. Die eigentliche
-       Bewegung kommt gleich danach, mit eigenem Tempo. Aufräumen zwei Renderschritte später,
-       aus demselben Grund wie in showErr(). */
-    if (B) B.sofort(d);
-    if (M && mScale()) M.animate(d, { opacity: [0, 1], y: [12, 0] }, { duration: B.tempo().dauer * 0.6 * mScale(), ease: B.tempo().kurve }).then(() => M.frame.postRender(() => M.frame.postRender(() => { d.style.opacity = ''; d.style.transform = ''; })));
-    const cp = $('[data-copy]', d);
-    if (cp) cp.addEventListener('click', () => {
-      const ta = $('textarea', d); ta.select();
-      const ok = () => { cp.textContent = 'Kopiert.'; };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(ok, () => { try { document.execCommand('copy'); ok(); } catch (e) { /* Auswahl bleibt markiert */ } });
-      else { try { document.execCommand('copy'); ok(); } catch (e) { /* Auswahl bleibt markiert */ } }
-    });
-    d.scrollIntoView({ block: 'nearest', behavior: mScale() ? 'smooth' : 'auto' });
-  }
-  function sendeAnfrage() {
-    const g = id => document.getElementById(id);
-    const v = id => ((g(id) && g(id).value) || '').trim();
-    const idee = v('af-idee'), traeger = v('af-traeger'), stelle = v('af-stelle'), groesse = v('af-groesse'), budget = v('af-budget'), termin = v('af-termin'), kontakt = v('af-kontakt'), kontaktwert = v('af-kontaktwert');
-    const adult = g('af-adult') && g('af-adult').checked;
-    if (!idee) return showErr('Bitte beschreib kurz die Motividee.');
-    if (!kontakt) return showErr('Bitte wähl einen Kontaktweg.');
-    if (!kontaktwert) return showErr('Bitte gib an, wie ich dich dort erreiche.');
-    if (!adult) return showErr('Ohne Bestätigung der Volljährigkeit geht es nicht.');
-    showErr('');
-    const text = [
-      'Anfrage an ' + (CFG.name || 'Luke WTF'),
-      'Motividee: ' + idee,
-      'Träger: ' + (traeger === 'papier' ? 'Papier (Original)' : 'Haut (Tattoo)'),
-      stelle && 'Körperstelle: ' + stelle,
-      groesse && 'Ungefähre Größe: ' + groesse,
-      'Budgetrahmen: ' + (budget || 'möchte ich erst besprechen'),
-      termin && 'Terminwunsch: ' + termin,
-      'Kontakt: ' + kontakt + ' — ' + kontaktwert,
-      'Volljährig: ja'
-    ].filter(Boolean).join('\n');
-    const btn = $('#af-send');
-    if (CFG.formEndpoint) {
-      btn.disabled = true;
-      const fd = new FormData(form); fd.append('zusammenfassung', text);
-      fetch(CFG.formEndpoint, { method: 'POST', body: fd, headers: { Accept: 'application/json' } })
-        .then(r => { if (!r.ok) throw new Error(String(r.status)); done('sent'); })
-        .catch(() => { btn.disabled = false; showErr('Senden hat nicht geklappt. Schreib mir bitte direkt per DM an ' + (CFG.handle || 'Instagram') + '.'); });
-    } else if (CFG.formEmail) {
-      location.href = 'mailto:' + CFG.formEmail + '?subject=' + encodeURIComponent('Anfrage über die Website') + '&body=' + encodeURIComponent(text);
-      done('mail', text);
-    } else done('copy', text);
-  }
-  if (form) form.addEventListener('submit', e => { e.preventDefault(); sendeAnfrage(); });
-
   /* ---------- Aktuell: Streifen nach Ausstellungsende ausblenden ---------- */
   (function aktuell() {
     if (!$('#aktuell') || !CFG.ausstellung || !CFG.ausstellung.bis) return;
@@ -605,11 +484,9 @@
       else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
     }
   });
-  document.addEventListener('sequenz-select', e => {
-    const k = e.detail && e.detail.key;
-    const target = k === 'flash' ? 'flash' : 'werke';
-    if (k === 'haut' || k === 'papier') setTraeger(k, true);
-    const el = document.getElementById(target);
+  /* „Ansehen“ in der Blattfolge führt zu den Werken. */
+  document.addEventListener('sequenz-select', () => {
+    const el = document.getElementById('werke');
     if (!el) return;
     const top = el.getBoundingClientRect().top + scrollY - 56;
     window.scrollTo({ top, behavior: mScale() ? 'smooth' : 'auto' });
@@ -618,9 +495,7 @@
   /* ---------- Start ---------- */
   applyTheme();
   renderWerke();
-  renderFlash();
   renderGrafik();
-  schieneSetzen(true);
   renderPanel();
   observeNew();
 })();

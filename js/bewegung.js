@@ -7,7 +7,7 @@
      LUKE.bewegung.M              Motion, oder null, wenn die Datei fehlt
      LUKE.bewegung.m()            Stärke: 0 aus (auch bei „reduzierte Bewegung“), 0.55 dezent, 1 voll
      LUKE.bewegung.richtung()     'a' | 'b' | 'c'
-     LUKE.bewegung.tempo()        Dauer, Kurve, Versatz, Feder, Waschung, Ansicht der Richtung
+     LUKE.bewegung.tempo()        Dauer, Kurve, Versatz, Feder, Ansicht der Richtung
      LUKE.bewegung.feder          { ruhig, gesetzt } als Optionen für animate()
      LUKE.bewegung.eintritt(el)   Keyframes des Eintritts für dieses Element
      LUKE.bewegung.enthuellen(r)  meldet .rv unter r beim Sichtbarwerden an, idempotent
@@ -51,12 +51,12 @@
   const richtung = () => (/^[abc]$/.test(app.dataset.richtung || '') ? app.dataset.richtung : 'a');
 
   /* Das Tempo je Richtung, in Sekunden. dauer für Eintritte, kurz für Austritte, versatz für
-     die Staffelung, wasch für die Waschung beim Trägerwechsel, ansicht für die Werkansicht.
+     die Staffelung, ansicht für die Werkansicht.
      A und B schwingen nicht über; C darf, das ist die Werkstatt. */
   const TEMPO = {
-    a: { dauer: 0.9, kurz: 0.45, kurve: [0.3, 0.1, 0.2, 1], versatz: 0.08, feder: { stiffness: 170, damping: 26 }, wasch: { ein: 0.5, aus: 0.56 }, ansicht: 0.62 },
-    b: { dauer: 1.3, kurz: 0.6, kurve: [0.16, 1, 0.3, 1], versatz: 0.11, feder: { stiffness: 120, damping: 24 }, wasch: { ein: 0.7, aus: 0.8 }, ansicht: 0.78 },
-    c: { dauer: 0.5, kurz: 0.28, kurve: [0.34, 1.3, 0.5, 1], versatz: 0.05, feder: { stiffness: 260, damping: 18 }, wasch: { ein: 0.26, aus: 0.3 }, ansicht: 0.38 }
+    a: { dauer: 0.9, kurz: 0.45, kurve: [0.3, 0.1, 0.2, 1], versatz: 0.08, feder: { stiffness: 170, damping: 26 }, ansicht: 0.62 },
+    b: { dauer: 1.3, kurz: 0.6, kurve: [0.16, 1, 0.3, 1], versatz: 0.11, feder: { stiffness: 120, damping: 24 }, ansicht: 0.78 },
+    c: { dauer: 0.5, kurz: 0.28, kurve: [0.34, 1.3, 0.5, 1], versatz: 0.05, feder: { stiffness: 260, damping: 18 }, ansicht: 0.38 }
   };
   const tempo = () => TEMPO[richtung()];
   const feder = {

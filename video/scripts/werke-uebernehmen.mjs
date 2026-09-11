@@ -20,15 +20,16 @@ const L = sandbox.window.LUKE;
 if (!L || !Array.isArray(L.WERKE)) throw new Error('LUKE.WERKE nicht gefunden in ' + quelle);
 
 const werke = L.WERKE.map((w) => ({
-  nr: w.nr, titel: w.t, traeger: w.tr, jahr: w.jahr,
-  technik: w.technik ?? null, ort: w.ort ?? null, serie: w.serie ?? null
+  nr: w.nr, titel: w.t, jahr: w.jahr,
+  technik: w.technik ?? null, serie: w.serie ?? null,
+  blaetter: (w.bilder || []).length || 1
 }));
 
 writeFileSync(ziel, `/* Erzeugt von scripts/werke-uebernehmen.mjs aus js/works.js. Nicht von Hand ändern:
    Änderungen gehören in js/works.js, danach das Skript erneut laufen lassen. */
 export type Werk = {
-  nr: string; titel: string; traeger: 'haut' | 'papier'; jahr: number;
-  technik: string | null; ort: string | null; serie: string | null;
+  nr: string; titel: string; jahr: number;
+  technik: string | null; serie: string | null; blaetter: number;
 };
 
 export const WERKE: Werk[] = ${JSON.stringify(werke, null, 2)};
