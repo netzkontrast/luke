@@ -205,9 +205,9 @@ pruefung('blattfolge: sieben Blätter, eins zur Zeit, keines kürzer als eine Se
     const bf = document.getElementById('blattfolge');
     return { stand: bf && bf.dataset.stand, n: bf ? bf.querySelectorAll('.bf-blatt').length : 0,
       h: bf ? bf.getBoundingClientRect().height : 0, oben: bf ? bf.getBoundingClientRect().top + scrollY : 0,
-      vh: innerHeight, alt: !!document.querySelector('werk-sequenz, canvas'), mindestens: window.LUKE.blattfolge.mindestens };
+      vh: innerHeight, alt: !!document.querySelector('werk-sequenz, canvas:not(#tropfspur)'), mindestens: window.LUKE.blattfolge.mindestens };
   });
-  t.gleich(r.stand, 'voll', 'Stand'); t.gleich(r.n, 7, 'Blätter'); t.ok(!r.alt, 'kein <werk-sequenz>, kein Canvas mehr');
+  t.gleich(r.stand, 'voll', 'Stand'); t.gleich(r.n, 7, 'Blätter'); t.ok(!r.alt, 'kein <werk-sequenz>, kein Canvas außer der Tropfspur');
   t.ok(r.h >= r.vh * (t.mobil ? 4.4 : 5.2), 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
   t.gleich(r.mindestens, 1000, 'Mindeststand eines Blatts in ms');
   const strecke = r.h - r.vh;
@@ -268,81 +268,79 @@ pruefung('blattfolge: ohne Bewegung eine ruhige Reihe', 'beide', async (page, t)
   t.gleich(r.stand, 'still', 'Stand'); t.gleich(r.lage, 'static', 'Bühne klebt nicht'); t.ok(r.deck.every(o => o === '1'), 'alle Blätter sichtbar: ' + r.deck.join(','));
 }, { ruhig: true });
 
-pruefung('tropfspur: hängt am Strang, läuft am rechten Rand, nicht durch den Text', 'beide', async (page, t) => {
-  await t.durchscrollen(); await t.warten(1400);
-  const r = await page.evaluate(() => {
-    const h = document.getElementById('tropfspur'), p = h && h.querySelector('.ts-kern');
-    if (!h || !p || h.hidden) return null;
-    const hb = h.getBoundingClientRect();
-    const links = hb.left + scrollX, oben = hb.top + scrollY;
-    const L = p.getTotalLength();
-    const x = a => links + p.getPointAtLength(L * a).x;
-    const wrap = document.querySelector('#werke .wrap').getBoundingClientRect();
-    const fig = document.querySelector('.hero-fig').getBoundingClientRect();
-    const insta = document.querySelector('.foot-row a[href*="instagram"]');
-    return { x0: x(0), y0: oben + p.getPointAtLength(0).y, x50: x(0.5), x70: x(0.7), x95: x(0.95), wrapRechts: wrap.right + scrollX, breite: innerWidth,
-      strangX: fig.left + scrollX + fig.width * 0.705, figUnten: fig.bottom + scrollY,
-      stand: window.LUKE.tropfspur.stand(), lauf: window.LUKE.tropfspur.lauf(),
-      wasch: (h.querySelector('.ts-wasch').getAttribute('d') || '').length > 1000,
-      rechts: hb.right, instaRechts: insta ? insta.getBoundingClientRect().right + scrollX : null };
-  });
-  t.ok(r, 'Spur fehlt oder ist versteckt');
-  if (!r) return;
-  /* Der Ansatz: wo der rote Strang das Blatt des Auftakts unten verlässt (70,5 % der Breite,
-     Unterkante). Vorher hing die Spur an der knienden Figur, die kein Rot trägt, und begann
-     ein Stück unter deren Tusche in der Luft. */
-  t.ok(Math.abs(r.x0 - r.strangX) < 2, 'Ansatz am Strang: ' + Math.round(r.x0) + ' statt ' + Math.round(r.strangX));
-  t.ok(Math.abs(r.y0 - r.figUnten) < 2, 'Ansatz an der Unterkante des Blatts: ' + Math.round(r.y0) + ' statt ' + Math.round(r.figUnten));
-  t.ok(r.rechts <= r.breite + 0.5, 'Halter reicht nicht über die Fensterkante hinaus: ' + Math.round(r.rechts));
-  if (t.mobil) {
-    t.ok(r.x50 >= r.breite - 40, 'Spur an der rechten Kante (Telefon): ' + Math.round(r.x50));
-    /* Der Rinnstein unter 900 px ist nur die 16 px Innenabstand der .wrap: die ganze
-       Schwanzspitze der Spur muss darin bleiben, sonst streift sie Nebenschrift oder den
-       Instagram-Link im Fuß (siehe js/tropfspur.js, messen()). */
-    for (const [anteil, wert] of [[0.5, r.x50], [0.7, r.x70], [0.95, r.x95]]) {
-      t.ok(wert >= r.breite - 13 && wert <= r.breite - 3, 'Spur bleibt im Rand bei ' + anteil + ': ' + Math.round(wert) + ' (Fenster ' + r.breite + ')');
-    }
-    t.ok(r.instaRechts != null, 'Instagram-Link im Fuß nicht gefunden');
-    if (r.instaRechts != null) t.ok(r.x95 > r.instaRechts + 2, 'Spur rechts vom Instagram-Link im Fuß: ' + Math.round(r.x95) + ' vs ' + Math.round(r.instaRechts));
-  }
-  else t.ok(r.x50 >= r.wrapRechts + 20 && r.x50 <= r.breite - 10, 'Spur rechts neben dem Inhalt: ' + Math.round(r.x50) + ' bei Kante ' + Math.round(r.wrapRechts));
-  t.ok(Math.abs(r.x95 - r.x50) < 40, 'Spur bleibt am Rand');
-  t.ok(r.x0 <= r.x50 + 1, 'Spur läuft zum Rand hin oder gerade hinunter: ' + Math.round(r.x0) + ' → ' + Math.round(r.x50));
-  t.ok(r.stand > 0.9 && r.lauf > 0.9, 'Spur ist unten fast ganz gelaufen: ' + r.stand.toFixed(3));
-  t.ok(r.wasch, 'die Waschung hat einen Pfad');
-  await t.bild('tropfspur-unten');
+/* Die Tropfspur (js/tropfspur.js, aus PR #2): ein Canvas, nur so breit wie die Spur, der
+   Tropfen läuft dem Lesen nach und nie zurück, die Spur trocknet vor dem Atelier (auf dem
+   Telefon vor „Aktuell“) und läuft am rechten Rand, nicht durch den Text. */
+const spurZustand = page => page.evaluate(() => {
+  const T = window.LUKE.tropfspur, s = T.zustand(), cv = document.getElementById('tropfspur');
+  const r = cv.getBoundingClientRect(), fig = document.querySelector('.hero-fig').getBoundingClientRect();
+  const wrap = document.querySelector('#werke .wrap').getBoundingClientRect();
+  const lage = id => { const el = document.getElementById(id); return el && !el.hidden ? el.getBoundingClientRect().top + scrollY : null; };
+  const insta = document.querySelector('.foot-row a[href*="instagram"]');
+  const x = f => T.xBei(s.quelle.y + f * s.strecke);
+  /* Wie viele Pixel das Canvas im Fenster rot färbt: Die Spur soll zu sehen sein. */
+  /* Auf eine Kopie gelesen, nicht auf das Canvas der Seite: Mehrfaches Zurücklesen dort
+     kostet den Browser und landet als Warnung in der Konsole. */
+  let daten = [];
+  if (cv.width && cv.height) { const k = document.createElement('canvas'); k.width = cv.width; k.height = cv.height; const c2 = k.getContext('2d', { willReadFrequently: true }); c2.drawImage(cv, 0, 0); daten = c2.getImageData(0, 0, k.width, k.height).data; }
+  let farbig = 0; for (let i = 3; i < daten.length; i += 4) if (daten[i] > 20) farbig++;
+  return Object.assign(s, { x50: x(0.5), x95: x(0.95), strangX: fig.left + scrollX + fig.width * 0.705, figUnten: fig.bottom + scrollY,
+    wrapRechts: wrap.right + scrollX, fenster: innerWidth, cvLinks: r.left, cvRechts: r.right, blend: getComputedStyle(cv).mixBlendMode,
+    atelier: lage('atelier'), aktuell: lage('aktuell'), instaRechts: insta ? insta.getBoundingClientRect().right + scrollX : null, farbig });
 });
 
-pruefung('tropfspur: die Waschung bleibt, der Tropfen staut, die Stauung bleibt zurück', 'schreibtisch', async (page, t) => {
+pruefung('tropfspur: hängt am Strang, läuft am Rand, trocknet vor dem Atelier', 'beide', async (page, t) => {
+  await t.durchscrollen();
+  /* Der Tropfen läuft höchstens 26 px je Bild nach; bis er unten ist, dauert es. */
   const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
-  const lesen = () => page.evaluate(() => {
-    const T = window.LUKE.tropfspur, m = /scale\(([\d.]+) ([\d.]+)\)/.exec(document.querySelector('#tropfspur .ts-tropfen').getAttribute('transform') || '');
-    return { stand: T.stand(), lauf: T.lauf(), stau: T.stauungen(), ellipsen: document.querySelectorAll('#tropfspur .ts-stau ellipse').length,
-      tropfen: m ? +m[1] : 0, gelaufen: +document.querySelector('#ts-lauf rect').getAttribute('height'), gelesen: +document.querySelector('#ts-jetzt rect').getAttribute('height') };
-  });
-  /* Hinlesen, kurz stehen: Der Tropfen schwillt an. */
-  await t.zu(Math.round(H * 0.35)); await t.warten(900);
-  const a = await lesen();
-  await t.warten(2600);
-  const b = await lesen();
-  t.ok(a.stand > 0.2 && a.stand < 0.5, 'Stand bei 35 % der Seite: ' + a.stand.toFixed(3));
-  t.ok(b.tropfen > a.tropfen + 0.8, 'der Tropfen staut sich beim Verweilen: ' + a.tropfen + ' → ' + b.tropfen);
-  t.gleich(a.stau, 0, 'noch keine Stauung');
-  /* Weiterlesen: Die Stauung bleibt als Verdickung zurück, der Tropfen wird wieder schlank. */
-  await t.zu(Math.round(H * 0.55)); await t.warten(1400);
-  const c = await lesen();
-  t.gleich(c.stau, 1, 'eine Stauung nach dem Weiterlesen'); t.gleich(c.ellipsen, 1, 'ihr dunkler Kern steht im SVG');
-  t.ok(c.tropfen < b.tropfen - 0.6, 'der Tropfen ist wieder schlank: ' + c.tropfen);
-  /* Zurück nach oben: Die Waschung bleibt, so weit sie gelaufen ist; nur der Kern folgt. */
-  await t.zu(Math.round(H * 0.3)); await t.warten(1400);
-  const d = await lesen();
-  t.ok(d.stand < d.lauf - 0.1, 'der Stand fällt zurück, der Lauf bleibt: ' + d.stand.toFixed(3) + ' / ' + d.lauf.toFixed(3));
-  t.ok(d.gelaufen > d.gelesen + 500, 'die Waschung reicht weiter als der Kern: ' + Math.round(d.gelaufen) + ' / ' + Math.round(d.gelesen));
-  await t.bild('tropfspur-zurueck');
+  await t.zu(H); await t.warten(t.mobil ? 4000 : 8000);
+  const r = await spurZustand(page);
+  t.ok(r.aktiv && !r.statisch, 'Spur aktiv und in Bewegung');
+  t.ok(Math.abs(r.quelle.x - r.strangX) < 2, 'Ansatz am Strang: ' + Math.round(r.quelle.x) + ' statt ' + Math.round(r.strangX));
+  t.ok(Math.abs(r.quelle.y - r.figUnten) < 2, 'Ansatz an der Unterkante des Blatts: ' + Math.round(r.quelle.y) + ' statt ' + Math.round(r.figUnten));
+  t.ok(r.cvLinks >= 0 && r.cvRechts <= r.fenster + 0.5, 'Canvas bleibt im Fenster: ' + Math.round(r.cvLinks) + '–' + Math.round(r.cvRechts));
+  t.ok(r.breite < 200, 'Canvas nur so breit wie die Spur: ' + r.breite);
+  t.gleich(r.blend, 'multiply', 'liegt mit multiply auf dem Papier');
+  if (t.mobil) {
+    t.ok(r.aktuell == null || Math.abs(r.ende - (r.aktuell - 6)) < 2, 'endet an der Kante von „Aktuell“: ' + Math.round(r.ende) + ' bei ' + r.aktuell);
+    /* Der Rinnstein unter 900 px ist nur die 16 px Innenabstand der .wrap. */
+    for (const [anteil, wert] of [[0.5, r.x50], [0.95, r.x95]]) t.ok(wert >= r.fenster - 13 && wert <= r.fenster - 3, 'Spur bleibt im Rand bei ' + anteil + ': ' + Math.round(wert));
+  } else {
+    t.ok(Math.abs(r.ende - (r.atelier - 6)) < 2, 'trocknet vor dem Atelier: ' + Math.round(r.ende) + ' bei ' + Math.round(r.atelier));
+    t.ok(r.x50 >= r.wrapRechts + 20 && r.x50 <= r.fenster - 10, 'Spur rechts neben dem Inhalt: ' + Math.round(r.x50) + ' bei Kante ' + Math.round(r.wrapRechts));
+    t.ok(Math.abs(r.x95 - r.x50) < 40, 'Spur bleibt am Rand');
+  }
+  t.ok(r.spitze > 0.99, 'der Tropfen ist unten angekommen: ' + r.spitze.toFixed(3));
+  await t.zu(H * 0.3); await t.warten(600);
+  const oben = await spurZustand(page);
+  t.ok(oben.farbig > 300, 'die Spur ist im Fenster zu sehen: ' + oben.farbig + ' Pixel');
+  t.ok(oben.spitze > 0.99, 'wer zurückscrollt, sieht, was gelaufen ist; nichts zieht sich zurück: ' + oben.spitze.toFixed(3));
+  await t.bild('tropfspur-oben');
 });
 
-pruefung('tropfspur: ohne Bewegung versteckt', 'schreibtisch', async (page, t) => {
-  t.ok(await page.evaluate(() => document.getElementById('tropfspur').hidden), 'Spur muss bei reduzierter Bewegung versteckt sein');
+pruefung('tropfspur: der Tropfen staut, wo man steht, die Stauung bleibt zurück', 'schreibtisch', async (page, t) => {
+  const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+  /* Langsam hinlesen, dann stehen: Der Tropfen holt auf und schwillt an. */
+  for (let y = 0; y <= H * 0.2; y += 150) { await t.zu(y); await t.warten(30); }
+  await t.warten(4500);
+  const a = await spurZustand(page);
+  t.ok(a.spitze > 0.05 && a.spitze < 0.4, 'Tropfen steht bei gut einem Fünftel der Seite: ' + a.spitze.toFixed(3));
+  t.ok(a.pool > a.poolMax * 0.6, 'der Tropfen staut sich beim Verweilen: ' + a.pool.toFixed(2) + ' von ' + a.poolMax);
+  const vorher = a.stauungen;
+  /* Weiterlesen: Die Stauung bleibt als Verdickung zurück, der Tropfen wird wieder schlank. */
+  for (let y = H * 0.2; y <= H * 0.3; y += 150) { await t.zu(y); await t.warten(30); }
+  await t.warten(2500);
+  const b = await spurZustand(page);
+  t.ok(b.stauungen > vorher, 'eine Stauung mehr nach dem Weiterlesen: ' + vorher + ' → ' + b.stauungen);
+  t.ok(b.spitze > a.spitze + 0.03, 'der Tropfen ist weitergelaufen: ' + a.spitze.toFixed(3) + ' → ' + b.spitze.toFixed(3));
+  await t.bild('tropfspur-stau');
+});
+
+pruefung('tropfspur: ohne Bewegung steht sie fertig da', 'beide', async (page, t) => {
+  const r = await spurZustand(page);
+  t.ok(r.statisch && r.aktiv, 'Endzustand statt Reise');
+  t.gleich(r.spitze, 1, 'die ganze Spur');
+  t.ok(r.stauungen >= 2, 'mit ein paar Stauungen: ' + r.stauungen);
 }, { ruhig: true });
 
 /* Die Hängung: vier Werke, zwei davon aus je drei Blättern. Alle Blätter stehen gleich hoch,
@@ -546,9 +544,10 @@ pruefung('bedienfeld: Bewegung aus zeigt alles, die Blattfolge wird eine Reihe',
   const r = await page.evaluate(() => ({
     fehlt: Array.from(document.querySelectorAll('.rv')).filter(el => { if (el.closest('[hidden]')) return false; const r = el.getBoundingClientRect(); return !(r.right <= 0 || r.left >= innerWidth) && getComputedStyle(el).opacity !== '1'; }).length,
     stand: document.getElementById('blattfolge').dataset.stand,
-    spur: document.getElementById('tropfspur').hidden
+    spur: window.LUKE.tropfspur.zustand()
   }));
-  t.gleich(r.fehlt, 0, 'alles sichtbar'); t.gleich(r.stand, 'still', 'Blattfolge still'); t.ok(r.spur, 'Spur versteckt');
+  t.gleich(r.fehlt, 0, 'alles sichtbar'); t.gleich(r.stand, 'still', 'Blattfolge still');
+  t.ok(r.spur.statisch && r.spur.spitze === 1, 'die Spur steht fertig da');
   await page.click('[data-set="bewegung"][data-val="voll"]'); await t.warten(400);
   t.gleich(await page.evaluate(() => document.getElementById('blattfolge').dataset.stand), 'voll', 'Blattfolge wieder voll');
 }, { abfrage: '?proto' });

@@ -33,9 +33,10 @@
 <body>
 <div class="app" data-richtung="a" data-bewegung="voll" data-dichte="luftig" data-rot="spur" data-sequenz="voll" data-korn="aus">
 
-  <!-- Die Tropfspur setzt an, wo der rote Strang das Blatt des Auftakts unten verlässt, und
-       läuft die Seite hinunter, so weit gelesen wurde (js/tropfspur.js). -->
-  <div id="tropfspur" aria-hidden="true"></div>
+  <!-- Die Tropfspur: Der rote Strang aus dem Blatt des Auftakts läuft auf der Seite weiter,
+       dem Lesen nach, und trocknet, bevor die Seite praktisch wird. Ein Canvas im Fenster,
+       gezeichnet in Seitenkoordinaten (js/tropfspur.js). -->
+  <canvas id="tropfspur" aria-hidden="true"></canvas>
 
   <nav class="top" aria-label="Hauptnavigation">
     <div class="wrap">
@@ -232,6 +233,27 @@
 <script src="js/blattfolge.js"></script>
 <script src="js/site.js"></script>
 <script src="js/abschnitte.js"></script>
-<script src="js/tropfspur.js" defer></script>
+<!-- Die Tabelle des Weltzustands (js/weltzustand.js): ein Eintrag je Abschnitt, in der
+     Reihenfolge der Seite. `fassung` sagt, wie beisammen die Seite dort ist, 1 ganz,
+     0 gar nicht; dazwischen wird überblendet. Die Seite blutet oben, bei den Zeichnungen,
+     und fasst sich, wo sie praktisch wird: Vor dem Atelier mit dem Kontakt ist die
+     Tropfspur trocken. `schmal` gilt auf Schirmen unter 760 Pixeln, wo der Text die
+     Hauptsache ist und die Spur schon an der Kante von „Aktuell“ endet. Abschnitte, die
+     ausgeblendet sind (Aktuell nach der Ausstellung), fallen von selbst heraus. Wer einen
+     Abschnitt einfügt, trägt ihn hier ein und sonst nirgends. -->
+<script>
+LUKE.ABSCHNITTE = [
+  { id: 'auftakt',     name: 'Auftakt',     stufe: 3, fassung: 0.05, schmal: 0.05 },
+  { id: 'sequenz',     name: 'Blattfolge',  stufe: 3, fassung: 0.05, schmal: 0.05 },
+  { id: 'aktuell',     name: 'Aktuell',     stufe: 2, fassung: 0.20, schmal: 1 },
+  { id: 'werke',       name: 'Werke',       stufe: 2, fassung: 0.30, schmal: 1 },
+  { id: 'handschrift', name: 'Handschrift', stufe: 1, fassung: 0.50, schmal: 1 },
+  { id: 'grafik',      name: 'Grafik',      stufe: 1, fassung: 0.70, schmal: 1 },
+  { id: 'atelier',     name: 'Atelier',     stufe: 0, fassung: 1,    schmal: 1 },
+  { id: 'fuss',        name: 'Fuß',         stufe: 0, fassung: 1,    schmal: 1 }
+];
+</script>
+<script src="js/weltzustand.js"></script>
+<script src="js/tropfspur.js"></script>
 </body>
 </html>

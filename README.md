@@ -30,12 +30,12 @@ js/bewegung.js        Grundlage aller Bewegung: Motion, Stärke, Tempo je Richtu
 js/auftakt.js         Der Auftakt: ein Blatt in der Ecke der Seite, Zeichenvideo, Schnitt, Standbild
 js/blattfolge.js      Die Blattfolge: ein Blatt nach dem anderen; das Scrollen wählt, die Zeit wechselt
 js/abschnitte.js      Kleine Bewegungen je Abschnitt: Aktuell, Handschrift, Atelier
-js/tropfspur.js       Die Tropfspur: Blut, kein Faden — hängt am Strang, bleibt stehen, wo sie lief, staut, wo man verweilt
+js/tropfspur.js       Die Tropfspur aus PR #2: Canvas mit multiply, läuft dem Lesen nach und nie zurück, staut, spritzt, trocknet vor dem Atelier
+js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand; auf der Werkschau liest ihn die Tropfspur (Tabelle LUKE.ABSCHNITTE in index.html)
 vendor/motion/        Motion 13.2.0, lokal gehostet (siehe HERKUNFT.md)
 scripts/pruefen.mjs   Prüft die Seite mit Playwright: Zusicherungen, leere Konsole, Bilder je Abschnitt
 scripts/bilder.py     Leitet alle Bilder aus assets/original/ ab: Zuschnitt, Papier auf Weiß, WebP je Breite
 skizze.html           Entwurf: ein Weltzustand fährt fliegende Blätter, Sprite und Tränen
-js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand, alle lesen daraus
 js/skizze.js          Die drei Systeme der Skizze
 css/skizze.css        Stile nur für die Skizze
 docs/                 Der Claude-Design-Prompt zu diesem Entwurf

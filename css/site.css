@@ -68,21 +68,14 @@ html[data-js="an"] .app[data-bewegung="aus"] .rv:not(.on) { opacity: 1; }
 .app[data-richtung="c"] .top { border-bottom: 2px dashed var(--line); }
 .app[data-richtung="c"] .top a { text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--fd); font-weight: 500; }
 
-/* Die Tropfspur (js/tropfspur.js). Sie steht in Seitenkoordinaten, nicht im Fenster: Sie
-   gehört zur Seite und läuft mit ihr, statt am Rand zu kleben. Blut, kein Faden: eine blasse
-   Waschung, die stehen bleibt, so weit die Spur je gelaufen ist, darin ein dunkler Kern und
-   ein Tropfen, die zeigen, wo gerade gelesen wird. Stauungen sind die Stellen, an denen der
-   Leser verweilt hat. */
-#tropfspur { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; }
-#tropfspur svg { display: block; overflow: visible; }
-#tropfspur .ts-wasch, #tropfspur .ts-rest { fill: var(--red); opacity: .22; }
-#tropfspur .ts-stau { fill: var(--red); opacity: .5; }
-#tropfspur .ts-kern { fill: none; stroke: var(--red); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; opacity: .78; }
-#tropfspur .ts-spritzer { fill: var(--red); opacity: .8; }
-#tropfspur .ts-tropfen { fill: var(--red); opacity: .88; }
-/* Auf dunklem Papier (B) und bei „satt“ darf die Waschung kräftiger sein. */
-.app[data-richtung="b"] #tropfspur .ts-wasch, .app[data-richtung="b"] #tropfspur .ts-rest,
-.app[data-rot="satt"] #tropfspur .ts-wasch, .app[data-rot="satt"] #tropfspur .ts-rest { opacity: .36; }
+/* Die Tropfspur (js/tropfspur.js). Ein Canvas im Fenster, nur so breit wie die Spur,
+   gezeichnet in Seitenkoordinaten; links und Breite setzt das Skript. Sie liegt mit
+   multiply auf dem Papier: über Weiß rot, über Tusche dunkel. Was auf dem Papier liegt,
+   deckt sie zu: Der Streifen „Aktuell“, Fotos, Plakate und das Atelierfoto stehen mit
+   z-index 2 über ihr (siehe die jeweiligen Regeln). Auf dunklem Grund (Richtung B) würde
+   multiply sie schlucken; dort liegt sie einfach auf. */
+#tropfspur { position: fixed; top: 0; left: 0; width: 1px; height: 100%; z-index: 1; pointer-events: none; mix-blend-mode: multiply; }
+.app[data-richtung="b"] #tropfspur { mix-blend-mode: normal; }
 .app[data-rot="aus"] #tropfspur { display: none; }
 
 /* ---------- Layout-Helfer ---------- */
@@ -189,7 +182,9 @@ html[data-js="an"] .bf:not([data-stand]) { min-height: 100svh; }
 
 /* ---------- Aktuell ---------- */
 /* Zwei Linien, die von links wachsen (--strich, js/abschnitte.js). Ein Vermerk am Rand. */
-#aktuell { position: relative; }
+/* Der Streifen liegt auf dem Papier: Die Tropfspur läuft unter ihm durch; auf dem Telefon
+   endet sie an seiner Oberkante. */
+#aktuell { position: relative; z-index: 2; background: var(--bg); }
 #aktuell::before, #aktuell::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: var(--line); transform: scaleX(var(--strich, 1)); transform-origin: 0 50%; }
 #aktuell::before { top: 0; }
 #aktuell::after { bottom: 0; }
@@ -229,6 +224,8 @@ html[data-js="an"] .bf:not([data-stand]) { min-height: 100svh; }
 /* Ein Tuscheblatt liegt mit multiply auf der Seite: Das Papier verschwindet und die
    Zeichnung steht frei. Ein grauer Grund würde daraus wieder ein Rechteck machen. */
 .g-bild:has(> .ink-img) { background: transparent; }
+/* Ein Foto liegt auf dem Papier und deckt die Tropfspur; ein Tuscheblatt lässt sie durch. */
+.g-bild:has(> .photo-img) { position: relative; z-index: 2; }
 .g-bild > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .g-meta { display: block; padding: 14px 2px 0; max-width: 62ch; }
 .g-t { display: block; font-weight: 500; }
@@ -295,7 +292,7 @@ html[data-js="an"] .bf:not([data-stand]) { min-height: 100svh; }
 .gr-grid::after { content: ''; flex: 1000 1 0; }
 .gr-item { flex: var(--r) 1 calc(var(--r) * var(--zeile)); min-width: 0; display: block; border: 0; background: none; padding: 0; margin: 0;
   text-align: left; color: inherit; font: inherit; cursor: pointer; }
-.gr-ph { display: block; aspect-ratio: var(--r); overflow: hidden; background: var(--bg2); outline: 1px solid var(--line); outline-offset: -1px; will-change: transform; }
+.gr-ph { display: block; position: relative; z-index: 2; aspect-ratio: var(--r); overflow: hidden; background: var(--bg2); outline: 1px solid var(--line); outline-offset: -1px; will-change: transform; }
 .gr-ph > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .gr-meta { display: block; padding: 11px 2px 0; }
 .gr-t { display: block; font-weight: 500; }
@@ -309,7 +306,10 @@ html[data-js="an"] .bf:not([data-stand]) { min-height: 100svh; }
 
 /* ---------- Atelier ---------- */
 .atelier-text { margin: 0 0 26px; max-width: 46ch; font-size: 19px; text-wrap: pretty; }
-.atelier-fig { margin: 0 0 22px; }
+/* Das Foto liegt auf dem Papier, über der Tropfspur. Der z-index steht auf der Figur, nicht
+   auf dem Bild: Die Parallaxe macht die Figur zum Stapelkontext, ein z-index am Bild darin
+   käme nicht nach außen. */
+.atelier-fig { position: relative; z-index: 2; margin: 0 0 22px; }
 .atelier-rahmen { overflow: hidden; }
 .atelier-rahmen img { width: 100%; height: auto; display: block; will-change: transform; transform-origin: 50% 50%; }
 .atelier-fig figcaption { color: var(--mut); font-size: 15px; margin-top: 10px; }
