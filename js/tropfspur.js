@@ -165,7 +165,7 @@
        Unter 900 px ist der Rinnstein neben dem Text nur die 16 px Innenabstand der .wrap
        (siehe css/site.css); darin muss die Spur bleiben. Sie läuft deshalb 8 px vor der Kante
        und die Wanderung wird auf ein Viertel gestaucht: Bei voller Breite reichte sie bis in
-       die rechtsbündige Nebenschrift der Team-Liste und in den Instagram-Link im Fuß. */
+       die rechtsbündige Nebenschrift und in den Instagram-Link im Fuß. */
     const wrap = document.querySelector('#werke .wrap') || document.querySelector('.wrap');
     const wrapRechts = wrap ? wrap.getBoundingClientRect().right + window.scrollX : innerWidth;
     const randMin = Math.min(Math.max(wrapRechts + 56, innerWidth * 0.92 + 24), innerWidth - 24);

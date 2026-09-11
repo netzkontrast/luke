@@ -3,7 +3,7 @@
 Vor Veröffentlichung klären beziehungsweise erledigen:
 
 - [ ] **Impressum** nach § 5 DDG ausfüllen (`impressum.html`): Name, Anschrift, E-Mail, ggf. USt-IdNr.
-- [ ] **Datenschutzerklärung** prüfen und ergänzen (`datenschutz.html`): Hoster, Formularweg, Speicherdauer, Datum.
+- [ ] **Datenschutzerklärung** prüfen und ergänzen (`datenschutz.html`): Hoster, Speicherdauer, Datum.
 - [ ] **Urheberschaft Werk I / Werk II** klären (Beitrag laut Instagram geteilt mit @lmklvser). Welche Blätter Werk I
       und Werk II sind, steht seit den Originalen fest: je drei Blätter mit Strang, benannt von Luke. Das Profil mit
       dem roten Strang und das Auge mit der Signatur hat er als „Beiwerk“ geschickt, sie sind keine Werke.
@@ -23,19 +23,13 @@ Vor Veröffentlichung klären beziehungsweise erledigen:
       Auftragsarbeiten jemand mitgenannt werden muss.
 - [ ] **Signet Kollektiv Noir als Vektor.** Die Datei hat 7441 × 8268 Bildpunkte, ist aber hochgerechnet und
       unscharf. Für die Seite reicht es; eine SVG- oder PDF-Fassung vom Kollektiv wäre besser.
-- [ ] **Podcast verlinken.** Der Fuß nennt „Bluthandwerk — Nicht noch ein Tattoo-Podcast!“, im Abschnitt Grafik steht
-      das Titelbild. Sobald es eine Adresse gibt, gehört sie an beide Stellen.
-- [ ] **Einwilligung** der tätowierten Personen schriftlich einholen, bevor Werkfotos (Haut) eingesetzt werden.
-- [ ] **Hautarbeiten und Flash fehlen ganz.** Die erfundenen Platzhalter sind raus: Die Seite zeigt nur noch, was es
-      gibt. Damit sind auch die Reiter „Haut / Papier / Alles", die Filter nach Körperstelle und Motiv und der ganze
-      Abschnitt „Flash" verschwunden — nicht gelöscht, sondern ausgeblendet. Sobald Einträge mit `src` in
-      `LUKE.WERKE` (`tr: 'haut'`) oder in `LUKE.FLASH` stehen, kommt alles von selbst zurück, samt Kapitel in der
-      Sequenz und Eintrag in der Navigation. Nichts davon muss von Hand wieder eingeschaltet werden.
+- [ ] **Texte von Luke absegnen lassen.** Mit dem Umbau zur Werkschau sind drei Texte neu: der Vorspann im Kopf
+      („Zeichner in Köln-Ehrenfeld …“), die Handschrift (von der Linie und von den beiden Werken der Serie) und der
+      Satz im Atelier. Sie sagen nichts, was nicht auf den Blättern zu sehen ist, sind aber nicht von ihm.
+- [ ] **Impressum und Bluthandwerk.** Im Impressum stehen noch Anschrift und Telefon des Studios. Ob das für eine
+      Werkschau die richtige Anschrift ist, entscheidet Luke; sonst nennt die Seite Bluthandwerk nur noch als
+      Titel des Podcasts im Abschnitt Grafik.
 - [ ] **Maße** der Papierarbeiten eintragen (`masse: 'Maße folgen'`).
-- [ ] **Öffnungszeiten und Anfahrt** im Studio-Block ergänzen („Anfahrt: Angabe folgt“).
-- [ ] **Formularversand** festlegen (`formEndpoint` oder `formEmail` in `js/works.js`); bis dahin zeigt die Seite den
-      Anfragetext zum Kopieren für die Instagram-DM.
-- [ ] **Team-Profile** (Kiya Noir, Jonas Dreyer, Kate Velvet, Stefan Gepting): „Profil folgt“.
 - [ ] **Ton für den Film** entscheiden: derzeit stumm. Wenn Ton, dann Raumton aus dem Atelier
       und Stiftgeräusche, kein Standard-Whoosh.
 - [ ] **Richtung festlegen**: A, B oder C (siehe README, Bedienfeld mit Shift + B). Standard ist A.
@@ -82,9 +76,12 @@ Bereits umgesetzt:
 - [x] **Grafik als Plakatwand.** Elf Arbeiten in bündigen Reihen gleicher Höhe; die Karte nennt Titel, Gattung und
       Jahr, der Rest steht in der Werkansicht.
 
+- [x] **Werkschau statt Studioseite.** Anfrage und Ablauf, Flash, der Träger „Haut“ mit Reitern, Filtern und
+      Waschung, die Teamliste, Telefon, Termine und der Podcast im Fuß sind raus. „Studio“ heißt jetzt „Atelier“:
+      das Foto und Kontakt über Instagram. Kein Formular mehr, also auch keins in der Datenschutzerklärung.
+
 Beim nächsten Durchgang anzusehen:
 
-- Ein zweites Raster für die Serie wäre eine Überlegung wert, sobald Fotos der Hautarbeiten dazukommen.
 - Das Auftaktvideo ist mit 1,7 MB (VP9) beziehungsweise 1,8 MB (H.264) der größte Posten beim Laden. Ein
   Neukodieren aus `assets/original/` brachte bei gleicher Auflösung kaum etwas (H.264 CRF 24: 1,37 MB, VP9 CRF 34:
   sogar größer): Die Zeichenanimation hat viel feines Korn. Kleiner würde sie nur mit einem Neu-Render ohne Korn aus

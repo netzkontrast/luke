@@ -1,6 +1,7 @@
 # Luke WTF — Werkschau
 
-Website für Luke WTF, Tätowierer und Zeichner bei Bluthandwerk, Köln-Ehrenfeld.
+Werkschau für Luke WTF, Zeichner in Köln-Ehrenfeld: Arbeiten auf Papier und Grafik. Die Seite zeigt das Werk;
+was zum Tätowieren gehörte (Anfrage, Ablauf, Flash, Arbeiten auf Haut, das Team des Studios), ist raus.
 Portiert aus dem Claude-Design-Prototyp „Werkschau für Luke WTF Köln“ als statische Seite ohne Build-Schritt.
 
 ## Lokal ansehen
@@ -18,17 +19,17 @@ Dann `http://localhost:3000` beziehungsweise `http://localhost:8080` öffnen.
 ## Aufbau
 
 ```
-index.html            Startseite (Auftakt, Sequenz, Aktuell, Werke, Handschrift, Flash, Grafik, Anfrage, Studio)
+index.html            Startseite (Auftakt, Blattfolge, Aktuell, Werke, Handschrift, Grafik, Atelier)
 impressum.html        Impressum (Platzhalter, vor Veröffentlichung ausfüllen)
 datenschutz.html      Datenschutzerklärung (Platzhalter, vor Veröffentlichung prüfen)
 css/site.css          Alle Stile, drei Richtungen über .app[data-richtung]
-js/works.js           Werkdaten, Grafik, Flash-Blätter, Filterlisten, Konfiguration
+js/works.js           Werkdaten, Grafik, Filterlisten, Konfiguration
 js/bilder.js          Maße und Breiten jedes Bildes, erzeugt von scripts/bilder.py (nicht von Hand ändern)
-js/site.js            Seitenlogik: Hängung der Werke, Plakatwand, Werkansicht, Formular, Übergänge
+js/site.js            Seitenlogik: Hängung der Werke, Plakatwand, Werkansicht, Übergänge
 js/bewegung.js        Grundlage aller Bewegung: Motion, Stärke, Tempo je Richtung, Enthüllen, Parallaxe, Zeiger
 js/auftakt.js         Der Auftakt: ein Blatt in der Ecke der Seite, Zeichenvideo, Schnitt, Standbild
 js/blattfolge.js      Die Blattfolge: ein Blatt nach dem anderen; das Scrollen wählt, die Zeit wechselt
-js/abschnitte.js      Kleine Bewegungen je Abschnitt: Aktuell, Handschrift, Studio
+js/abschnitte.js      Kleine Bewegungen je Abschnitt: Aktuell, Handschrift, Atelier
 js/tropfspur.js       Die Tropfspur: Blut, kein Faden — hängt am Strang, bleibt stehen, wo sie lief, staut, wo man verweilt
 vendor/motion/        Motion 13.2.0, lokal gehostet (siehe HERKUNFT.md)
 scripts/pruefen.mjs   Prüft die Seite mit Playwright: Zusicherungen, leere Konsole, Bilder je Abschnitt
@@ -71,11 +72,10 @@ Körperlichkeit“, Werk I und Werk II, je drei —, stehen die Blätter in der 
 hoch, die Werkansicht blättert Blatt für Blatt, und die Blattfolge zieht jedes einzeln vorbei. Erzeugte
 Tuschzeichnungen als Platzhalter gibt es nicht mehr. Auf der Seite steht nur, was es gibt.
 
-Die Seite richtet sich nach den Daten. Gibt es nur einen Träger, verschwinden die Reiter „Haut / Papier / Alles"
-und der Abschnitt bekommt stattdessen eine gewöhnliche Überschrift. Ein Filter erscheint nur, wenn es darin mehr als
-eine Möglichkeit gibt. Ist `LUKE.FLASH` leer, verschwindet der Abschnitt „Flash" samt Eintrag in der Navigation. Ein
-Kapitel der Blattfolge erscheint nur, wenn es dafür Aufnahmen gibt; bleibt keines übrig, entfällt der ganze
-Abschnitt. Nichts davon muss von Hand geschaltet werden — Einträge ergänzen genügt.
+Die Seite richtet sich nach den Daten. Ein Filter nach Serie oder Jahr erscheint nur, wenn es darin mehr als eine
+Möglichkeit gibt (heute: eine Serie, ein Jahr, also keiner). Ist `LUKE.GRAFIK` leer, verschwindet der Abschnitt
+„Grafik" samt Eintrag in der Navigation; gibt es keine hellen Blätter, entfällt die Blattfolge. Nichts davon muss von
+Hand geschaltet werden — Einträge ergänzen genügt.
 
 Nicht jedes Blatt auf der Seite ist ein Werk. Drei tragen die Gestaltung, ohne im Verzeichnis zu stehen:
 das Profil mit dem roten Strang (Auftaktvideo, Sprite), das Auge mit der Signatur (Abschnitt „Handschrift“) und
@@ -86,11 +86,10 @@ verschiebt den Eintrag nach `LUKE.WERKE` und gibt ihm eine Nummer.
 Beispiel für einen Werkeintrag:
 
 ```js
-{ id: 'w5', nr: 'V', t: 'Schwarzdorn', tr: 'haut', ort: 'Unterarm', ortKey: 'Arm', motiv: 'Botanik', jahr: 2025,
-  sitzungen: 2, zustand: 'abgeheilt', bilder: ['werk-schwarzdorn'] }
+{ id: 'w5', nr: 'V', t: 'Befreiung der Körperlichkeit, Werk III', serie: 'Befreiung der Körperlichkeit', jahr: 2026,
+  technik: 'Tusche auf Papier', masse: 'Maße folgen',
+  bilder: ['werk-befreiung-3-bild-1', 'werk-befreiung-3-bild-2', 'werk-befreiung-3-bild-3'] }
 ```
-
-Flash-Blätter (`LUKE.FLASH`) nehmen ein `src`.
 
 ### Aufnahmen von Papierarbeiten
 
@@ -109,7 +108,7 @@ auf schwarzem Holz.
 ### Grafik
 
 Plakate, Flyer, Cover und Signets stehen getrennt in `LUKE.GRAFIK`, elf Arbeiten. Sie sind keine Werke im Sinne
-der Galerie: Sie haben einen Auftraggeber und einen Anlass statt Träger, Serie und Maße, und sie behalten immer ihren
+der Galerie: Sie haben einen Auftraggeber und einen Anlass statt Serie und Maße, und sie behalten immer ihren
 Grund. Gehängt werden sie wie an einer Plakatwand, in bündigen Reihen gleicher Höhe.
 
 ```js
@@ -142,13 +141,11 @@ Grafiken, nicht quer durch beides.
   `ffmpeg -i assets/video/gestaltung-profil-zeichnung.mp4 -vf "fps=48/6.04,scale=160:-2" -frames:v 48 f-%03d.png`
   und danach `ffmpeg -framerate 8 -i f-%03d.png -frames:v 48 -filter_complex "tile=8x6:color=white,format=rgb24" -c:v libwebp -quality 68 …`
 - Handschrift: `assets/video/gestaltung-signatur.mp4` startet beim Scrollen und bleibt auf dem letzten Bild (Signatur) stehen.
-- Studio: `assets/img/luke-atelier-*.webp`.
+- Atelier: `assets/img/luke-atelier-*.webp`.
 
 ## Konfiguration (`js/works.js`, `LUKE.CONFIG`)
 
-- `formEndpoint`: URL eines Formulardienstes (Formspree, Netlify Forms o. ä.). Dann wird das Formular per POST gesendet.
-- `formEmail`: alternativ eine E-Mail-Adresse, das Formular öffnet das Mailprogramm mit vorausgefülltem Text.
-- Beides leer: der Anfragetext wird zum Kopieren angezeigt, mit Link zur Instagram-DM.
+- `instagram`, `handle`: der Kontaktweg; die Seite hat kein Formular.
 - `ausstellung.bis`: Datum, ab dem der Streifen „Aktuell“ automatisch verschwindet.
 
 ## Richtungen und Bedienfeld

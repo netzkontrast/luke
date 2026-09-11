@@ -12,16 +12,9 @@ import { Zeile, Eintritt } from '../components/Typo';
 import { Faden } from '../components/Faden';
 import { WERKE } from '../werke';
 
-const ZAHLWORT = [
-  'null', 'ein', 'zwei', 'drei', 'vier', 'fünf',
-  'sechs', 'sieben', 'acht', 'neun', 'zehn', 'elf', 'zwölf',
-];
-
 export const Verzeichnis: React.FC<{ ende: number }> = ({ ende }) => {
   const f = useForm();
-  const papier = WERKE.filter((w) => w.traeger === 'papier');
-  const haut = WERKE.filter((w) => w.traeger === 'haut');
-  const hautZahl = ZAHLWORT[haut.length] ?? String(haut.length);
+  const papier = WERKE;
   const spalte = f.hoch ? f.breite - f.rand * 3 : Math.round(f.breite * 0.52);
 
   return (
@@ -121,15 +114,7 @@ export const Verzeichnis: React.FC<{ ende: number }> = ({ ende }) => {
                 lineHeight: 1.45,
               }}
             >
-              {haut.length > 0 ? (
-                <>
-                  Dazu {hautZahl} Arbeiten auf Haut.
-                  <br />
-                  Beides Originale, beides aus der Hand gegeben.
-                </>
-              ) : (
-                <>Originale, aus der Hand gegeben.</>
-              )}
+              Originale, aus der Hand gegeben.
             </div>
           </Eintritt>
         </div>

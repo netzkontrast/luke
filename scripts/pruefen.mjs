@@ -79,12 +79,12 @@ pruefung('grundlage: Motion und LUKE.bewegung sind da', 'beide', async (page, t)
   t.ok(r.motion, 'window.Motion fehlt oder hat kein animate()');
   t.ok(r.b, 'LUKE.bewegung fehlt');
   t.gleich(r.m, 1, 'Stärke bei voll');
-  t.gleich(r.tempo, 'ansicht,dauer,feder,kurve,kurz,versatz,wasch', 'Felder von tempo()');
+  t.gleich(r.tempo, 'ansicht,dauer,feder,kurve,kurz,versatz', 'Felder von tempo()');
   t.gleich(r.js, 'an', 'data-js im <head> gesetzt');
 });
 
 pruefung('enthuellen: unten ist vor dem Scrollen nichts zu sehen', 'schreibtisch', async (page, t) => {
-  const op = await page.evaluate(() => getComputedStyle(document.querySelector('#studio .rv')).opacity);
+  const op = await page.evaluate(() => getComputedStyle(document.querySelector('#atelier .rv')).opacity);
   t.gleich(op, '0', 'Deckkraft eines .rv im Studio vor dem Scrollen');
 });
 
@@ -113,7 +113,7 @@ pruefung('ruhe: reduzierte Bewegung zeigt alles sofort', 'beide', async (page, t
   const r = await page.evaluate(() => ({
     js: document.documentElement.dataset.js || '',
     bewegung: document.querySelector('.app').dataset.bewegung,
-    unten: getComputedStyle(document.querySelector('#studio .rv')).opacity,
+    unten: getComputedStyle(document.querySelector('#atelier .rv')).opacity,
     y: scrollY
   }));
   t.gleich(r.js, '', 'data-js darf bei reduzierter Bewegung nicht gesetzt sein');
@@ -346,8 +346,8 @@ pruefung('tropfspur: ohne Bewegung versteckt', 'schreibtisch', async (page, t) =
 }, { ruhig: true });
 
 /* Die Hängung: vier Werke, zwei davon aus je drei Blättern. Alle Blätter stehen gleich hoch,
-   die eines Werks nebeneinander; Reiter und Filter gibt es nicht, weil es nur einen Träger
-   und nur eine Serie gibt. */
+   die eines Werks nebeneinander; Filter gibt es nicht, weil es nur eine Serie und ein Jahr
+   gibt. */
 pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinander', 'beide', async (page, t) => {
   const r = await page.evaluate(() => {
     const items = Array.from(document.querySelectorAll('.g-item'));
@@ -359,8 +359,8 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
       spalte: document.querySelector('#werke .wrap').clientWidth,
       dreh: Array.from(document.querySelectorAll('.g-blatt')).slice(0, 3).map(el => getComputedStyle(el).getPropertyValue('--dreh').trim()).join('|'),
       eintritt: Array.from(document.querySelectorAll('.g-item[data-fid="w1"] .rv')).map(el => (el.dataset.eintritt || 'text') + el.dataset.versatz).join(','),
-      reiter: document.getElementById('tr-tabs').hidden, filter: document.getElementById('werke-filter').hidden,
-      titel: !document.getElementById('werke-titel').hidden,
+      filter: document.getElementById('werke-filter').hidden,
+      titel: !!document.querySelector('#werke h2.hd'),
       zeile: document.querySelector('.g-item[data-fid="w1"] .g-m').textContent
     };
   });
@@ -372,7 +372,7 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
   t.ok(r.breite <= r.spalte - 20, 'die Hängung bleibt in der Spalte: ' + Math.round(r.breite) + ' / ' + r.spalte);
   t.gleich(r.dreh, '-1.1deg|0.8deg|1.4deg', '--dreh je Blatt');
   t.gleich(r.eintritt, 'blatt0,blatt1,blatt2,text3', 'die Blätter legen sich nacheinander ab, die Beschriftung zuletzt');
-  t.ok(r.reiter && r.filter && r.titel, 'ein Träger, eine Serie: Überschrift statt Reiter, kein Filter');
+  t.ok(r.filter && r.titel, 'eine Serie, ein Jahr: Überschrift, kein Filter');
   t.gleich(r.zeile, 'Nr. I — Tusche auf Papier, drei Blätter, 2026', 'Zeile unter Werk I');
   await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1800);
   await t.bild('werke-gehaengt');
@@ -460,7 +460,7 @@ pruefung('grafik: elf Arbeiten, Reihen gleich hoch und bündig', 'beide', async 
 pruefung('bilder: jedes Bild lädt, alle als WebP aus assets/img', 'schreibtisch', async (page, t) => {
   await t.durchscrollen(); await t.warten(1500);
   const r = await page.evaluate(async () => {
-    const imgs = Array.from(document.querySelectorAll('#auftakt img, #werke img, #grafik img, #studio img, #blattfolge img'));
+    const imgs = Array.from(document.querySelectorAll('#auftakt img, #werke img, #grafik img, #atelier img, #blattfolge img'));
     imgs.forEach(i => { i.loading = 'eager'; });
     await Promise.all(imgs.map(i => i.complete ? null : new Promise(ok => { i.onload = i.onerror = ok; })));
     return imgs.map(i => ({ src: i.currentSrc || i.src, w: i.naturalWidth }));
@@ -473,29 +473,36 @@ pruefung('bilder: jedes Bild lädt, alle als WebP aus assets/img', 'schreibtisch
 
 pruefung('abschnitte: Linien wachsen, das Foto wächst, das Band folgt', 'schreibtisch', async (page, t) => {
   const vorher = await page.evaluate(() => ({
-    aktuell: getComputedStyle(document.getElementById('aktuell')).getPropertyValue('--strich').trim(),
-    team: getComputedStyle(document.querySelector('.team li')).getPropertyValue('--strich').trim()
+    aktuell: getComputedStyle(document.getElementById('aktuell')).getPropertyValue('--strich').trim()
   }));
-  t.gleich(vorher.aktuell, '0', 'die Linien von Aktuell warten'); t.gleich(vorher.team, '0', 'die Linien der Teamliste warten');
+  t.gleich(vorher.aktuell, '0', 'die Linien von Aktuell warten');
   await t.durchscrollen(); await t.warten(2000);
   const nachher = await page.evaluate(() => ({
     aktuell: getComputedStyle(document.getElementById('aktuell')).getPropertyValue('--strich').trim(),
-    team: Array.from(document.querySelectorAll('.team li')).map(li => getComputedStyle(li).getPropertyValue('--strich').trim()).join(','),
-    foto: getComputedStyle(document.querySelector('.studio-rahmen img')).transform,
+    foto: getComputedStyle(document.querySelector('.atelier-rahmen img')).transform,
     band: document.querySelector('.band-video').currentTime,
     text: Array.from(document.querySelectorAll('#aktuell .rv')).every(el => el.classList.contains('on'))
   }));
-  t.gleich(nachher.aktuell, '1', 'die Linien von Aktuell sind gewachsen'); t.gleich(nachher.team, '1,1,1,1,1', 'die Linien der Teamliste sind gewachsen');
+  t.gleich(nachher.aktuell, '1', 'die Linien von Aktuell sind gewachsen');
   t.ok(nachher.text, 'Aktuell-Text enthüllt');
   t.ok(/matrix\(1\.0[0-9]/.test(nachher.foto), 'das Foto ist scrollgebunden gewachsen: ' + nachher.foto);
   t.ok(nachher.band > 5, 'das Signaturvideo ist am Ende der Handschrift weit gespult: ' + nachher.band);
 });
 
-pruefung('anfrage: der Fehler kommt von links, ohne Schütteln', 'schreibtisch', async (page, t) => {
-  await t.zu((await t.abschnitte()).find(a => a.id === 'anfrage').oben - 40); await t.warten(1600);
-  await page.click('#af-send'); await t.warten(700);
-  const r = await page.evaluate(() => { const e = document.getElementById('af-err'); return { hidden: e.hidden, text: e.textContent, op: getComputedStyle(e).opacity, tf: e.style.transform }; });
-  t.ok(!r.hidden && /Motividee/.test(r.text) && r.op === '1', 'Fehlerhinweis steht: ' + JSON.stringify(r));
+/* Die Seite ist eine Werkschau. Was zum Tätowieren gehörte — Anfrage, Ablauf, Flash, der
+   Träger „Haut“, das Team des Studios —, ist raus und soll nicht zurückkommen. */
+pruefung('werkschau: keine Anfrage, kein Flash, keine Haut, kein Tattoo', 'beide', async (page, t) => {
+  const r = await page.evaluate(() => ({
+    teile: ['anfrage', 'flash', 'studio', 'tr-tabs', 'af-form'].filter(id => document.getElementById(id)),
+    nav: Array.from(document.querySelectorAll('.top a')).filter(a => !a.hidden).map(a => a.textContent.trim()).join(','),
+    text: /tätow|tattoo|walk-in|blackwork|körperstelle|sitzung/i.exec(document.body.innerText + ' ' + document.title + ' ' + (document.querySelector('meta[name="description"]') || {}).content),
+    formular: document.querySelectorAll('form, input, textarea, select').length
+  }));
+  t.gleich(r.teile.join(','), '', 'Abschnitte, die es nicht mehr gibt');
+  /* „Aktuell“ verschwindet nach dem 27. September von selbst. */
+  t.ok(/^Luke WTF,(Aktuell,)?Werke,Grafik,Atelier$/.test(r.nav), 'Navigation: ' + r.nav);
+  t.ok(!r.text, 'kein Wort vom Tätowieren: ' + (r.text && r.text[0]));
+  t.gleich(r.formular, 0, 'kein Formular');
 });
 
 for (const r of ['b', 'c']) {

@@ -52,7 +52,7 @@ export const Atelier: React.FC<{ ende: number }> = ({ ende }) => {
                 color: theme.farben.tusche,
               }}
             >
-              Bluthandwerk
+              Atelier
             </div>
           </Zeile>
           <Zeile ab={1.0} raus={ende - 0.55}>
@@ -66,9 +66,9 @@ export const Atelier: React.FC<{ ende: number }> = ({ ende }) => {
                 maxWidth: '26ch',
               }}
             >
-              Privates Atelier in Köln-Ehrenfeld.
+              Tusche und Farbe auf Papier,
               <br />
-              Seit 2012. Termine nur nach Vereinbarung.
+              in Köln-Ehrenfeld.
             </div>
           </Zeile>
           <Zeile ab={1.35} raus={ende - 0.55} style={{ marginTop: f.klein * 0.5 }}>
@@ -90,7 +90,7 @@ export const Atelier: React.FC<{ ende: number }> = ({ ende }) => {
                 color: theme.farben.gedaempft,
               }}
             >
-              Vogelsangerstraße 84, 50823 Köln
+              @lukewtf
             </div>
           </Zeile>
         </div>

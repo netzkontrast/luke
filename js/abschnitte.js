@@ -1,6 +1,6 @@
 /* Die kleinen Bewegungen der Abschnitte. Jede kommt aus dem Material: eine Linie, die
-   weiterläuft (Aktuell, Teamliste), eine Zeichnung, die der Leser zieht (Handschrift), ein
-   Foto, das beim Scrollen kaum merklich näher kommt (Studio). Was hier gezeigt wird, trägt
+   weiterläuft (Aktuell), eine Zeichnung, die der Leser zieht (Handschrift), ein Foto, das
+   beim Scrollen kaum merklich näher kommt (Atelier). Was hier gezeigt wird, trägt
    data-eigen und wird vom automatischen Enthüllen übersprungen. */
 (function () {
   'use strict';
@@ -44,26 +44,10 @@
     }, { target: fig, offset: ['start 0.92', 'end 0.2'] });
   })();
 
-  /* Studio: Das Foto wird beim Scrollen ganz langsam größer, im Rahmen beschnitten. */
-  (function studio() {
-    const img = document.querySelector('.studio-rahmen img'), fig = img && img.closest('.studio-fig');
+  /* Atelier: Das Foto wird beim Scrollen ganz langsam größer, im Rahmen beschnitten. */
+  (function atelier() {
+    const img = document.querySelector('.atelier-rahmen img'), fig = img && img.closest('.atelier-fig');
     if (!img || !fig || !M || !s()) return;
     M.scroll(M.animate(img, { scale: [1, 1.06] }, { ease: 'linear' }), { target: fig, offset: ['start end', 'end start'] });
-  })();
-
-  /* Team: Jede Zeile kommt mit ihrer Linie, die Linie einen Augenblick nach der Schrift. */
-  (function team() {
-    const liste = document.querySelector('.team'); if (!liste) return;
-    const zeilen = Array.from(liste.querySelectorAll('li.rv[data-eigen]'));
-    if (!M || !s()) { zeilen.forEach(li => { B.sofort(li); B.strich(li); }); return; }
-    zeilen.forEach(li => li.style.setProperty('--strich', '0'));
-    const stop = M.inView(liste, () => {
-      stop();
-      zeilen.forEach((li, i) => {
-        const d = i * B.tempo().versatz * s();
-        B.zeigen(li, { delay: d });
-        B.strich(li, { delay: d + 0.1 * s(), dauer: 0.7 });
-      });
-    }, { amount: 0.3 });
   })();
 })();
