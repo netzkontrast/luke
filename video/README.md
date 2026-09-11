@@ -10,8 +10,8 @@ Sechs Szenen, zusammen rund 32 Sekunden:
 
 | Szene | Inhalt |
 | --- | --- |
-| Auftakt | Name und die Zeichnung von Werk I, die vor der Kamera entsteht |
-| Werk I | Das fertige Blatt mit Beschriftung |
+| Auftakt | Name und das Profil mit dem roten Strang, das vor der Kamera entsteht (Gestaltung, kein Werk) |
+| Werk I | Die drei Blätter von „Befreiung der Körperlichkeit“, Werk I, nebeneinander und gleich hoch wie in der Hängung, mit Beschriftung |
 | Handschrift | Der Satz des Projekts über der Auge-Zeichnung mit Lukes Signatur |
 | Verzeichnis | Die Arbeiten auf Papier als Verzeichnis, mit den Titeln aus `js/works.js` |
 | Atelier | Luke bei der Arbeit, Adresse und Terminhinweis |
@@ -94,7 +94,8 @@ Nach `public/img/` beziehungsweise `public/video/` legen und in der Szene über 
 referenzieren. Wichtig: Zeichnungen bekommen `mixBlendMode: "multiply"`, damit das weiße
 Papier im Papiergrund verschwindet und nur Tusche und Rot stehen bleiben. Die Bausteine in
 `src/components/Blatt.tsx` machen das bereits richtig, `BlattBild` und `BlattVideo` für
-Zeichnungen, `Foto` für Fotografien.
+Zeichnungen, `Haengung` für ein Werk aus mehreren Blättern, `Foto` für Fotografien. Die
+Blätter eines Werks gehören zusammen und stehen im Film nie einzeln.
 
 ## Gestaltungsregeln
 

@@ -90,6 +90,10 @@ Bereits umgesetzt:
 - [x] **Handschrift als Bildfolge** statt gespultem Video: läuft auf jedem Gerät. Danach blickt das Auge dem Zeiger
       nach; dasselbe Auge sitzt in der Kopfleiste. Der Name ist die Signatur.
 - [x] **Neuordnung des Speichers** ohne Holz, die Blätter tauschen die Plätze.
+- [x] **Film, Werk I** (11. September 2026). Die zweite Szene zeigte das Profil mit dem roten Strang unter der
+      Beschriftung von Werk I, mit Ausstellungszeile. Jetzt stehen dort die drei Blätter von Werk I als Reihe, gleich
+      hoch, wie in der Hängung der Seite; sie legen sich nacheinander ab, die Beschriftung kommt zuletzt („Tusche auf
+      Papier, drei Blätter, 2026“). Das Profil bleibt Material des Auftakts und heißt im Film nicht mehr Werk I.
 
 Beim nächsten Durchgang anzusehen:
 
@@ -101,3 +105,6 @@ Beim nächsten Durchgang anzusehen:
 - Nach dem Schnitt hängt die Tropfspur rund 7 % der Blatthöhe unter der Tusche der knienden Figur in der Luft: Der
   Strang des Videos tritt an der Unterkante aus, die Figur endet höher. Wollte man das schließen, müsste das Standbild
   unten beschnitten werden (Datei), nicht die Spur verschoben.
+- Film, Auftakt: Hinter dem Zeichenvideo steht ein Kasten, heller als das Papier (Einzelbilder 100 und 145, in beiden
+  Formaten). multiply kann nur abdunkeln, also greift es dort nicht; bei `OffthreadVideo` in `BlattVideo` nachsehen.
+  Im Querformat läuft außerdem der rote Faden durch „Luke WTF“ und die Unterzeile.

@@ -9,11 +9,15 @@ mkdir -p public/img public/video public/fonts
 
 # Die großen Fassungen kommen aus den Originalen (die Seite liefert Bilder nur als WebP aus,
 # erzeugt von scripts/bilder.py), die mittleren aus assets/img/, so wie die Seite sie zeigt.
-cp ../assets/original/gestaltung-profil.jpg \
-   ../assets/original/gestaltung-signatur.jpg \
+# Papierarbeiten immer aus assets/img/: Nur dort ist das Papier auf Weiß gezogen. Von Werk I
+# ist das die größte Fassung jedes Blatts.
+cp ../assets/original/gestaltung-signatur.jpg \
    ../assets/original/luke-atelier.jpg \
    ../assets/img/gestaltung-profil-1200.webp \
    ../assets/img/gestaltung-kniend-1200.webp \
+   ../assets/img/werk-befreiung-1-bild-1-713.webp \
+   ../assets/img/werk-befreiung-1-bild-2-703.webp \
+   ../assets/img/werk-befreiung-1-bild-3-622.webp \
    public/img/
 
 cp ../assets/video/gestaltung-profil-zeichnung.mp4 \
