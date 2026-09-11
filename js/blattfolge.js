@@ -32,7 +32,8 @@
     { key: 'papier', t: 'Papier', sub: 'Tusche, Originale — zuletzt „Befreiung der Körperlichkeit“.' },
     { key: 'flash', t: 'Flash', sub: 'Fertige Blätter, jedes wird genau einmal gestochen.' }
   ];
-  const aufnahmen = key => key === 'flash' ? (L.FLASH || []).filter(f => f.src) : (L.helleAufnahmen ? L.helleAufnahmen(key) : []);
+  /* Je Blatt ein Stück: Ein Werk aus drei Blättern zieht dreimal vorbei, Blatt für Blatt. */
+  const aufnahmen = key => key === 'flash' ? (L.FLASH || []).filter(f => f.src) : (L.helleBlaetter ? L.helleBlaetter(key) : []);
   const KAPITEL = ALLE.map(k => Object.assign({}, k, { blaetter: aufnahmen(k.key) })).filter(k => k.blaetter.length);
   const sec = halter.closest('section');
   if (!KAPITEL.length) { if (sec) sec.hidden = true; return; }
@@ -42,11 +43,13 @@
   const MINDESTENS = 1000;
 
   /* Beschriftung aus den Daten, nichts erfunden. */
-  function schriftHTML(w) {
-    if (w.n != null) return `<span class="bf-nr">Blatt ${esc(w.n)}</span><span class="bf-t">${esc(w.motiv)}</span><span class="bf-m">${esc(w.format)}</span>`;
-    const m = w.tr === 'haut' ? `${w.ort}, ${w.jahr}` : `${w.technik}, ${w.jahr}`;
-    return `<span class="bf-nr">Nr. ${esc(w.nr)}</span><span class="bf-t">${esc(w.t)}</span><span class="bf-m">${esc(m)}</span>`;
+  function schriftHTML(s) {
+    if (s.n != null) return `<span class="bf-nr">Blatt ${esc(s.n)}</span><span class="bf-t">${esc(s.motiv)}</span><span class="bf-m">${esc(s.format)}</span>`;
+    const w = s.werk, m = w.tr === 'haut' ? `${w.ort}, ${w.jahr}` : `${w.technik}, ${w.jahr}`;
+    const teil = s.teile > 1 ? ` · Bild ${s.teil} von ${s.teile}` : '';
+    return `<span class="bf-nr">Nr. ${esc(w.nr)}${teil}</span><span class="bf-t">${esc(w.t)}</span><span class="bf-m">${esc(m)}</span>`;
   }
+  const blattAlt = s => (s.werk ? (s.teile > 1 ? `${s.werk.t}, Bild ${s.teil} von ${s.teile}` : s.werk.t) : (s.motiv || ''));
 
   /* Aufbau. */
   const buehne = document.createElement('div'); buehne.className = 'bf-buehne';
@@ -68,7 +71,10 @@
        stritten beim Start mit dem Auftaktvideo um die Leitung. */
     const erstes = stuecke.length === 0;
     const quelle = erstes ? `src="${esc(w.src)}"${w.srcset ? ` srcset="${esc(w.srcset)}"` : ''}` : `data-src="${esc(w.src)}"${w.srcset ? ` data-srcset="${esc(w.srcset)}"` : ''}`;
-    blatt.innerHTML = `<img class="ink-img" ${quelle} sizes="(max-width: 700px) 88vw, 44vw" alt="${esc(w.t || w.motiv || '')}" loading="lazy" decoding="async">`;
+    /* sizes folgt dem Stylesheet: Das Blatt ist 72 svh hoch (Telefon 46 svh), die Breite
+       ergibt sich aus dem Seitenverhältnis. */
+    const vh = Math.round(72 * (w.w && w.h ? w.w / w.h : 0.6)), vhMobil = Math.round(46 * (w.w && w.h ? w.w / w.h : 0.6));
+    blatt.innerHTML = `<img class="ink-img" ${quelle} sizes="(max-width: 700px) ${vhMobil}vh, ${vh}vh" alt="${esc(blattAlt(w))}" loading="lazy" decoding="async">`;
     const schrift = document.createElement('p'); schrift.className = 'bf-schrift'; schrift.innerHTML = schriftHTML(w);
     st.appendChild(blatt); st.appendChild(schrift); reihe.appendChild(st);
     stuecke.push({ blatt, schrift, i: stuecke.length, kapitel: ki, geladen: erstes });
@@ -177,8 +183,10 @@
     }
     /* Der Scrollweg je Blatt. Er bestimmt, wie lange die Bühne klebt — nicht mehr, wie schnell
        die Blätter laufen; das tut die Zeit. */
+    /* Seit ein Werk aus drei Blättern dreimal vorbeizieht, sind es sieben Blätter statt fünf;
+       mit dem alten Weg je Blatt klebte die Bühne fast sieben Fenster lang. */
     const mobil = innerWidth <= 700, dezent = B.m() < 1;
-    const je = dezent ? 60 : mobil ? 70 : 85;
+    const je = dezent ? 55 : mobil ? 60 : 70;
     halter.style.height = Math.max(200, N * je + 100) + 'svh';
     wechselt = false;
     /* Posen: Das aktuelle Blatt steht, die anderen warten; vor der Ankunft liegt keines. */

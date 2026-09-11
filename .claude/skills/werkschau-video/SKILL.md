@@ -20,7 +20,7 @@ auf demselben Papier. Deshalb wird jedes Werkbild und jedes Zeichenvideo mit
 `mixBlendMode: "multiply"` auf den Papiergrund gelegt:
 
 ```tsx
-<Img src={staticFile("img/gestaltung-profil-1200.jpg")} style={{ mixBlendMode: "multiply" }} />
+<Img src={staticFile("img/gestaltung-profil-1200.webp")} style={{ mixBlendMode: "multiply" }} />
 <OffthreadVideo src={staticFile("video/gestaltung-profil-zeichnung.mp4")} style={{ mixBlendMode: "multiply" }} />
 ```
 
@@ -89,34 +89,38 @@ wenn Luke Ton ausdrücklich will.
 
 ## Vorhandene Dateien
 
-Kopiere sie nach `video/public/`, referenziere mit `staticFile()`:
+Kopiere sie nach `video/public/`, referenziere mit `staticFile()`. Ausgeliefert werden Bilder
+als `assets/img/<name>-<breite>.webp` (erzeugt von `scripts/bilder.py`, Breiten und Maße in
+`js/bilder.js`). Die Originale, wie Luke sie geschickt hat, liegen als JPG unter
+`assets/original/<name>.jpg` — für den Film die beste Quelle, wenn es groß werden soll. Für
+Papierarbeiten aber die WebP nehmen: Nur dort ist das Papier auf Weiß gezogen.
 
-**Gestaltung** (tragen die Seite, stehen nicht im Werkverzeichnis)
-- `assets/img/gestaltung-profil-1900.jpg` — 1900×3085, Profil mit rotem Strang.
-  Kleinere Fassungen `-1200`, `-800`. Material des Auftakts: Zeichenanimation,
-  Tiefenebenen, Sprite.
-- `assets/img/gestaltung-signatur-1800.jpg` — 1800×480, Auge am Ende einer langen Linie,
-  mit Signatur. Quer, gut für Bauchbinden und Abspann.
-- `assets/img/gestaltung-kniend-1900.jpg` — 1900×2536, kniende Figur im Profil, Kopf
+**Gestaltung** (tragen die Seite, stehen nicht im Werkverzeichnis; bei Luke „Beiwerk“)
+- `gestaltung-profil` — 1900×3085, Profil mit rotem Strang. Breiten 800, 1200, 1900.
+  Material des Auftakts: Zeichenanimation, Sprite.
+- `gestaltung-signatur` — 1800×480, Auge am Ende einer langen Linie, mit Signatur. Quer,
+  gut für Bauchbinden und Abspann.
+- `gestaltung-kniend` — 1900×2535 (Original 3072×4098), kniende Figur im Profil, Kopf
   gesenkt, dahinter ein offener Kreis. Steht im Kopf der Website. Reinweißer Grund,
   multiply zieht ihn vollständig weg. Links ein breites leeres Drittel: Wer es
   formatfüllend braucht, schneidet rechtsbündig.
 
 **Werke** (Tusche und Farbe auf Papier, für multiply)
-- `assets/img/werk-1-strang-728.jpg` — 728×1350, Figur im Profil, schwarze Masse, Strang
-  nach oben. Werk I. Kleinere Fassung `-480`.
-- `assets/img/werk-2-beugung-822.jpg` — 822×1350, weit gebeugte Figur, viel Rot. Werk II.
-- `assets/img/werk-3-fall-720.jpg` — 720×1350, hängende Figur mit Haar, Kopf gesenkt. Werk III.
-- `assets/img/werk-4-schlinge-808.jpg` — 808×1350, Schlinge und roter Kopf über einer
-  Waagerechten. Werk IV.
-- `assets/img/werk-5-kopf-828.jpg` — 828×1130, frontaler Kopf, breiter Pinsel, dunkles Rot.
-  Werk V. Keine Tusche, sondern Farbe; der cremefarbene Papierton ist auf Weiß gezogen.
-  Diese vier sind alle Hochformat, freigestellt und auf reinem Weiß: multiply zieht das
-  Papier vollständig weg, die Figur steht frei. Zusammen die Serie „Befreiung der
-  Körperlichkeit“ — sie lesen als Folge, nicht als Einzelbilder.
-- `assets/img/werk-6-koepfe-1600.jpg` — 1600×1790, zwölf kleine Blätter mit Köpfen, auf
-  schwarzem Holz ausgelegt und dort fotografiert. Werk VI. **Kein multiply**: Der Grund
-  ist dunkel, multiply macht daraus eine schwarze Fläche. Wie das Porträt behandeln.
+- „Befreiung der Körperlichkeit“, **Werk I**, drei Blätter, je rund 0,5 : 1 hoch, Breiten
+  480 und um 700: `werk-befreiung-1-bild-1` (Mann, Strang nach oben, schwarze Masse und
+  rote Lasur), `-bild-2` (Figur mit langem Haar, Kopf gesenkt, graue und blaue Waschung),
+  `-bild-3` (feine Linien, Kopf gesenkt, Rot nur im Haar).
+- **Werk II**, drei Blätter, etwas breiter: `werk-befreiung-2-bild-1` (Kopf in der Schlinge,
+  rot, über einer Waagerechten), `-bild-2` (Rücken einer hängenden Figur, Rot auf den
+  Schultern), `-bild-3` (Schlinge und roter Kopf, weit gebeugt, viel Rot).
+  Die drei Blätter eines Werks gehören zusammen und hängen nebeneinander, gleich hoch —
+  im Film als Reihe zeigen oder nacheinander, nie einzeln herausgelöst ohne die anderen.
+  Freigestellt auf reinem Weiß: multiply zieht das Papier vollständig weg.
+- `werk-ansichten` — 828×1130, frontaler Kopf, breiter Pinsel, dunkles Rot. Keine Tusche,
+  sondern Farbe; der cremefarbene Papierton ist auf Weiß gezogen.
+- `werk-neuordnung-des-speichers` — 1600×1811, zwölf kleine Blätter mit Köpfen, auf
+  schwarzem Holz ausgelegt und dort fotografiert. **Kein multiply**: Der Grund ist dunkel,
+  multiply macht daraus eine schwarze Fläche. Wie das Porträt behandeln.
 
 **Zeichenanimationen** (das Entstehen, bestes Material für Schnitte)
 - `assets/video/gestaltung-profil-zeichnung.mp4` — 6,0 s, 432×704, das Profil baut sich auf.
@@ -125,13 +129,15 @@ Kopiere sie nach `video/public/`, referenziere mit `staticFile()`:
   Das Ende ist die Signatur — dorthin gehört der Abspann.
 
 **Porträt**
-- `assets/img/luke-atelier-1536.jpg` — 1536×2048, Luke mit Pinsel und Palette im
-  Atelier, Schwarzweiß, hartes Lampenlicht. Kein multiply, das ist eine Fotografie.
-  Ken Burns langsam, Kontrast leicht anheben, damit es zur Tusche passt.
+- `luke-atelier` — 1536×2048, Luke mit Pinsel und Palette im Atelier, Schwarzweiß, hartes
+  Lampenlicht. Kein multiply, das ist eine Fotografie. Ken Burns langsam, Kontrast leicht
+  anheben, damit es zur Tusche passt.
 
-**Grafik** (Auftragsarbeiten, `assets/img/grafik-*`)
-- Titelbild des Podcasts, ein Plakat für eine Clubnacht, zwei Signets, ein Albumcover.
-  Alle mit dunklem Grund, alle **ohne multiply**. Sie gehören nicht in die Werkschau der
+**Grafik** (Auftragsarbeiten, `grafik-<gattung>-<titel>[-<datum>]`)
+- Elf Arbeiten: zwei Plakate „nebelgrau“, drei Flyer für die Clubnacht „Noir“, das
+  Titelbild des Podcasts „Bluthandwerk“, das Albumcover „Requiem: Zerfall“, die Signets
+  „Kollektiv Noir“, „Spleen“ und „NOX“ und die Wortmarke „Kollektiv Noir“. Fast alle mit
+  dunklem Grund, alle **ohne multiply**. Sie gehören nicht in die Werkschau der
   Tuschearbeiten: andere Disziplin, anderer Auftraggeber, andere Erzählung. Wenn sie in
   einem Film vorkommen, dann als eigener Block mit eigenem Ton, nicht zwischen die Blätter
   gemischt.

@@ -26,39 +26,21 @@ export const WERKE: Werk[] = [
   },
   {
     "nr": "III",
-    "titel": "Befreiung der Körperlichkeit, Werk III",
-    "traeger": "papier",
-    "jahr": 2026,
-    "technik": "Tusche auf Papier",
-    "ort": null,
-    "serie": "Befreiung der Körperlichkeit"
-  },
-  {
-    "nr": "IV",
-    "titel": "Befreiung der Körperlichkeit, Werk IV",
-    "traeger": "papier",
-    "jahr": 2026,
-    "technik": "Tusche auf Papier",
-    "ort": null,
-    "serie": "Befreiung der Körperlichkeit"
-  },
-  {
-    "nr": "V",
-    "titel": "Kopf",
+    "titel": "Ansichten",
     "traeger": "papier",
     "jahr": 2026,
     "technik": "Farbe auf Papier",
     "ort": null,
-    "serie": "Köpfe"
+    "serie": null
   },
   {
-    "nr": "VI",
-    "titel": "Zwölf Köpfe",
+    "nr": "IV",
+    "titel": "Neuordnung des Speichers",
     "traeger": "papier",
     "jahr": 2026,
     "technik": "Tusche auf Papier, zwölf Blätter",
     "ort": null,
-    "serie": "Köpfe"
+    "serie": null
   }
 ];
 
