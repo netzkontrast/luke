@@ -259,9 +259,6 @@ def schreiben(e, im):
 SIGNATUR = dict(
     video='gestaltung-signatur.mp4', ziel='signatur',
     folge=36, bis=289, blinzeln=(301, 313, 325, 337, 349), qualitaet=72,
-    # Die Folge noch einmal kleiner für die Kopfleiste: Dort steht die Zeichnung bis 315 Pixel
-    # breit, doppelt so viele reichen für scharfe Bildschirme.
-    kopf=640,
     # Die Signatur allein, als Name der Seite (Kopf und Kopfleiste). Die große Aufnahme
     # gestaltung-signatur.jpg hat keine; es gibt sie nur im Video, rund 300 × 75 Pixel groß.
     # Damit sie groß scharf steht, werden die Bilder gemittelt, in denen sie ruht (das nimmt
@@ -277,9 +274,8 @@ SIGNATUR = dict(
 
 
 def signatur_folge():
-    """Schreibt assets/img/signatur/: folge-01 … folge-36 und dieselben klein als kopf-01 …
-    kopf-36, blinzeln-1 … blinzeln-5, auge-leer, iris, handschrift. Gibt die Angaben fürs
-    Manifest zurück."""
+    """Schreibt assets/img/signatur/: folge-01 … folge-36, blinzeln-1 … blinzeln-5, auge-leer,
+    iris. Gibt die Angaben fürs Manifest zurück."""
     from PIL import ImageDraw
     S = SIGNATUR
     ziel = os.path.join(ZIEL, S['ziel'])
@@ -303,9 +299,7 @@ def signatur_folge():
 
         n, bis = S['folge'], S['bis']
         for k in range(n):
-            im = bild(round(1 + k * (bis - 1) / (n - 1)))
-            ablegen(im, f'folge-{k + 1:02d}')
-            ablegen(im.resize((S['kopf'], round(im.height * S['kopf'] / im.width)), Image.LANCZOS), f'kopf-{k + 1:02d}')
+            ablegen(bild(round(1 + k * (bis - 1) / (n - 1))), f'folge-{k + 1:02d}')
         for k, i in enumerate(S['blinzeln']):
             ablegen(bild(i), f'blinzeln-{k + 1}')
         letztes = bild(bis)
@@ -358,7 +352,7 @@ def signatur_folge():
     summe += os.path.getsize(pfad)
     hs_b, hs_h = rgba.shape[1], rgba.shape[0]
     print(f"{'signatur/ (Bildfolge)':<40} {w:>5} × {h:<5} {n} + {len(S['blinzeln'])} Bilder, zusammen {summe // 1024}k")
-    return dict(w=w, h=h, pfad=f"assets/img/{S['ziel']}/", folge=n, kopf=S['kopf'], blinzeln=len(S['blinzeln']),
+    return dict(w=w, h=h, pfad=f"assets/img/{S['ziel']}/", folge=n, blinzeln=len(S['blinzeln']),
                 handschrift=dict(w=hs_b, h=hs_h),
                 auge=dict(x=a['x'], y=a['y'], r=a['r'], rand=rand, oeffnung=[list(q) for q in a['oeffnung']]))
 
@@ -375,8 +369,8 @@ def manifest_schreiben(eintraege, signatur=None):
         "window.LUKE = window.LUKE || {};\n"
         f"LUKE.BILDER = {{\n{zeilen}\n}};\n")
     if signatur:
-        text += ("/* Die Handschrift als Bildfolge (scripts/bilder.py, SIGNATUR); js/auge.js zeichnet\n"
-                 "   sie in der Kopfleiste. */\n"
+        text += ("/* Die Handschrift als Bildfolge (scripts/bilder.py, SIGNATUR); js/auge.js und\n"
+                 "   js/abschnitte.js zeichnen sie. */\n"
                  f"LUKE.SIGNATUR = {json.dumps(signatur, separators=(', ', ': '))};\n")
     with open(MANIFEST, 'w', encoding='utf-8', newline='\n') as f:
         f.write(text)

@@ -488,9 +488,7 @@
   document.addEventListener('sequenz-select', () => {
     const el = document.getElementById('werke');
     if (!el) return;
-    /* Unter die Kopfleiste, wie hoch sie gerade ist (Schreibtisch rund 100 px, Telefon 54). */
-    const leiste = document.querySelector('.top');
-    const top = el.getBoundingClientRect().top + scrollY - (leiste ? leiste.offsetHeight : 56);
+    const top = el.getBoundingClientRect().top + scrollY - 56;
     window.scrollTo({ top, behavior: mScale() ? 'smooth' : 'auto' });
   });
 

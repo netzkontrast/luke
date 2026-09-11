@@ -2,9 +2,7 @@
    Drei Richtungen über .app[data-richtung]: a Werkverzeichnis (Standard), b Nach der Sitzung, c Werkstatt. */
 
 *, *::before, *::after { box-sizing: border-box; }
-/* Sprungziele landen unter der Kopfleiste, nicht dahinter (100 px, auf dem Telefon 54 px). */
-html { scroll-behavior: smooth; scroll-padding-top: 108px; -webkit-text-size-adjust: 100%; }
-@media (max-width: 540px) { html { scroll-padding-top: 62px; } }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; -webkit-text-size-adjust: 100%; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 html, body { margin: 0; padding: 0; background: #FFFFFF; }
 [hidden] { display: none !important; }
@@ -99,27 +97,15 @@ h2.hd { font-size: clamp(30px,4vw,52px); margin: 0 0 12px; }
 
 /* ---------- Navigation ---------- */
 .top { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--line); transition: background-color calc(var(--m)*.7s), border-color calc(var(--m)*.7s); }
-.top .wrap { padding-top: 10px; padding-bottom: 10px; display: flex; align-items: center; gap: clamp(14px,3vw,32px); overflow-x: auto; white-space: nowrap; }
+.top .wrap { padding-top: 14px; padding-bottom: 14px; display: flex; align-items: baseline; gap: clamp(14px,3vw,32px); overflow-x: auto; white-space: nowrap; }
 .top a { text-decoration: none; font-size: 16px; flex: 0 0 auto; }
-/* Die Einträge links, die Handschrift rechts, groß genug, dass man die Signatur liest:
-   315 × 80 px, die Leiste wird damit rund 100 px hoch. Wird es eng, gibt sie nach (flex-shrink)
-   und schrumpft als Ganzes, weil ihre Höhe aus der Breite folgt. */
-.top .brand { font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: 21px; display: block; margin-left: auto; flex: 0 1 315px; min-width: 104px; }
-/* Die Handschrift in der Kopfleiste (js/auge.js): die lange Linie, die Signatur, das Auge,
-   im Format der Folge. Standbild und Folge liegen übereinander; sobald das erste Bild der
-   Folge steht, tritt das Standbild zurück. */
-.nav-hand { position: relative; display: block; width: 100%; aspect-ratio: 1072 / 272; }
-.nav-hand > img, .nav-hand > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.nav-hand-folge { visibility: hidden; }
-html[data-js="an"] .nav-hand:not(.still) .nav-hand-still { visibility: hidden; }
-.nav-hand.lebt .nav-hand-folge { visibility: visible; }
-.nav-hand.lebt .nav-hand-still { visibility: hidden; }
-/* Auf dunklem Grund (Richtung B) stünde die Zeichnung als weißer Kasten, multiply gilt dort
-   nicht. Dort steht der Name allein, hell. */
-.top .brand .handschrift { display: none; }
-.app[data-richtung="b"] .nav-hand { display: none; }
-.app[data-richtung="b"] .top .brand .handschrift { display: block; height: 52px; width: auto; }
-.app[data-richtung="b"] .top .brand { flex: 0 0 auto; min-width: 0; }
+.top .brand { font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: 21px; display: inline-flex; align-items: center; gap: 10px; align-self: center; }
+/* Das Auge in der Kopfleiste (js/auge.js): der Ausschnitt um das Auge, so hoch wie die
+   Schrift daneben etwa zweimal. Es blendet ein, wenn es geladen ist. Auf dunklem Grund
+   (Richtung B) hätte es ein weißes Rechteck um sich; dort bleibt es weg. */
+.nav-auge { display: block; width: 46px; height: 29px; opacity: 0; transition: opacity calc(var(--m) * .6s + .01s) var(--e); }
+.nav-auge.da { opacity: 1; }
+.app[data-richtung="b"] .nav-auge { display: none; }
 
 /* ---------- Auftakt ---------- */
 #auftakt { overflow: hidden; }
@@ -136,6 +122,7 @@ html[data-js="an"] .nav-hand:not(.still) .nav-hand-still { visibility: hidden; }
    (Richtung B) wird sie hell. */
 .hero-name { line-height: 0; margin-bottom: 26px; }
 .hero-name .handschrift { display: block; width: clamp(230px, 29vw, 430px); height: auto; }
+.top .brand .handschrift { display: block; height: 26px; width: auto; }
 .app[data-richtung="b"] .handschrift { filter: invert(1); }
 .app[data-richtung="b"] .hero-grid .hero-name .handschrift { margin: 0 auto; }
 .hero-text p { margin: 0; max-width: 34ch; color: var(--mut); font-size: 20px; line-height: 1.55; text-wrap: pretty; }
@@ -324,10 +311,13 @@ html[data-js="an"] #grafik-list:empty { min-height: 160vh; }
 .hand-grid p { margin: 0 0 20px; max-width: 58ch; text-wrap: pretty; }
 .hand-grid p:last-child { margin-bottom: 0; }
 .band-fig { margin: clamp(36px,5vw,64px) 0 0; }
-/* Die Handschrift als Standbild, im Format der Zeichnung. Geschrieben wird sie in der
-   Kopfleiste (js/auge.js); hier steht, was davon bleibt. */
+/* Die Handschrift: Standbild und Bildfolge liegen übereinander, im Format der Zeichnung.
+   Das Standbild steht, bis die Folge ihr erstes Bild gezeichnet hat (.lebt). */
 .band-rahmen { position: relative; aspect-ratio: 1072 / 272; }
-.band-rahmen > img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.band-rahmen > img, .band-rahmen > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.band-folge { visibility: hidden; }
+.band-rahmen.lebt .band-folge { visibility: visible; }
+.band-rahmen.lebt .band-standbild { visibility: hidden; }
 .app[data-richtung="b"] .band-rahmen { opacity: .9; }
 
 /* ---------- Grafik ---------- */
@@ -439,24 +429,17 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
   /* Filterknöpfe als Ziele für den Daumen. */
   .chip { padding: 9px 16px; }
 }
-@media (max-width: 359px) {
-  .top .wrap { padding-right: 34px; }
+@media (max-width: 540px) {
+  /* Die Navigation scrollt seitlich. Ein Verlauf am rechten Rand zeigt, dass es weitergeht.
+     Sie bleibt oben stehen wie auf dem Schreibtisch: Darin sitzt das Auge, das mitliest. */
+  .top .wrap { gap: 18px; padding-right: 34px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .top .wrap::-webkit-scrollbar { display: none; }
   .top::after { content: ''; position: absolute; top: 0; right: 0; bottom: 1px; width: 34px; pointer-events: none;
     background: linear-gradient(90deg, rgba(255,255,255,0), var(--bg) 78%); }
-}
-@media (max-width: 540px) {
-  /* Die Navigation bleibt oben stehen wie auf dem Schreibtisch: Darin sitzt die Handschrift
-     mit dem Auge, das mitliest. Hier nimmt die Breite der vier Einträge den Platz; die
-     Handschrift steht kleiner, und die Leiste bleibt schmal, damit sie nicht ein Achtel des
-     Bildschirms deckt. Sie reicht dafür in den Innenabstand hinein. Vier Einträge und die
-     Handschrift passen ab 360 px in eine Zeile; wird es enger, gibt zuerst die Handschrift
-     nach (flex-shrink bis 104 px), erst darunter scrollt die Leiste seitlich, mit Verlauf. */
-  .top .wrap { gap: 14px; padding-top: 14px; padding-bottom: 14px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .top .wrap::-webkit-scrollbar { display: none; }
-  .top .brand { font-size: 19px; flex-basis: 150px; }
-  .nav-hand { margin-block: -6px; }
-  .app[data-richtung="b"] .top .brand .handschrift { height: 19px; }
-  .top a { font-size: 15px; }
+  .top .brand { font-size: 19px; gap: 7px; }
+  .nav-auge { width: 38px; height: 24px; }
+  .top .brand .handschrift { height: 21px; }
+  .top a { font-size: 15.5px; }
   .app { --sp: clamp(44px, 11vw, 64px) !important; font-size: 17px; }
   .hero-fig, .app[data-richtung="b"] .hero-fig { height: min(52vh, 150vw); }
   /* Der Vorspann bleibt schmal: Rechts daneben läuft die Tropfspur vom Strang zum Rand, und

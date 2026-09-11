@@ -40,15 +40,14 @@
 
   <nav class="top" aria-label="Hauptnavigation">
     <div class="wrap">
+      <!-- Das Auge aus der Handschrift liest mit: Es blickt dem Zeiger nach und blinzelt
+           (js/auge.js). Ohne JavaScript bleibt der Kasten leer. -->
+      <a class="brand" href="#auftakt"><canvas class="nav-auge ink-img" aria-hidden="true"></canvas><img class="handschrift" src="assets/img/signatur/handschrift.webp" width="1150" height="294" alt="Luke WTF" decoding="async"></a>
+      <span class="sp"></span>
       <a href="#aktuell" data-nav="aktuell">Aktuell</a>
       <a href="#werke">Werke</a>
       <a href="#grafik">Grafik</a>
       <a href="#atelier">Atelier</a>
-      <!-- Rechts die Handschrift: Die lange Linie zieht sich, die Signatur schreibt sich, dann
-           liest das Auge mit, blickt dem Zeiger nach und blinzelt (js/auge.js). Bis die Folge
-           geladen ist, und ohne Bewegung, steht ihr letztes Bild. Auf dunklem Grund (Richtung B)
-           stünde die Zeichnung als weißer Kasten; dort steht der Name allein. -->
-      <a class="brand" href="#auftakt" aria-label="Luke WTF, zum Anfang"><span class="nav-hand"><img class="nav-hand-still ink-img" src="assets/img/signatur/kopf-36.webp" width="352" height="89" alt="" decoding="async"><canvas class="nav-hand-folge ink-img" aria-hidden="true"></canvas></span><img class="handschrift" src="assets/img/signatur/handschrift.webp" width="1150" height="294" alt="" decoding="async"></a>
     </div>
   </nav>
 
@@ -139,14 +138,16 @@
             <p class="rv">Manches bleibt ein einzelnes Blatt, manches wird eine Folge. „Befreiung der Körperlichkeit“ hängt als zwei Werke zu je drei Blättern: In Werk I sind die Gesichter zu sehen, in Werk II sind sie abgewandt.</p>
           </div>
         </div>
-        <!-- Die Handschrift, wie sie steht. Geschrieben wird sie in der Kopfleiste, dort blickt
-             auch das Auge dem Zeiger nach (js/auge.js); hier bleibt das letzte Bild der Folge.
-             Keine Parallaxe: Sie machte die Figur zu einer eigenen Ebene, in der multiply nicht
-             bis zum grauen Grund reicht, und die Zeichnung stand als weißer Kasten da. -->
+        <!-- Die Handschrift als Bildfolge auf einem Canvas: Beim Scrollen schreibt sich die
+             Signatur, danach blickt das Auge dem Zeiger nach (js/abschnitte.js, js/auge.js).
+             Ohne Bewegung steht das letzte Bild der Folge. Keine Parallaxe hier: Sie machte die
+             Figur zu einer eigenen Ebene, in der multiply nicht bis zum grauen Grund reicht,
+             und die Zeichnung stand als weißer Kasten da. -->
         <figure class="band-fig">
           <div class="band-rahmen rv" data-eintritt="block">
             <img class="band-standbild ink-img" src="assets/img/signatur/folge-36.webp" width="1072" height="272" loading="lazy" decoding="async"
                  alt="Tuschzeichnung eines Auges am Ende einer langen Linie, dazu die handschriftliche Signatur">
+            <canvas class="band-folge ink-img" width="1072" height="272" aria-hidden="true"></canvas>
           </div>
         </figure>
       </div>

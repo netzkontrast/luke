@@ -24,18 +24,6 @@ Zwei Formate aus denselben Szenen:
 
 Die Szenen fragen über `src/layout.ts` nach der Bildform und ordnen sich entsprechend an.
 
-## Die Ankündigung zur Vernissage
-
-Eine eigene Komposition, `Vernissage`, 1080 mal 1920, 15 Sekunden, für Story und Reel. Zwei
-Einstellungen: erst die beiden Werke der Serie untereinander, jedes mit seinen drei Blättern in
-einer Reihe, dann die Tafel mit Ausstellung, Ort, Vernissage und Enddatum. Alles, was darin
-steht, kommt aus `js/works.js` (`LUKE.WERKE` und `LUKE.CONFIG.ausstellung`); Abspann und
-Ankündigung teilen sich die Termine über `src/datum.ts`.
-
-```
-npm run render:vernissage
-```
-
 ## Ansehen und ändern
 
 ```
@@ -66,16 +54,7 @@ npx remotion render src/index.ts Werkschau     out/werkschau.mp4      --codec h2
 npx remotion render src/index.ts WerkschauHoch out/werkschau-hoch.mp4 --codec h264 --crf 17 --browser-executable=$CH
 ```
 
-Auf einem Rechner mit eigenem Chrome reichen `npm run render` und `npm run render:hoch`. Unter
-Windows lässt sich das installierte Chrome direkt angeben, dann lädt Remotion nichts herunter:
-
-```
-npx remotion render src/index.ts Werkschau out/werkschau.mp4 --codec h264 --crf 19 --muted --browser-executable="C:/Program Files/Google/Chrome/Application/chrome.exe"
-```
-
-`--muted`, weil der Film stumm ist: Ohne den Schalter legt Remotion trotzdem eine stille Tonspur
-an und scheiterte dabei unter Windows an einer Datei im Temp-Ordner (`merged.wav`). Die
-npm-Skripte tragen den Schalter schon.
+Auf einem Rechner mit eigenem Chrome reichen `npm run render` und `npm run render:hoch`.
 
 Einzelbilder zur Kontrolle, ohne den ganzen Film neu zu rendern:
 
@@ -90,12 +69,10 @@ src/theme.ts            Farben, Kurven, Federn und der Takt der Szenen. Einzige 
 src/layout.ts           Fragt die Bildform ab und liefert Ränder und Schriftgrößen.
 src/fonts.ts            Lädt die woff2-Dateien, bevor das erste Bild gerendert wird.
 src/werke.ts            Erzeugt aus js/works.js, nicht von Hand ändern.
-src/datum.ts            Termine der Ausstellung als Text („23. September, 19 bis 21 Uhr“).
 src/components/         Papier und Körnung, roter Faden, Schriftbausteine, Blätter.
 src/scenes/             Die sechs Szenen.
 src/Werkschau.tsx       Setzt die Szenen mit Überblendung zusammen.
-src/Vernissage.tsx      Die Ankündigung zur Vernissage.
-src/Root.tsx            Meldet die Kompositionen an.
+src/Root.tsx            Meldet beide Kompositionen an.
 public/                 Abgeleitete Kopien aus ../assets, nicht im Repository.
 scripts/assets-uebernehmen.sh   Füllt public/ aus ../assets.
 scripts/werke-uebernehmen.mjs   Überträgt das Werkverzeichnis aus js/works.js.
@@ -103,8 +80,7 @@ scripts/werke-uebernehmen.mjs   Überträgt das Werkverzeichnis aus js/works.js.
 
 ## Werkdaten ändern
 
-Titel, Jahre, Techniken, die Blätter je Werk und die Termine der Ausstellung stehen in
-`js/works.js` im Wurzelverzeichnis (die Maße der Bilder in `js/bilder.js`). Nach einer Änderung:
+Titel, Jahre und Techniken stehen in `js/works.js` im Wurzelverzeichnis. Nach einer Änderung:
 
 ```
 node scripts/werke-uebernehmen.mjs
