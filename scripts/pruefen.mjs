@@ -205,7 +205,24 @@ pruefung('auftakt: ?bewegung=aus steht sofort am Ende, ohne dass das Video läuf
   t.ok(r.done, '.done fehlt bei ?bewegung=aus');
   t.gleich(r.still, '1', 'Standbild bei ?bewegung=aus');
   t.ok(r.videoZeit === 0 || r.videoDisplay === 'none', 'Video läuft trotz ?bewegung=aus: ' + JSON.stringify(r));
+  /* Und geladen wird es auch nicht: Im Markup steht preload="none". */
+  const geladen = await page.evaluate(() => performance.getEntriesByType('resource').filter(e => /gestaltung-profil-zeichnung/.test(e.name)).map(e => e.name.split('/').pop()));
+  t.gleich(geladen.join(','), '', 'kein Auftaktvideo geladen bei ?bewegung=aus');
 }, { abfrage: '?bewegung=aus' });
+
+/* Beim Start kommt, was oben gebraucht wird, und sonst nichts: das Auftaktvideo einmal, als
+   AV1, wo der Browser es kann; das Atelierfoto und der Bildbogen der Neuordnung erst, wenn
+   der Leser sich ihnen nähert. Vorher lud der Start 2,75 MB, jetzt gut 1,5. */
+pruefung('last: beim Start nur, was oben gebraucht wird', 'schreibtisch', async (page, t) => {
+  await t.warten(2500);
+  const r = await page.evaluate(() => {
+    const namen = performance.getEntriesByType('resource').map(e => e.name.split('/').pop());
+    return { video: namen.filter(n => /gestaltung-profil-zeichnung/.test(n)), atelier: namen.filter(n => /luke-atelier/.test(n)), bogen: namen.filter(n => /neuordnung/.test(n)) };
+  });
+  t.gleich(r.video.join(','), 'gestaltung-profil-zeichnung-av1.mp4', 'das Auftaktvideo einmal, als AV1');
+  t.gleich(r.atelier.length, 0, 'kein Atelierfoto beim Start');
+  t.gleich(r.bogen.length, 0, 'kein Bildbogen der Neuordnung beim Start');
+});
 
 pruefung('bewegung: ?bewegung=dezent setzt die Stärke auf 0,55', 'schreibtisch', async (page, t) => {
   t.gleich(await page.evaluate(() => window.LUKE.bewegung.m()), 0.55, 'Stärke bei ?bewegung=dezent');
@@ -399,7 +416,8 @@ pruefung('neuordnung: zwölf Blätter ohne Holz, sie tauschen die Plätze', 'sch
       blend: k ? getComputedStyle(k).mixBlendMode : '' };
   });
   t.gleich(r.n, 12, 'zwölf Blätter');
-  t.ok(/werk-neuordnung-des-speichers-\d+\.webp/.test(r.bogen), 'jedes Blatt ein Ausschnitt aus dem Bildbogen: ' + r.bogen);
+  /* Der Bogen lädt erst, wenn das Werk heranrückt: Hintergrundbilder kennen kein loading="lazy". */
+  t.gleich(r.bogen, 'none', 'beim Start noch kein Bildbogen');
   t.gleich(r.blend, 'multiply', 'liegt mit multiply auf dem Papier, kein dunkler Grund mehr');
   /* Der Bildbogen hat weiße Ecken: Das Holz ist weg. */
   const ecke = await page.evaluate(async () => {
@@ -414,6 +432,8 @@ pruefung('neuordnung: zwölf Blätter ohne Holz, sie tauschen die Plätze', 'sch
   await page.evaluate(() => document.querySelector('.g-item[data-fid="w4"]').scrollIntoView({ block: 'center' }));
   await page.mouse.move(2, 2);
   await t.warten(8000);
+  const bogen = await page.evaluate(() => getComputedStyle(document.querySelector('.g-item[data-fid="w4"] .kachel')).backgroundImage);
+  t.ok(/werk-neuordnung-des-speichers-\d+\.webp/.test(bogen), 'in der Nähe: jedes Blatt ein Ausschnitt aus dem Bildbogen: ' + bogen);
   const nachher = await ordnung(page);
   t.ok(nachher !== vorher, 'die Blätter haben die Plätze getauscht: ' + vorher + ' → ' + nachher);
   t.gleich(nachher.split(' ').sort().join(' '), vorher.split(' ').sort().join(' '), 'dieselben zwölf, nur anders geordnet');

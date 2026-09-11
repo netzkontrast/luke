@@ -49,6 +49,7 @@ NOTES.md              Offene Punkte aus dem Prototyp
 video/                Der Film zur Werkschau, gebaut mit Remotion (eigene README)
 .claude/skills/       Skills: werkschau-video und remotion-motion-graphics
 scripts/make-gifs.sh  Erzeugt GIF-Fassungen der Zeichenanimationen
+scripts/videos.sh     Kodiert das Auftaktvideo als AV1 (knapp 1 MB statt 1,8 MB; VP9 und H.264 bleiben als Rückfall)
 ```
 
 ## Bilder und Videos austauschen

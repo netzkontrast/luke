@@ -93,10 +93,11 @@ Bereits umgesetzt:
 
 Beim nächsten Durchgang anzusehen:
 
-- Das Auftaktvideo ist mit 1,7 MB (VP9) beziehungsweise 1,8 MB (H.264) der größte Posten beim Laden. Ein
-  Neukodieren aus `assets/original/` brachte bei gleicher Auflösung kaum etwas (H.264 CRF 24: 1,37 MB, VP9 CRF 34:
-  sogar größer): Die Zeichenanimation hat viel feines Korn. Kleiner würde sie nur mit einem Neu-Render ohne Korn aus
-  Remotion oder mit sichtbarem Qualitätsverlust — beides eine Entscheidung für Luke, nicht für ein Skript.
+- Das Auftaktvideo war mit 1,7 MB (VP9) beziehungsweise 1,8 MB (H.264) der größte Posten beim Laden. Jetzt steht AV1
+  vorn: 0,99 MB bei kaum sichtbarem Unterschied (PSNR 37,2 gegen 38,8 dB beim H.264; `scripts/videos.sh`). Eine
+  Bildfolge statt des Videos wurde gemessen und verworfen: Die Zeichnung verwandelt sich, alle Striche bewegen sich
+  in jedem Bild, 145 Bilder als WebP wären 4 MB. Das Korn per AV1 nachzubilden (film-grain) spart noch einmal ein
+  Viertel, glättet aber die dichte Schraffur sichtbar — eine Entscheidung für Luke, nicht für ein Skript.
 - Nach dem Schnitt hängt die Tropfspur rund 7 % der Blatthöhe unter der Tusche der knienden Figur in der Luft: Der
   Strang des Videos tritt an der Unterkante aus, die Figur endet höher. Wollte man das schließen, müsste das Standbild
   unten beschnitten werden (Datei), nicht die Spur verschoben.

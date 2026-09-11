@@ -61,7 +61,9 @@
        wird, also relativ zu css/site.css — und fände das Bild nicht. */
     const bogen = new URL(breite ? `assets/img/${b.name}-${breite}.webp` : b.src, document.baseURI).href;
     const stuecke = Array.from({ length: spalten * zeilen }, (_, i) => `<span class="kachel" style="--sx:${i % spalten};--sy:${Math.floor(i / spalten)}"></span>`).join('');
-    return `<span class="kacheln ${bildKlasse(w)}" style="--spalten:${spalten};--zeilen:${zeilen};--bogen:url('${esc(bogen)}')" aria-hidden="true">${stuecke}</span>`;
+    /* Die Adresse des Bogens kommt erst, wenn das Werk heranrückt (neuordnen()): Ein
+       Hintergrundbild kennt kein loading="lazy" und lüde sonst gleich beim Start. */
+    return `<span class="kacheln ${bildKlasse(w)}" data-bogen="${esc(bogen)}" style="--spalten:${spalten};--zeilen:${zeilen}" aria-hidden="true">${stuecke}</span>`;
   }
   function filtered() {
     let list = W.filter(isReal);
@@ -123,8 +125,12 @@
      Knoten wechseln die Stelle), die Bewegung dazwischen ist ein FLIP mit der Feder der
      Richtung. Ohne Bewegung bleibt die Ordnung, wie sie lag. */
   function neuordnen(root) {
-    if (!M) return;
     $$('.kacheln', root).forEach(el => {
+      const zeigen = () => { if (el.dataset.bogen) { el.style.setProperty('--bogen', `url('${el.dataset.bogen}')`); delete el.dataset.bogen; } };
+      if (typeof IntersectionObserver === 'function') {
+        const io = new IntersectionObserver(e => { if (e[0].isIntersecting) { zeigen(); io.disconnect(); } }, { rootMargin: '100% 0px' });
+        io.observe(el);
+      } else zeigen();
       let timer = 0;
       const tauschen = () => {
         if (!el.isConnected) return;
@@ -145,7 +151,7 @@
             .then(() => M.frame.postRender(() => M.frame.postRender(() => { el2.style.transform = ''; el2.style.zIndex = ''; })));
         });
       };
-      M.inView(el, () => { clearTimeout(timer); timer = setTimeout(tauschen, 1400); return () => clearTimeout(timer); }, { amount: 0.3 });
+      if (M) M.inView(el, () => { clearTimeout(timer); timer = setTimeout(tauschen, 1400); return () => clearTimeout(timer); }, { amount: 0.3 });
     });
   }
   function renderWerke() { renderChips(); renderGrid(); }

@@ -65,6 +65,9 @@
     if (zeile) { zeile.style.opacity = '1'; zeile.style.transform = ''; }
   }
   if (!M || !s || sparsam || !video) { nurBild(); return; }
+  /* Erst jetzt laden: Im Markup steht preload="none", damit ohne Bewegung nichts kommt. Kein
+     load() dazu — das stieß eine zweite Anfrage auf dieselbe Datei an; play() lädt ohnehin. */
+  video.preload = 'auto';
 
   /* Der Ablauf, Sekunden ab jetzt. */
   /* Der Name ist die Signatur: Sie schreibt sich von links nach rechts, so wie die Hand sie
