@@ -179,11 +179,14 @@
     }
     /* Der Scrollweg je Blatt. Er bestimmt, wie lange die Bühne klebt — nicht mehr, wie schnell
        die Blätter laufen; das tut die Zeit. */
-    /* Seit ein Werk aus drei Blättern dreimal vorbeizieht, sind es sieben Blätter statt fünf;
-       mit dem alten Weg je Blatt klebte die Bühne fast sieben Fenster lang. */
+    /* Seit ein Werk aus drei Blättern dreimal vorbeizieht, sind es sieben Blätter statt fünf.
+       Auch mit 70 svh je Blatt klebte die Bühne noch sechs Fenster lang und nahm über zwei
+       Fünftel der ganzen Seite ein, bevor ein einziges Werk mit Titel zu sehen war. Knapp ein
+       halbes Fenster je Blatt reicht: Das Tempo gibt ohnehin die Zeit vor (MINDESTENS), der Weg
+       sagt nur, welches Blatt dran ist. */
     const mobil = innerWidth <= 700, dezent = B.m() < 1;
-    const je = dezent ? 55 : mobil ? 60 : 70;
-    halter.style.height = Math.max(200, N * je + 100) + 'svh';
+    const je = dezent ? 42 : mobil ? 44 : 48;
+    halter.style.height = Math.max(200, N * je + 60) + 'svh';
     wechselt = false;
     /* Posen: Das aktuelle Blatt steht, die anderen warten; vor der Ankunft liegt keines. */
     stuecke.forEach(s => pose(s, gestartet && s.i === aktuell));

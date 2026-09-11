@@ -429,17 +429,25 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
   /* Filterknöpfe als Ziele für den Daumen. */
   .chip { padding: 9px 16px; }
 }
-@media (max-width: 540px) {
-  /* Die Navigation scrollt seitlich. Ein Verlauf am rechten Rand zeigt, dass es weitergeht.
-     Sie bleibt oben stehen wie auf dem Schreibtisch: Darin sitzt das Auge, das mitliest. */
-  .top .wrap { gap: 18px; padding-right: 34px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .top .wrap::-webkit-scrollbar { display: none; }
+@media (max-width: 359px) {
+  .top .wrap { padding-right: 34px; }
   .top::after { content: ''; position: absolute; top: 0; right: 0; bottom: 1px; width: 34px; pointer-events: none;
     background: linear-gradient(90deg, rgba(255,255,255,0), var(--bg) 78%); }
-  .top .brand { font-size: 19px; gap: 7px; }
-  .nav-auge { width: 38px; height: 24px; }
-  .top .brand .handschrift { height: 21px; }
-  .top a { font-size: 15.5px; }
+}
+@media (max-width: 540px) {
+  /* Die Navigation bleibt oben stehen wie auf dem Schreibtisch: Darin sitzt das Auge, das
+     mitliest. Vier Einträge und der Name passen ab 360 px in eine Zeile — vorher brauchte die
+     Leiste 427 px, und „Atelier“ stand auf jedem Telefon halb unter dem Verlauf. Der Abstand
+     vor dem ersten Eintrag kommt von margin-left: auto statt vom Platzhalter .sp, der sonst
+     eine Fuge mehr kostet. Erst darunter scrollt sie seitlich, mit Verlauf am Rand. */
+  .top .wrap { gap: 14px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .top .wrap::-webkit-scrollbar { display: none; }
+  .top .sp { display: none; }
+  .top .brand + .sp + a { margin-left: auto; }
+  .top .brand { font-size: 19px; gap: 6px; }
+  .nav-auge { width: 32px; height: 20px; }
+  .top .brand .handschrift { height: 19px; }
+  .top a { font-size: 15px; }
   .app { --sp: clamp(44px, 11vw, 64px) !important; font-size: 17px; }
   .hero-fig, .app[data-richtung="b"] .hero-fig { height: min(52vh, 150vw); }
   /* Der Vorspann bleibt schmal: Rechts daneben läuft die Tropfspur vom Strang zum Rand, und

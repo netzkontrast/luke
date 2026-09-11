@@ -2,8 +2,12 @@
 /* Prüft die Seite mit Playwright: lädt sie in Chromium, scrollt sie durch, prüft Zusicherungen,
    verlangt eine leere Konsole und zieht auf Wunsch Bilder je Abschnitt nach pruefung/.
 
-   Aufruf (Playwright ist hier global installiert):
+   Aufruf (Playwright liegt außerhalb des Repositorys, NODE_PATH zeigt auf sein node_modules):
      NODE_PATH=/opt/node22/lib/node_modules node scripts/pruefen.mjs
+   Ohne eigenes Chromium genügt playwright-core; dann nimmt das Skript das installierte
+   Chrome oder Edge. Unter Windows etwa (Git Bash):
+     npm i --prefix "$TEMP/pw" playwright-core
+     NODE_PATH="$TEMP/pw/node_modules" node scripts/pruefen.mjs
      … --bilder         zusätzlich Bilder je Abschnitt, 1440 und 390 Pixel breit
      … --nur=auftakt    nur Prüfungen, deren Name das Wort enthält
 
@@ -16,10 +20,31 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 let chromium;
-try { ({ chromium } = require('playwright')); }
-catch (e) {
-  console.error('Playwright fehlt. Global installieren (npm i -g playwright && npx playwright install chromium)\nund mit NODE_PATH auf das globale node_modules aufrufen, hier: NODE_PATH=/opt/node22/lib/node_modules');
+for (const paket of ['playwright', 'playwright-core']) {
+  try { ({ chromium } = require(paket)); break; } catch (e) { /* nächstes versuchen */ }
+}
+if (!chromium) {
+  console.error('Playwright fehlt. playwright oder playwright-core installieren und mit NODE_PATH auf dessen\nnode_modules aufrufen, siehe Kopf dieser Datei.');
   process.exit(2);
+}
+/* Erst das Chromium von Playwright, dann was auf dem Rechner ist. playwright-core bringt kein
+   eigenes mit; so läuft die Prüfung auch dort, wo nur Chrome oder Edge installiert sind. */
+/* Führt den Zeiger zu (x, y) und wartet, bis Auge i dorthin blickt, höchstens drei Sekunden;
+   gibt den Blick zurück, wie er dann steht. Die Augen folgen mit einer Feder: Nach festen
+   900 ms standen sie im vollen Lauf manchmal noch beim alten Blick, allein nie. Der Zeiger
+   fährt wie eine Maus in Schritten, nicht als Sprung. `bedingung` prüft den Blick `z`. */
+async function blickNach(page, i, x, y, bedingung) {
+  await page.mouse.move(x, y, { steps: 8 });
+  await page.waitForFunction(([i, b]) => { const z = window.LUKE.auge.zustand().augen[i]; return z && new Function('z', 'return ' + b)(z); },
+    [i, bedingung], { timeout: 3000 }).catch(() => {});
+  return page.evaluate(i => window.LUKE.auge.zustand().augen[i], i);
+}
+async function browserStarten() {
+  let fehler;
+  for (const wie of [{}, { channel: 'chrome' }, { channel: 'msedge' }]) {
+    try { return await chromium.launch(wie); } catch (e) { fehler = fehler || e; }
+  }
+  throw fehler;
 }
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -238,7 +263,10 @@ pruefung('blattfolge: sieben Blätter, eins zur Zeit, keines kürzer als eine Se
       vh: innerHeight, alt: !!document.querySelector('werk-sequenz, #sequenz canvas'), mindestens: window.LUKE.blattfolge.mindestens };
   });
   t.gleich(r.stand, 'voll', 'Stand'); t.gleich(r.n, 7, 'Blätter'); t.ok(!r.alt, 'kein <werk-sequenz>, kein Canvas in der Blattfolge');
-  t.ok(r.h >= r.vh * (t.mobil ? 4.4 : 5.2), 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
+  /* Gut vier Zehntel eines Fensters je Blatt, aber nicht mehr als vier Fenster insgesamt:
+     Vorher nahm die Bühne über zwei Fünftel der Seite ein. */
+  t.ok(r.h >= r.vh * r.n * 0.42, 'Abschnitt zu niedrig: ' + Math.round(r.h) + ' bei ' + r.vh);
+  t.ok(r.h <= r.vh * 4, 'Abschnitt zu hoch: ' + Math.round(r.h) + ' bei ' + r.vh);
   t.gleich(r.mindestens, 1000, 'Mindeststand eines Blatts in ms');
   const strecke = r.h - r.vh;
   const deck = () => page.evaluate(() => Array.from(document.querySelectorAll('.bf-blatt')).map(el => +getComputedStyle(el).opacity));
@@ -573,16 +601,18 @@ pruefung('handschrift: die Signatur schreibt sich, dann folgt das Auge dem Zeige
   t.ok(r.geladen && r.band && r.band.an, 'das Auge ist wach, sobald die Signatur geschrieben ist: ' + JSON.stringify(r.band));
   if (!t.mobil) {
     const box = await page.evaluate(() => { const b = document.querySelector('.band-folge').getBoundingClientRect(); return { l: b.left, t: b.top, w: b.width, h: b.height }; });
-    await page.mouse.move(box.l + 10, box.t + box.h / 2); await t.warten(900);
-    const links = await page.evaluate(() => window.LUKE.auge.zustand().augen[1]);
-    await page.mouse.move(box.l + box.w - 2, Math.max(4, box.t - 160)); await t.warten(900);
-    const rechts = await page.evaluate(() => window.LUKE.auge.zustand().augen[1]);
+    const links = await blickNach(page, 1, box.l + 10, box.t + box.h / 2, 'z.x < -5');
+    const rechts = await blickNach(page, 1, box.l + box.w - 2, Math.max(4, box.t - 160), 'z.x > 3 && z.y < -1');
     t.ok(links.x < -5, 'blickt nach links zum Zeiger: ' + links.x);
     t.ok(rechts.x > 3 && rechts.y < -1, 'blickt nach rechts oben zum Zeiger: ' + rechts.x + ', ' + rechts.y);
     await t.bild('handschrift-auge');
   } else {
+    /* Das Umsehen ist zufällig: alle 1,1 bis 3,7 s ein Blick, und in drei von zehn Fällen zurück
+       zur Mitte. Zwei Proben im festen Abstand von 4,5 s lagen darum gelegentlich beide auf
+       0, 0. Gewartet wird, bis es sich bewegt, höchstens neun Sekunden. */
     const a = await page.evaluate(() => window.LUKE.auge.zustand().augen[1]);
-    await t.warten(4500);
+    await page.waitForFunction(a => { const z = window.LUKE.auge.zustand().augen[1]; return Math.abs(a.x - z.x) + Math.abs(a.y - z.y) > 0.5; },
+      a, { timeout: 9000 }).catch(() => {});
     const b = await page.evaluate(() => window.LUKE.auge.zustand().augen[1]);
     t.ok(Math.abs(a.x - b.x) + Math.abs(a.y - b.y) > 0.5, 'ohne Maus sieht es sich um: ' + JSON.stringify([a, b]));
   }
@@ -600,8 +630,7 @@ pruefung('auge: sitzt in der Kopfleiste, bleibt beim Scrollen, folgt dem Zeiger'
   const oben = await page.evaluate(() => { const r = document.querySelector('.top .nav-auge').getBoundingClientRect(); return { top: r.top, sichtbar: window.LUKE.auge.zustand().augen[0].sichtbar }; });
   t.ok(oben.top >= 0 && oben.top < 40 && oben.sichtbar, 'nach dem Scrollen noch oben zu sehen: ' + JSON.stringify(oben));
   if (!t.mobil) {
-    await page.mouse.move(1400, 880); await t.warten(900);
-    const z = await page.evaluate(() => window.LUKE.auge.zustand().augen[0]);
+    const z = await blickNach(page, 0, 1400, 880, 'z.x > 5 && z.y > 2');
     t.ok(z.x > 5 && z.y > 2, 'blickt nach rechts unten zum Zeiger: ' + z.x + ', ' + z.y);
   }
 });
@@ -703,7 +732,7 @@ pruefung('bedienfeld: Bewegung aus zeigt alles, die Blattfolge wird eine Reihe',
 async function laufen() {
   fs.mkdirSync(AUSGABE, { recursive: true });
   const srv = await server();
-  const browser = await chromium.launch();
+  const browser = await browserStarten();
   let fehler = 0, zahl = 0;
   const liste = PRUEFUNGEN.filter(p => !NUR || p.name.includes(NUR));
   for (const p of liste) {
