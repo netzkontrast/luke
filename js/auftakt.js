@@ -1,17 +1,20 @@
 /* Der Auftakt.
 
-   Ein Blatt in der Ecke der Seite: Das Zeichenvideo läuft einmal, dann ein Schnitt, dann
-   steht das Blatt mit der knienden Figur. Zwei Blätter, kein Verwandeln; die Leerstelle
-   dazwischen ist Absicht. Titel und Unterzeile kommen, während die Zeichnung beginnt.
-   Danach steht das Blatt still — es folgt weder dem Zeiger noch dem Scrollen: Die
-   Tropfspur (js/tropfspur.js) hängt am roten Strang, und der soll bleiben, wo er ist.
+   Ein Blatt in der Ecke der Seite: Das Zeichenvideo läuft einmal und bleibt mit seinem
+   letzten Bild stehen, dem Profil mit dem roten Strang. Dann, nach einer kurzen Pause, legt
+   sich links daneben die kniende Figur ab (unter 1100 px blass im Hintergrund). Zwei Blätter,
+   die einander anblicken; keines ersetzt das andere. Titel und Unterzeile kommen, während
+   die Zeichnung beginnt. Danach steht alles still — nichts folgt dem Zeiger oder dem
+   Scrollen: Die Tropfspur (js/tropfspur.js) hängt am roten Strang, und der soll bleiben,
+   wo er ist.
 
    Die grauen Tiefenebenen von früher sind raus. Ihre Hüllen trugen will-change und waren
    damit eigene Stapelkontexte; multiply griff darin nicht, und über dem Video lag eine
    blasse Kopie der Zeichnung samt ihrer Kanten. Zwei der drei Ebenen lagen zudem hinter
    dem deckenden Video und waren nie zu sehen.
 
-   Ohne Bewegung, bei sparsamer Verbindung oder ohne Video steht sofort das Blatt. */
+   Ohne Bewegung, bei sparsamer Verbindung oder ohne Video steht sofort der Endzustand:
+   das letzte Bild des Videos als Standbild, daneben die kniende Figur. */
 (function () {
   'use strict';
   const L = (window.LUKE = window.LUKE || {});
@@ -21,7 +24,9 @@
   const app = document.querySelector('.app');
   const motiv = fig.querySelector('.hero-motiv');
   const video = fig.querySelector('.hero-video');
-  const still = fig.querySelector('.hero-still');
+  const neben = document.querySelector('.hero-neben');
+  const kniend = neben && neben.querySelector('.hero-kniend');
+  const draw = fig.closest('.hero-draw');
   const titel = document.querySelector('.hero-text h1');
   const zeile = document.querySelector('.hero-text p');
   /* Ken Burns ohne Ruck, und die Kurve der Eintritte aus Richtung B: beide ohne Überschwingen. */
@@ -38,10 +43,10 @@
   let fertig = false, wache = null, sicherung = null;
   /* Laufende Übergänge, um sie anzuhalten, wenn nurBild() mitten in der Öffnung greift
      (Wächter, Fehler oder das Bedienfeld) statt erst beim Start. */
-  let titelAnim = null, zeileAnim = null, motivAnim = null, videoAnim = null;
+  let titelAnim = null, zeileAnim = null, motivAnim = null, videoAnim = null, knieAnim = null;
   function raeumen() { clearTimeout(wache); clearTimeout(sicherung); }
 
-  /* Der Endzustand ohne Bewegung: das Blatt steht, das Video bleibt weg. Läuft die Öffnung
+  /* Der Endzustand ohne Bewegung: das Standbild steht, das Video bleibt weg. Läuft die Öffnung
      schon, wenn diese Funktion greift (Wächter, Fehler, oder das Bedienfeld schaltet mitten
      in der Zeichnung auf „aus“), hält das erst die begonnenen Übergänge an. Sonst schriebe
      Motion im nächsten Bild wieder über den erzwungenen Endzustand hinweg. */
@@ -50,10 +55,12 @@
     if (fertig) return;
     fertig = true;
     raeumen();
-    anhalten(titelAnim); anhalten(zeileAnim); anhalten(motivAnim); anhalten(videoAnim);
+    anhalten(titelAnim); anhalten(zeileAnim); anhalten(motivAnim); anhalten(videoAnim); anhalten(knieAnim);
     fig.classList.add('still', 'done');
+    if (draw) draw.classList.add('neben-da');
     if (motiv) motiv.style.transform = '';
-    if (video) video.style.opacity = '';
+    if (video) { video.style.opacity = ''; video.pause(); }
+    if (kniend) { kniend.style.opacity = ''; kniend.style.transform = ''; }
     if (titel) { titel.style.opacity = '1'; titel.style.transform = ''; }
     if (zeile) { zeile.style.opacity = '1'; zeile.style.transform = ''; }
   }
@@ -65,24 +72,26 @@
   if (motiv) motivAnim = M.animate(motiv, { scale: [1.045, 1] }, { duration: 9.4 * s, ease: K });
   videoAnim = M.animate(video, { opacity: [0, 1] }, { duration: 0.5 * s, delay: 0.35 * s, ease: KB });
 
-  /* Der Schnitt: Video weg, Leerstelle, Blatt. */
-  function schnitt() {
+  /* Das Ende der Zeichnung: Das Video bleibt auf seinem letzten Bild stehen. Nach einer
+     kurzen Pause legt sich die kniende Figur daneben ab, von unten, wie ein Blatt, das man
+     neben das erste legt. Aufgeräumt wird erst, wenn .neben-da ihre Deckkraft übernimmt. */
+  function ankommen() {
     if (fertig) return;
     fertig = true;
     raeumen();
-    M.animate(video, { opacity: 0 }, { duration: 0.5 * s, ease: KB }).then(() => {
-      if (!still) { fig.classList.add('done'); return; }
-      M.animate(still, { opacity: [0, 1], y: [10, 0] }, { duration: 0.9 * s, delay: 0.35 * s, ease: KB }).then(() => {
-        fig.classList.add('done');
-        still.style.opacity = ''; still.style.transform = '';
-      });
+    if (!kniend) { fig.classList.add('done'); if (draw) draw.classList.add('neben-da'); return; }
+    knieAnim = M.animate(kniend, { opacity: [0, 1], y: [14, 0] }, { duration: 1.1 * s, delay: 0.45 * s, ease: KB });
+    knieAnim.then(() => {
+      fig.classList.add('done');
+      if (draw) draw.classList.add('neben-da');
+      M.frame.postRender(() => M.frame.postRender(() => { kniend.style.opacity = ''; kniend.style.transform = ''; }));
     });
   }
   /* Kann der Browser das Format nicht, oder spielt er nicht ab, steht nach kurzer Frist das
-     Blatt statt einer leeren Fläche. */
+     Standbild statt einer leeren Fläche. */
   wache = setTimeout(() => { if (video.readyState < 2 || !video.currentTime) nurBild(); }, 2200);
-  sicherung = setTimeout(schnitt, 20000);
-  video.addEventListener('ended', () => { schnitt(); }, { once: true });
+  sicherung = setTimeout(ankommen, 20000);
+  video.addEventListener('ended', () => { ankommen(); }, { once: true });
   video.addEventListener('error', () => { nurBild(); }, { once: true });
   /* „playing“ statt timeupdate mit currentTime-Vorbehalt: Feuerte das erste timeupdate
      zufällig genau bei 0, wäre der Hörer schon weg gewesen und der Wächter hätte trotz

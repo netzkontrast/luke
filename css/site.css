@@ -124,12 +124,26 @@ h2.hd { font-size: clamp(30px,4vw,52px); margin: 0 0 12px; }
 .hero-motiv { position: absolute; inset: 0; will-change: transform; }
 .hero-motiv > video, .hero-motiv > img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hero-video { object-fit: cover; }
-/* Das Blatt im Kopf hat links ein breites leeres Drittel. Der Ausschnitt nimmt es weg und
-   rückt die Figur an ihren Platz. */
-.hero-still { object-fit: cover; object-position: 100% 50%; opacity: 0; }
-.hero-fig.done .hero-still { opacity: 1; }
-.hero-fig.done .hero-video { opacity: 0; }
+/* Das Video bleibt mit seinem letzten Bild stehen. Das Standbild (dasselbe letzte Bild)
+   steht nur, wo das Video nicht läuft: ohne Bewegung, ohne Video, bei sparsamer Leitung. */
+.hero-still { object-fit: cover; opacity: 0; }
+.hero-fig.still .hero-still { opacity: 1; }
 .hero-fig.still .hero-video { display: none; }
+/* Die kniende Figur. Ihr Blatt hat links ein breites leeres Drittel; der Ausschnitt nimmt es
+   weg und rückt die Figur an ihren Platz. Sie kommt erst, wenn das Profil gezeichnet ist
+   (js/auftakt.js); bis dahin ist sie versteckt, nur wenn Bewegung möglich ist.
+   Im Grundfall liegt sie blass im Hintergrund, links hinter dem Video, dem sie zugewandt
+   ist; in Richtung A ab 1100 px steht sie als zweites Blatt daneben (siehe unten). */
+.hero-draw { position: relative; }
+.hero-neben { position: absolute; right: 52%; bottom: 0; height: 100%; aspect-ratio: 1200 / 1948; margin: 0; opacity: .2; pointer-events: none; }
+.hero-kniend { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 100% 50%; }
+html[data-js="an"] .hero-kniend { opacity: 0; }
+.hero-draw.neben-da .hero-kniend { opacity: 1; }
+@media (min-width: 1100px) {
+  .app[data-richtung="a"] .hero-grid { grid-template-columns: minmax(300px, 1fr) auto; }
+  .app[data-richtung="a"] .hero-draw { align-items: flex-end; gap: clamp(14px, 1.8vw, 26px); }
+  .app[data-richtung="a"] .hero-neben { position: relative; right: auto; flex: 0 0 auto; height: min(66vh, 118vw); opacity: 1; }
+}
 /* Vor dem Eintritt versteckt, nur wenn Bewegung möglich ist (siehe Enthüllen). */
 html[data-js="an"] .hero-text h1, html[data-js="an"] .hero-text p { opacity: 0; }
 .app[data-richtung="b"] .hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; align-items: center; min-height: 72vh; }

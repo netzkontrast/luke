@@ -132,7 +132,7 @@ pruefung('bilder: jeder Abschnitt, oben angeschnitten', 'beide', async (page, t)
   }
 });
 
-pruefung('auftakt: ein Blatt in der Ecke, Titel kommt, das Blatt steht am Ende', 'beide', async (page, t) => {
+pruefung('auftakt: das Profil zeichnet sich in der Ecke und bleibt stehen, die kniende Figur kommt dazu', 'beide', async (page, t) => {
   const r1 = await page.evaluate(() => {
     const fig = document.querySelector('.hero-fig').getBoundingClientRect();
     const nav = document.querySelector('.top').getBoundingClientRect();
@@ -155,25 +155,38 @@ pruefung('auftakt: ein Blatt in der Ecke, Titel kommt, das Blatt steht am Ende',
   t.gleich(r2.h1, '1', 'Titel nach 1,6 s');
   await t.bild('auftakt-zeichnen');
   await t.warten(9200);
-  const r3 = await page.evaluate(() => ({
-    done: document.querySelector('.hero-fig').classList.contains('done'),
-    still: getComputedStyle(document.querySelector('.hero-still')).opacity,
-    video: getComputedStyle(document.querySelector('.hero-video')).opacity
-  }));
+  const r3 = await page.evaluate(() => {
+    const v = document.querySelector('.hero-video'), fig = document.querySelector('.hero-fig').getBoundingClientRect();
+    const n = document.querySelector('.hero-neben'), nb = n.getBoundingClientRect();
+    return {
+      done: document.querySelector('.hero-fig').classList.contains('done'),
+      still: getComputedStyle(document.querySelector('.hero-still')).opacity,
+      video: getComputedStyle(v).opacity, ende: v.ended || v.currentTime > v.duration - 0.2,
+      kniend: getComputedStyle(n.querySelector('.hero-kniend')).opacity, blass: +getComputedStyle(n).opacity,
+      nebenRechts: nb.right, nebenUnten: nb.bottom, figLinks: fig.left, figUnten: fig.bottom, breit: innerWidth >= 1100
+    };
+  });
   t.ok(r3.done, 'Auftakt nicht zu Ende: kein .done nach 10,8 s');
-  t.gleich(r3.still, '1', 'Standbild am Ende');
-  t.gleich(r3.video, '0', 'Video am Ende weg');
+  /* Das Video bleibt mit seinem letzten Bild stehen; nichts ersetzt es. */
+  t.gleich(r3.video, '1', 'Video bleibt stehen'); t.ok(r3.ende, 'Video am letzten Bild');
+  t.gleich(r3.still, '0', 'kein Standbild über dem Video');
+  t.gleich(r3.kniend, '1', 'die kniende Figur ist da');
+  if (r3.breit) {
+    t.ok(r3.nebenRechts <= r3.figLinks && Math.abs(r3.nebenUnten - r3.figUnten) <= 1, 'links neben dem Video, auf einer Unterkante: ' + JSON.stringify(r3));
+    t.gleich(r3.blass, 1, 'daneben, nicht blass');
+  } else t.ok(r3.blass > 0.1 && r3.blass < 0.35, 'auf schmalen Schirmen blass im Hintergrund: ' + r3.blass);
   await t.bild('auftakt-blatt');
 });
 
-pruefung('auftakt: ohne Bewegung steht sofort das Blatt', 'schreibtisch', async (page, t) => {
+pruefung('auftakt: ohne Bewegung steht sofort der Endzustand', 'schreibtisch', async (page, t) => {
   const r = await page.evaluate(() => ({
     done: document.querySelector('.hero-fig').classList.contains('done'),
     still: getComputedStyle(document.querySelector('.hero-still')).opacity,
     video: getComputedStyle(document.querySelector('.hero-video')).display,
+    kniend: getComputedStyle(document.querySelector('.hero-kniend')).opacity,
     h1: getComputedStyle(document.querySelector('.hero-text h1')).opacity
   }));
-  t.ok(r.done && r.still === '1' && r.video === 'none' && r.h1 === '1', 'Endzustand: ' + JSON.stringify(r));
+  t.ok(r.done && r.still === '1' && r.video === 'none' && r.kniend === '1' && r.h1 === '1', 'Endzustand: ' + JSON.stringify(r));
 }, { ruhig: true });
 
 pruefung('auftakt: ?bewegung=aus steht sofort am Ende, ohne dass das Video läuft', 'schreibtisch', async (page, t) => {

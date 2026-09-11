@@ -121,17 +121,17 @@ Grund. Gehängt werden sie wie an einer Plakatwand, in bündigen Reihen gleicher
 also nicht auf quadratisch gestutzt. Die Werkansicht ist dieselbe wie bei den Werken; geblättert wird innerhalb der
 Grafiken, nicht quer durch beides.
 
-- Der Auftakt zeigt ein Blatt in der Ecke der Seite: oben an der Leiste, rechts an der Kante, auf jeder Breite
-  (`js/auftakt.js`, `css/site.css`: `.hero-fig`). Zu sehen ist `assets/video/gestaltung-profil-zeichnung.webm`
-  (Safari: `.mp4`), einmal abgespielt; stehen bleibt danach `gestaltung-kniend-*.webp`. Das sind zwei verschiedene
-  Blätter, und so soll es auch gelesen werden: Eine Arbeit entsteht, eine andere steht. Dazwischen liegt eine knappe
-  Leerstelle, damit der Übergang als Schnitt liest und nicht als Verwandlung. Die grauen Tiefenebenen einer früheren
-  Fassung sind raus: Ihre Hüllen waren eigene Stapelkontexte, `multiply` griff darin nicht, und über dem Video lag eine
-  blasse Kopie der Zeichnung samt Kante. Das Blatt folgt auch dem Zeiger nicht mehr — die Tropfspur hängt am Strang.
+- Der Auftakt zeigt zwei Blätter. In der Ecke der Seite (oben an der Leiste, rechts an der Kante) läuft
+  `assets/video/gestaltung-profil-zeichnung.webm` (Safari: `.mp4`) einmal und bleibt mit seinem letzten Bild stehen:
+  dem Profil mit dem roten Strang, an dem die Tropfspur hängt. Dann legt sich links daneben die kniende Figur ab
+  (`gestaltung-kniend-*.webp`); die beiden blicken einander an. Das gilt in Richtung A ab 1100 px; schmaler, und in
+  B und C, liegt die Figur blass im Hintergrund, weil neben dem Video kein Platz ist (`js/auftakt.js`,
+  `css/site.css`: `.hero-neben`). Ohne Bewegung steht statt des Videos sein letztes Bild,
+  `gestaltung-profil-ende-432.webp`, das `scripts/bilder.py` mit ffmpeg aus dem Original zieht.
   `gestaltung-profil-zeichnung-alt.mp4` ist die frühere, längere Fassung der Animation (August), derzeit nicht eingebunden.
-- Das Blatt im Kopf hat links ein breites leeres Drittel. Standbild und Live-Auftakt schneiden es rechtsbündig weg
-  (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten. Die Breite des Kastens
-  folgt aus seiner Höhe (78 vh, auf dem Telefon 52 vh), darum rechnet `sizes` in vh.
+- Das Blatt der knienden Figur hat links ein breites leeres Drittel. Der Kasten schneidet es rechtsbündig weg
+  (`object-fit: cover`, `object-position: 100% 50%`); die Datei selbst bleibt unbeschnitten. Die Breiten der Kästen
+  folgen aus ihren Höhen, darum rechnet `sizes` in vh.
 - Was nicht gleich gebraucht wird, lädt später: Das Signaturvideo der Handschrift erst, wenn der Abschnitt ein Fenster
   weit heranrückt; die Blätter 2 bis 7 der Blattfolge erst, wenn der Leser sich ihnen nähert. Beim Start lädt so gut
   ein Megabyte weniger (Telefon: gut zwei), und das Auftaktvideo hat die Leitung für sich.

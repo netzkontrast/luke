@@ -26,5 +26,6 @@ LUKE.BILDER = {
   'gestaltung-kniend': { w: 1900, h: 2535, breiten: [800, 1200, 1900] },
   'gestaltung-profil': { w: 1900, h: 3085, breiten: [800, 1200, 1900] },
   'gestaltung-signatur': { w: 1800, h: 480, breiten: [1200, 1800] },
+  'gestaltung-profil-ende': { w: 432, h: 704, breiten: [432] },
   'luke-atelier': { w: 1536, h: 2048, breiten: [800, 1200, 1536] }
 };

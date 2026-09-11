@@ -58,13 +58,21 @@
             <p>Zeichner in Köln-Ehrenfeld. Tusche und Farbe auf Papier, dazu Grafik für Clubnächte und Kollektive.</p>
           </div>
           <div class="hero-draw" id="hero-par">
-            <!-- Ein Blatt in der Ecke der Seite: erst das Zeichenvideo, nach dem Schnitt die
-                 kniende Figur. Beide liegen im selben Kasten (.hero-fig), der das Format des
-                 Videos hat. Die grauen Tiefenebenen von früher sind raus: Ihre Hüllen waren
-                 eigene Stapelkontexte, multiply griff darin nicht, und so lag über dem Video
-                 eine blasse Kopie der Zeichnung samt Kante. Die Breite des Blatts folgt aus
-                 seiner Höhe (js/auftakt.js zieht nichts, css/site.css: .hero-fig); sizes
-                 rechnet sie darum aus vh, nicht aus vw. -->
+            <!-- Zwei Blätter. In der Ecke der Seite zeichnet sich das Profil und bleibt mit
+                 seinem letzten Bild stehen; dann legt sich links daneben die kniende Figur ab.
+                 Sie blicken einander an. Wo neben dem Video kein Platz ist (unter 1100 px und
+                 in den Richtungen B und C), liegt die Figur blass im Hintergrund. Das
+                 Standbild im Kasten des Videos ist dessen letztes Bild; es steht nur da, wo
+                 das Video nicht läuft. Die Breiten folgen aus den Höhen (css/site.css), sizes
+                 rechnet darum aus vh. -->
+            <figure class="hero-neben">
+              <img class="hero-kniend ink-img"
+                   src="assets/img/gestaltung-kniend-800.webp"
+                   srcset="assets/img/gestaltung-kniend-800.webp 800w, assets/img/gestaltung-kniend-1200.webp 1200w, assets/img/gestaltung-kniend-1900.webp 1900w"
+                   sizes="(max-width: 540px) 32vh, 42vh"
+                   width="1900" height="2535" decoding="async"
+                   alt="Tuschzeichnung: kniende Figur im Profil, Kopf gesenkt, hinter ihr ein offener Kreis">
+            </figure>
             <figure class="hero-fig">
               <div class="hero-motiv">
                 <video class="hero-video ink-img" muted playsinline preload="auto" aria-hidden="true" tabindex="-1">
@@ -72,11 +80,9 @@
                   <source src="assets/video/gestaltung-profil-zeichnung.mp4" type="video/mp4">
                 </video>
                 <img class="hero-still ink-img"
-                     src="assets/img/gestaltung-kniend-1200.webp"
-                     srcset="assets/img/gestaltung-kniend-800.webp 800w, assets/img/gestaltung-kniend-1200.webp 1200w, assets/img/gestaltung-kniend-1900.webp 1900w"
-                     sizes="(max-width: 540px) min(32vh, 92vw), min(48vh, 92vw)"
-                     width="1900" height="2535" fetchpriority="high" decoding="async"
-                     alt="Tuschzeichnung: kniende Figur im Profil, Kopf gesenkt, hinter ihr ein offener Kreis">
+                     src="assets/img/gestaltung-profil-ende-432.webp"
+                     width="432" height="704" decoding="async"
+                     alt="Tuschzeichnung: Kopf im Profil, nach links gewandt; aus dem Hals läuft ein roter Strang">
               </div>
             </figure>
           </div>

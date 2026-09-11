@@ -15,7 +15,9 @@ Wer ein Bild austauscht, legt das neue Original unter demselben Namen ab und lä
 laufen. Wer eines dazunimmt, trägt es unten in BILDER ein.
 """
 import os
+import subprocess
 import sys
+import tempfile
 
 import numpy as np
 from PIL import Image, ImageOps
@@ -70,6 +72,10 @@ BILDER = [
     dict(name='gestaltung-kniend', art='fertig', breiten=(800, 1200, 1900)),
     dict(name='gestaltung-profil', art='fertig', breiten=(800, 1200, 1900)),
     dict(name='gestaltung-signatur', art='fertig', breiten=(1200, 1800)),
+    # Das letzte Bild der Zeichenanimation im Auftakt. Das Video bleibt darauf stehen; das
+    # Standbild braucht es nur, wo das Video nicht läuft (ohne Bewegung, ohne Video).
+    # Braucht ffmpeg.
+    dict(name='gestaltung-profil-ende', art='fertig', video='gestaltung-profil-zeichnung.mp4', breiten=(432,)),
 
     dict(name='luke-atelier', art='fertig', breiten=(800, 1200, 1536)),
 ]
@@ -79,6 +85,15 @@ def laden(name):
     pfad = os.path.join(QUELLE, name + '.jpg')
     im = ImageOps.exif_transpose(Image.open(pfad))
     return im.convert('RGB')
+
+
+def letztes_bild(video):
+    """Das letzte Bild eines Videos aus assets/original/, über ffmpeg."""
+    with tempfile.TemporaryDirectory() as tmp:
+        ziel = os.path.join(tmp, 'ende.png')
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-sseof', '-0.1', '-i', os.path.join(QUELLE, video),
+                        '-frames:v', '1', ziel], check=True)
+        return Image.open(ziel).convert('RGB')
 
 
 def lauf(maske):
@@ -155,7 +170,7 @@ def papier_weiss(im):
 
 
 def bearbeiten(e):
-    im = laden(e['name'])
+    im = letztes_bild(e['video']) if e.get('video') else laden(e['name'])
     z = e.get('zuschnitt')
     if z == 'papier':
         im = im.crop(papier_finden(im))
