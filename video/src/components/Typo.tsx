@@ -136,12 +136,22 @@ export const Beschriftung: React.FC<{
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
+  /* Die Linie geht mit der Schrift, sonst bliebe sie allein stehen, bis die Szene endet. */
+  const weg =
+    raus === undefined
+      ? 0
+      : interpolate(bild, [raus * fps, (raus + 0.42) * fps], [0, 1], {
+          easing: theme.kurve.rein,
+          extrapolateLeft: 'clamp',
+          extrapolateRight: 'clamp',
+        });
   return (
     <div style={{ width: breite, ...style }}>
       <div
         style={{
           height: 1,
           backgroundColor: theme.farben.linie,
+          opacity: 1 - weg,
           transform: `scaleX(${strich})`,
           transformOrigin: '0% 50%',
           marginBottom: Math.round(groesse * 0.6),

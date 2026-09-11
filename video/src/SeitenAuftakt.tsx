@@ -108,7 +108,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
     });
 
   /* Die fernen Blätter kommen zuerst und bleiben schwach: Sie sind Tiefe, kein Motiv.
-     Dafür bleibt Werk I das Material — dünne Linien, viel Weiß, das liest sich als Dunst.
+     Dafür bleibt das Profil das Material — dünne Linien, viel Weiß, das liest sich als Dunst.
      Das Blatt, das vorn steht, ist eine dichte schwarze Masse; vergrößert und multipliziert
      ergäbe es keine Tiefe, sondern eine graue Wolke. */
   const fern = auf(T.fern, 1.6);
@@ -139,7 +139,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
             objectFit: 'cover',
             objectPosition: '38% 30%',
             mixBlendMode: 'multiply',
-            /* Grau, nicht rot: Werk I trägt seinen roten Strang, und der würde als blasser
+            /* Grau, nicht rot: Das Profil trägt seinen roten Strang, und der würde als blasser
                Fleck neben der schwarzen Zeichnung stehen. Rot gehört hier der Tropfspur. */
             filter: 'grayscale(1)',
             opacity: fern * 0.1,
@@ -158,7 +158,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
             objectFit: 'cover',
             objectPosition: '68% 62%',
             mixBlendMode: 'multiply',
-            /* Grau, nicht rot: Werk I trägt seinen roten Strang, und der würde als blasser
+            /* Grau, nicht rot: Das Profil trägt seinen roten Strang, und der würde als blasser
                Fleck neben der schwarzen Zeichnung stehen. Rot gehört hier der Tropfspur. */
             filter: 'grayscale(1)',
             opacity: fern * 0.16,
@@ -217,7 +217,7 @@ export const SeitenAuftakt: React.FC<AuftaktProps> = ({ zeiger, eigenerGrund = f
             objectFit: 'cover',
             objectPosition: '82% 88%',
             mixBlendMode: 'multiply',
-            /* Grau, nicht rot: Werk I trägt seinen roten Strang, und der würde als blasser
+            /* Grau, nicht rot: Das Profil trägt seinen roten Strang, und der würde als blasser
                Fleck neben der schwarzen Zeichnung stehen. Rot gehört hier der Tropfspur. */
             filter: 'grayscale(1)',
             opacity: fern * 0.09,
