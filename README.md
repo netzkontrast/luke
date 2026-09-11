@@ -149,9 +149,9 @@ Grafiken, nicht quer durch beides.
   Abspielen lädt Safari keine Bilder), auf schwächeren Geräten stockte es.
 - Die Handschrift steht rechts in der Kopfleiste, die Einträge links (`js/auge.js`). Nach dem Laden der Seite schreibt
   sie sich einmal (3,2 s, Canvas, zwischen zwei Bildern überblendet); dann übernimmt das Auge dasselbe Canvas, blickt
-  dem Zeiger nach und blinzelt. Ohne Maus folgt es dem Finger und sieht sich sonst von selbst um. Auf dem Schreibtisch
-  ist die Leiste dafür rund 100 px hoch, auf dem Telefon bleibt sie schmal. Ohne Bewegung steht das letzte Bild; in
-  Richtung B steht statt der Zeichnung der Name. Im Abschnitt Handschrift steht die Zeichnung als Standbild.
+  dem Zeiger nach und blinzelt. Ohne Maus folgt es dem Finger und sieht sich sonst von selbst um. Die Leiste ist
+  dafür rund 100 px hoch. Auf dem Telefon (bis 540 px) trägt sie nur die vier Einträge, ohne Handschrift, und lädt
+  nichts davon. Ohne Bewegung steht das letzte Bild; in Richtung B steht statt der Zeichnung der Name. Im Abschnitt Handschrift steht die Zeichnung als Standbild.
   Mittelpunkt, Radius und die Öffnung zwischen den Lidern stehen in `scripts/bilder.py` (`SIGNATUR`), von Hand an der
   Zeichnung abgenommen.
 - Der Name im Kopf der Seite ist die Signatur aus dem Video, freigestellt und vierfach hochgerechnet

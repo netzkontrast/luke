@@ -106,10 +106,11 @@ Bereits umgesetzt:
       Papier, drei Blätter, 2026“). Das Profil bleibt Material des Auftakts und heißt im Film nicht mehr Werk I.
 
 - [x] **Kopfleiste auf dem Telefon.** Name und vier Einträge brauchten 427 px, „Atelier“ stand auf jedem Telefon
-      halb unter dem Verlauf. Jetzt passt die Leiste ab 360 px in eine Zeile; darunter scrollt sie wie vorher.
+      halb unter dem Verlauf. Jetzt trägt sie auf dem Telefon nur die vier Einträge, ohne Handschrift, und passt
+      auch auf 320 px in eine Zeile.
 - [x] **Handschrift in der Kopfleiste.** Die Einträge stehen links, rechts schreibt sich nach dem Laden die
-      Handschrift (Linie, Signatur, Auge), dann folgt das Auge dem Zeiger. Die Leiste ist auf dem Schreibtisch dafür
-      rund 100 px hoch (Zeichnung 315 × 80), auf dem Telefon bleibt sie schmal. Im Abschnitt Handschrift steht die
+      Handschrift (Linie, Signatur, Auge), dann folgt das Auge dem Zeiger. Die Leiste ist dafür rund 100 px hoch
+      (Zeichnung 315 × 80); auf dem Telefon steht sie nicht, dort bleibt die Leiste schmal. Im Abschnitt Handschrift steht die
       Zeichnung jetzt als Standbild. Sprungziele rechnen mit der höheren Leiste.
 - [x] **Blattfolge kürzer.** 48 svh je Blatt (Telefon 44) statt 70 (60): Die Bühne nahm über zwei Fünftel der
       Seite ein, bevor ein Werk mit Titel zu sehen war. Das Tempo gibt weiter die Zeit vor.

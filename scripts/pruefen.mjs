@@ -577,9 +577,10 @@ pruefung('bilder: jedes Bild lädt, alle als WebP aus assets/img', 'schreibtisch
 });
 
 /* Die Handschrift schreibt sich in der Kopfleiste, rechts neben den Einträgen: einmal, nach
-   der Zeit, sobald die Seite steht. Danach blickt das Auge dem Zeiger nach; auf dem Telefon,
-   ohne Maus, sieht es sich von selbst um. Im Abschnitt Handschrift steht sie als Standbild. */
-pruefung('handschrift: schreibt sich in der Kopfleiste, dann folgt das Auge dem Zeiger', 'beide', async (page, t) => {
+   der Zeit, sobald die Seite steht. Danach blickt das Auge dem Zeiger nach. Im Abschnitt
+   Handschrift steht sie als Standbild. Auf dem Telefon steht sie nicht in der Kopfleiste
+   (siehe „auge: auf dem Telefon“). */
+pruefung('handschrift: schreibt sich in der Kopfleiste, dann folgt das Auge dem Zeiger', 'schreibtisch', async (page, t) => {
   /* Gespielt wird 0,3 s nach dem Laden, 3,2 s lang; danach übernimmt das Auge. */
   await page.waitForFunction(() => { const a = window.LUKE.auge.zustand().augen[0]; return a && a.an; }, null, { timeout: 12000 }).catch(() => {});
   const r = await page.evaluate(() => {
@@ -606,44 +607,47 @@ pruefung('handschrift: schreibt sich in der Kopfleiste, dann folgt das Auge dem 
   t.gleich(r.standbild, 'visible', 'im Abschnitt steht die Handschrift als Standbild');
   t.gleich(r.imAbschnitt, 0, 'im Abschnitt kein Canvas und kein Video mehr');
   t.ok(!r.depth, 'keine Parallaxe auf der Figur, sonst stünde sie als weißer Kasten da');
-  if (!t.mobil) {
-    const box = await page.evaluate(() => { const b = document.querySelector('.nav-hand-folge').getBoundingClientRect(); return { l: b.left, t: b.top, h: b.height }; });
-    const links = await blickNach(page, 0, Math.max(4, box.l - 300), box.t + box.h / 2, 'z.x < -5');
-    t.ok(links.x < -5, 'blickt nach links zum Zeiger: ' + links.x);
-    await t.bild('handschrift-kopf');
-  } else {
-    /* Das Umsehen ist zufällig: alle 1,1 bis 3,7 s ein Blick, und in drei von zehn Fällen zurück
-       zur Mitte. Zwei Proben im festen Abstand lagen darum gelegentlich beide auf 0, 0.
-       Gewartet wird, bis es sich bewegt, höchstens neun Sekunden. */
-    const a = await page.evaluate(() => window.LUKE.auge.zustand().augen[0]);
-    await page.waitForFunction(a => { const z = window.LUKE.auge.zustand().augen[0]; return Math.abs(a.x - z.x) + Math.abs(a.y - z.y) > 0.5; },
-      a, { timeout: 9000 }).catch(() => {});
-    const b = await page.evaluate(() => window.LUKE.auge.zustand().augen[0]);
-    t.ok(Math.abs(a.x - b.x) + Math.abs(a.y - b.y) > 0.5, 'ohne Maus sieht es sich um: ' + JSON.stringify([a, b]));
-  }
+  const box = await page.evaluate(() => { const b = document.querySelector('.nav-hand-folge').getBoundingClientRect(); return { l: b.left, t: b.top, h: b.height }; });
+  const links = await blickNach(page, 0, Math.max(4, box.l - 300), box.t + box.h / 2, 'z.x < -5');
+  t.ok(links.x < -5, 'blickt nach links zum Zeiger: ' + links.x);
+  await t.bild('handschrift-kopf');
 });
 
-/* Die Kopfleiste: auf dem Schreibtisch groß genug, dass man die Signatur liest (rund 100 px),
-   auf dem Telefon schmal (die vier Einträge nehmen die Breite). Sie bleibt beim Scrollen oben,
-   und das Auge blickt mit. */
-pruefung('auge: sitzt in der Kopfleiste, bleibt beim Scrollen, folgt dem Zeiger', 'beide', async (page, t) => {
+/* Auf dem Telefon trägt die Kopfleiste nur die vier Einträge: keine Handschrift, kein Auge,
+   und nichts davon wird geladen. Die Leiste bleibt schmal und oben stehen. */
+pruefung('auge: auf dem Telefon keine Handschrift in der Kopfleiste', 'telefon', async (page, t) => {
+  await t.warten(3000);
+  const r = await page.evaluate(() => {
+    const top = document.querySelector('.top'), w = top.querySelector('.wrap');
+    return { brand: getComputedStyle(document.querySelector('.top .brand')).display, leiste: top.getBoundingClientRect().height,
+      scroll: w.scrollWidth - w.clientWidth, pos: getComputedStyle(top).position, augen: window.LUKE.auge.zustand().augen.length,
+      geladen: performance.getEntriesByType('resource').map(e => e.name.split('/').pop()).filter(n => /^(kopf-|auge-leer|iris|blinzeln-)/.test(n)) };
+  });
+  t.gleich(r.brand, 'none', 'keine Handschrift in der Kopfleiste');
+  t.gleich(r.augen, 0, 'kein Auge angemeldet');
+  t.gleich(r.geladen.join(','), '', 'nichts von der Handschrift der Kopfleiste geladen');
+  t.ok(r.leiste <= 56, 'die Leiste bleibt schmal: ' + r.leiste);
+  t.gleich(r.scroll, 0, 'die vier Einträge passen, ohne dass die Leiste scrollt');
+  t.gleich(r.pos, 'sticky', 'die Kopfleiste bleibt oben stehen');
+});
+
+/* Die Kopfleiste auf dem Schreibtisch: groß genug, dass man die Signatur liest (rund 100 px).
+   Sie bleibt beim Scrollen oben, und das Auge blickt mit. */
+pruefung('auge: sitzt in der Kopfleiste, bleibt beim Scrollen, folgt dem Zeiger', 'schreibtisch', async (page, t) => {
   await page.waitForFunction(() => { const a = window.LUKE.auge.zustand().augen[0]; return a && a.an; }, null, { timeout: 12000 }).catch(() => {});
   const a = await page.evaluate(() => { const cv = document.querySelector('.top .nav-hand-folge'), r = cv.getBoundingClientRect(), top = document.querySelector('.top');
     return { b: r.width, h: r.height, leiste: top.getBoundingClientRect().height, sichtbar: getComputedStyle(cv).visibility, pos: getComputedStyle(top).position }; });
   t.gleich(a.sichtbar, 'visible', 'die Folge ist eingeblendet');
-  if (t.mobil) t.ok(a.b > 100 && a.b < 200 && a.leiste <= 56, 'auf dem Telefon klein, die Leiste schmal: ' + a.b + ' × ' + a.h + ', Leiste ' + a.leiste);
-  else t.ok(a.b >= 300 && a.h >= 75 && a.leiste > 90 && a.leiste < 110, 'auf dem Schreibtisch groß: ' + a.b + ' × ' + a.h + ', Leiste ' + a.leiste);
-  t.gleich(a.pos, 'sticky', 'die Kopfleiste bleibt oben stehen, auch auf dem Telefon');
+  t.ok(a.b >= 300 && a.h >= 75 && a.leiste > 90 && a.leiste < 110, 'groß: ' + a.b + ' × ' + a.h + ', Leiste ' + a.leiste);
+  t.gleich(a.pos, 'sticky', 'die Kopfleiste bleibt oben stehen');
   await t.zu(4000); await t.warten(400);
   const oben = await page.evaluate(() => { const r = document.querySelector('.top .nav-hand-folge').getBoundingClientRect(); return { top: r.top, sichtbar: window.LUKE.auge.zustand().augen[0].sichtbar }; });
   t.ok(oben.top >= -8 && oben.top < 40 && oben.sichtbar, 'nach dem Scrollen noch oben zu sehen: ' + JSON.stringify(oben));
-  if (!t.mobil) {
-    /* Schräg rechts unter das Auge, gemessen an seiner Lage in der Zeichnung (Mittelpunkt bei
-       863 / 139 von 1072 × 272). */
-    const auge = await page.evaluate(() => { const b = document.querySelector('.nav-hand-folge').getBoundingClientRect(); return { x: b.left + b.width * 863 / 1072, y: b.top + b.height * 139 / 272 }; });
-    const z = await blickNach(page, 0, Math.min(1436, auge.x + 220), auge.y + 220, 'z.x > 5 && z.y > 2');
-    t.ok(z.x > 5 && z.y > 2, 'blickt nach rechts unten zum Zeiger: ' + z.x + ', ' + z.y);
-  }
+  /* Schräg rechts unter das Auge, gemessen an seiner Lage in der Zeichnung (Mittelpunkt bei
+     863 / 139 von 1072 × 272). */
+  const auge = await page.evaluate(() => { const b = document.querySelector('.nav-hand-folge').getBoundingClientRect(); return { x: b.left + b.width * 863 / 1072, y: b.top + b.height * 139 / 272 }; });
+  const z = await blickNach(page, 0, Math.min(1436, auge.x + 220), auge.y + 220, 'z.x > 5 && z.y > 2');
+  t.ok(z.x > 5 && z.y > 2, 'blickt nach rechts unten zum Zeiger: ' + z.x + ', ' + z.y);
 });
 
 /* Ohne Bewegung lädt die Kopfleiste nichts nach: Es steht das letzte Bild der Folge, und im
@@ -685,14 +689,15 @@ pruefung('abschnitte: Linien wachsen, das Foto wächst, die Handschrift steht', 
 pruefung('werkschau: keine Anfrage, kein Flash, keine Haut, kein Tattoo', 'beide', async (page, t) => {
   const r = await page.evaluate(() => ({
     teile: ['anfrage', 'flash', 'studio', 'tr-tabs', 'af-form'].filter(id => document.getElementById(id)),
-    nav: Array.from(document.querySelectorAll('.top a')).filter(a => !a.hidden).map(a => (a.getAttribute('aria-label') || a.textContent).trim()).join(' | '),
+    nav: Array.from(document.querySelectorAll('.top a')).filter(a => !a.hidden && a.getClientRects().length).map(a => (a.getAttribute('aria-label') || a.textContent).trim()).join(' | '),
     text: /tätow|tattoo|walk-in|blackwork|körperstelle|sitzung/i.exec(document.body.innerText + ' ' + document.title + ' ' + (document.querySelector('meta[name="description"]') || {}).content),
     formular: document.querySelectorAll('form, input, textarea, select').length
   }));
   t.gleich(r.teile.join(','), '', 'Abschnitte, die es nicht mehr gibt');
   /* „Aktuell“ verschwindet nach dem 27. September von selbst. */
-  /* Die Einträge links, die Handschrift rechts; sie führt zum Anfang. */
-  t.ok(/^(Aktuell \| )?Werke \| Grafik \| Atelier \| Luke WTF, zum Anfang$/.test(r.nav), 'Navigation: ' + r.nav);
+  /* Die Einträge links, die Handschrift rechts; sie führt zum Anfang. Auf dem Telefon nur die Einträge. */
+  const erwartet = t.mobil ? /^(Aktuell \| )?Werke \| Grafik \| Atelier$/ : /^(Aktuell \| )?Werke \| Grafik \| Atelier \| Luke WTF, zum Anfang$/;
+  t.ok(erwartet.test(r.nav), 'Navigation: ' + r.nav);
   t.ok(!r.text, 'kein Wort vom Tätowieren: ' + (r.text && r.text[0]));
   t.gleich(r.formular, 0, 'kein Formular');
 });

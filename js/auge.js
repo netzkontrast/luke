@@ -210,9 +210,9 @@
     const DAUER = 3200;
     const kurve = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
     const still = () => kopf.classList.add('still');
-    /* Ohne Bewegung, oder wo die Handschrift gar nicht steht (Richtung B zeigt dort den Namen),
-       wird nichts geladen. */
-    if (!stark() || getComputedStyle(kopf).display === 'none') still();
+    /* Ohne Bewegung, oder wo die Handschrift gar nicht steht (auf dem Telefon, und in
+       Richtung B, die dort den Namen zeigt), wird nichts geladen. */
+    if (!stark() || !kopf.getClientRects().length) still();
     else {
       const n = SIG.folge, folge = new Array(n);
       const datei = k => SIG.pfad + 'kopf-' + String(k + 1).padStart(2, '0') + '.webp';
