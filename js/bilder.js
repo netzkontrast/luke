@@ -29,6 +29,6 @@ LUKE.BILDER = {
   'gestaltung-profil-ende': { w: 432, h: 704, breiten: [432] },
   'luke-atelier': { w: 1536, h: 2048, breiten: [800, 1200, 1536] }
 };
-/* Die Handschrift als Bildfolge (scripts/bilder.py, SIGNATUR); js/auge.js und
-   js/abschnitte.js zeichnen sie. */
-LUKE.SIGNATUR = {"w": 1072, "h": 272, "pfad": "assets/img/signatur/", "folge": 36, "blinzeln": 5, "handschrift": {"w": 1150, "h": 294}, "auge": {"x": 863, "y": 139, "r": 37, "rand": 6, "oeffnung": [[806, 154], [820, 140], [835, 128], [850, 121], [870, 118], [892, 121], [912, 127], [930, 135], [946, 143], [958, 151], [944, 158], [925, 164], [905, 169], [885, 173], [865, 175], [845, 173], [828, 167], [815, 160]]}};
+/* Die Handschrift als Bildfolge (scripts/bilder.py, SIGNATUR); js/auge.js zeichnet
+   sie in der Kopfleiste. */
+LUKE.SIGNATUR = {"w": 1072, "h": 272, "pfad": "assets/img/signatur/", "folge": 36, "kopf": 640, "blinzeln": 5, "handschrift": {"w": 1150, "h": 294}, "auge": {"x": 863, "y": 139, "r": 37, "rand": 6, "oeffnung": [[806, 154], [820, 140], [835, 128], [850, 121], [870, 118], [892, 121], [912, 127], [930, 135], [946, 143], [958, 151], [944, 158], [925, 164], [905, 169], [885, 173], [865, 175], [845, 173], [828, 167], [815, 160]]}};

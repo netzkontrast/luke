@@ -107,6 +107,10 @@ Bereits umgesetzt:
 
 - [x] **Kopfleiste auf dem Telefon.** Name und vier Einträge brauchten 427 px, „Atelier“ stand auf jedem Telefon
       halb unter dem Verlauf. Jetzt passt die Leiste ab 360 px in eine Zeile; darunter scrollt sie wie vorher.
+- [x] **Handschrift in der Kopfleiste.** Die Einträge stehen links, rechts schreibt sich nach dem Laden die
+      Handschrift (Linie, Signatur, Auge), dann folgt das Auge dem Zeiger. Die Leiste ist auf dem Schreibtisch dafür
+      rund 100 px hoch (Zeichnung 315 × 80), auf dem Telefon bleibt sie schmal. Im Abschnitt Handschrift steht die
+      Zeichnung jetzt als Standbild. Sprungziele rechnen mit der höheren Leiste.
 - [x] **Blattfolge kürzer.** 48 svh je Blatt (Telefon 44) statt 70 (60): Die Bühne nahm über zwei Fünftel der
       Seite ein, bevor ein Werk mit Titel zu sehen war. Das Tempo gibt weiter die Zeit vor.
 - [x] **Prüfung läuft auch unter Windows.** `scripts/pruefen.mjs` nimmt `playwright-core` und das installierte
