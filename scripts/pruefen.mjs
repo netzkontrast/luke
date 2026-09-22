@@ -719,6 +719,48 @@ pruefung('werkschau: keine Anfrage, kein Flash, keine Haut — vom Tätowieren n
   t.gleich(r.formular, 0, 'kein Formular');
 });
 
+/* Die Datenschutzerklärung sagt: „Sie setzt keine Cookies. Sie schreibt auch sonst nichts in
+   deinen Browser.“ Das ist eine Zusage auf einer Rechtsseite, also wird sie geprüft und nicht
+   geglaubt. Vor dem Laden hängt sich diese Prüfung in die drei Wege, auf denen etwas im
+   Browser landen kann — Cookie, Web Storage, IndexedDB —, und lädt die Seite dann neu.
+   Gepatcht wird am Prototyp, nicht am Objekt: Eine Zuweisung an localStorage.setItem legte
+   selbst einen Eintrag namens „setItem“ an, die Prüfung wäre ihr eigener Verstoß.
+   Wer hier künftig etwas ablegen will, ändert vorher die Erklärung. */
+pruefung('datenschutz: die Seite legt nichts im Browser ab', 'beide', async (page, t) => {
+  await page.addInitScript(() => {
+    window.__ablagen = [];
+    const merke = was => window.__ablagen.push(was);
+    for (const m of ['setItem', 'removeItem', 'clear']) {
+      const echt = Storage.prototype[m];
+      Storage.prototype[m] = function (...a) { merke('Storage.' + m); return echt.apply(this, a); };
+    }
+    const keks = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
+    if (keks) Object.defineProperty(Document.prototype, 'cookie', {
+      configurable: true, enumerable: keks.enumerable,
+      get() { return keks.get.call(this); },
+      set(v) { merke('document.cookie'); return keks.set.call(this, v); }
+    });
+    if (window.IDBFactory) {
+      const echt = IDBFactory.prototype.open;
+      IDBFactory.prototype.open = function (...a) { merke('indexedDB.open'); return echt.apply(this, a); };
+    }
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await t.warten(500);
+  await t.durchscrollen();
+  await t.warten(1200);
+  const r = await page.evaluate(() => ({
+    ablagen: window.__ablagen.join(','),
+    kekse: document.cookie,
+    lokal: localStorage.length,
+    sitzung: sessionStorage.length
+  }));
+  t.gleich(r.ablagen, '', 'Zugriffe auf Cookie, Web Storage oder IndexedDB');
+  t.gleich(r.kekse, '', 'gesetzte Cookies');
+  t.gleich(r.lokal, 0, 'Einträge im lokalen Speicher');
+  t.gleich(r.sitzung, 0, 'Einträge im Sitzungsspeicher');
+});
+
 for (const r of ['b', 'c']) {
   pruefung(`richtung ${r}: alles kommt, Konsole leer`, 'beide', async (page, t) => {
     await t.durchscrollen(); await t.warten(2200);
