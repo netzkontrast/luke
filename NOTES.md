@@ -39,7 +39,17 @@ stehen gesammelt und zum Weiterleiten in `docs/fragen-an-luke.md`.
       unscharf. Für die Seite reicht es; eine SVG- oder PDF-Fassung vom Kollektiv wäre besser.
 - [ ] **Texte von Luke absegnen lassen.** Mit dem Umbau zur Werkschau sind drei Texte neu: der Vorspann im Kopf
       („Zeichner in Köln-Ehrenfeld …“), die Handschrift (von der Linie und von den beiden Werken der Serie) und der
-      Satz im Atelier. Sie sagen nichts, was nicht auf den Blättern zu sehen ist, sind aber nicht von ihm.
+      Satz im Atelier. Sie sagen nichts, was nicht auf den Blättern zu sehen ist, sind aber nicht von ihm. Der
+      Absatz darunter im Atelier ist von ihm: sein eigener Text, im Wortlaut. Angefasst sind dort nur der Genitiv
+      („jenseits der … Pfade“ statt „Pfaden“) und die Schreibung „L. M. Klvser“, die der Signatur im Video folgt —
+      auch das bestätigt er.
+- [ ] **Kontaktkarte und Lukes Schlusssatz.** Sein Text endet mit einer Einladung („Wenn du ein Werk oder
+      Tätowierung … suchst, bist du bei mir richtig“); die Karte darunter nennt als Anlass nur Ausstellungen,
+      Arbeiten auf Papier und Grafik. Der Weg ist derselbe (Direktnachricht an @lukewtf), die Aufzählung ist es
+      nicht. Ob die Karte das Tätowieren mitnennen soll, entscheidet Luke — ungefragt erweitert die Seite ihren
+      Zweck nicht.
+- [ ] **Name der Galerie prüfen.** Lukes Text nennt „We Riot Galery“. Ob das so heißt oder „We Riot Gallery“, steht
+      nicht fest; auf der Seite steht es, wie er es geschrieben hat. Die Frage liegt in `docs/fragen-an-luke.md`.
 - [ ] **Impressum und Bluthandwerk.** Im Impressum stehen noch Anschrift und Telefon des Studios. Ob das für eine
       Werkschau die richtige Anschrift ist, entscheidet Luke; sonst nennt die Seite Bluthandwerk nur noch als
       Titel des Podcasts im Abschnitt Grafik.

@@ -1,7 +1,9 @@
 # Luke WTF — Werkschau
 
 Werkschau für Luke WTF, Zeichner in Köln-Ehrenfeld: Arbeiten auf Papier und Grafik. Die Seite zeigt das Werk;
-was zum Tätowieren gehörte (Anfrage, Ablauf, Flash, Arbeiten auf Haut, das Team des Studios), ist raus.
+was zum Tätowieren gehörte (Anfrage, Ablauf, Flash, Arbeiten auf Haut, das Team des Studios), ist raus. Genannt wird
+es trotzdem, einmal: im Atelier steht Lukes eigener Text, und der erzählt seinen Weg bis zum Vollzeit-Tätowierer.
+Das ist Herkunft, kein Angebot — Anfrage und Ablauf bleiben draußen.
 Portiert aus dem Claude-Design-Prototyp „Werkschau für Luke WTF Köln“ als statische Seite ohne Build-Schritt.
 
 ## Lokal ansehen
