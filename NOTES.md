@@ -3,62 +3,49 @@
 Vor Veröffentlichung klären beziehungsweise erledigen. Die Fragen, die nur Luke beantworten kann,
 stehen gesammelt und zum Weiterleiten in `docs/fragen-an-luke.md`.
 
-- [ ] **Veröffentlichen.** Die Seite liegt noch nirgends: Im Vercel-Konto (Team „netzkontrast's projects“) gibt
-      es kein Projekt. Technisch ist alles bereit (`vercel.json`, `.vercelignore`, kein Build-Schritt). Es fehlen
-      nur die Angaben von Luke für Impressum und Datenschutz (Name, E-Mail, Umsatzsteuer, Anschrift); ohne sie
-      darf die Seite nicht öffentlich werden (§ 5 DDG). Danach: das Repository `netzkontrast/luke` in Vercel
-      importieren (Dashboard → Add New → Project, oder im Gespräch mit Claude über den Vercel-Connector,
-      `create_git_project`). Jeder Push auf `main` geht dann live. In der Datenschutzerklärung steht Vercel schon
-      als Anbieter; die DPF-Zertifizierung und die Speicherdauer der Logs sind in eckigen Klammern zu prüfen.
-      Damit der Streifen „Aktuell“ noch jemandem nützt, sollte das vor der Vernissage am 23. September sein.
+- [ ] **Veröffentlichen.** Das Projekt gibt es inzwischen: Vercel-Team `lukewtf`, Projekt `luke`, an dieses
+      Repository angebunden (der Vercel-Bot meldet sich an jedem Pull Request). Jeder Push auf `main` wird
+      ausgeliefert. Öffentlich ist die Seite damit noch nicht — ein Abruf von
+      `luke-lukewtf.vercel.app` landet auf Vercels Anmeldung, die Auslieferung steht also unter Zugriffsschutz.
+      Zu klären bleibt: ob eine eigene Domain auf dem Projekt liegt (von hier aus nicht einzusehen, die Vercel-API
+      verweigert den Zugriff auf das Team `lukewtf`), und ob der Schutz für die auch gilt. Erst dann ist die Seite
+      wirklich veröffentlicht. Impressum und Datenschutzerklärung sind seit dem 22. September ausgefüllt und
+      stehen dem nicht mehr im Weg; eine rechtliche Durchsicht bleibt Sache des Verantwortlichen.
 
-- [ ] **Impressum** nach § 5 DDG ausfüllen (`impressum.html`): Name, Anschrift, E-Mail, ggf. USt-IdNr.
-- [ ] **Datenschutzerklärung** prüfen und ergänzen (`datenschutz.html`): Hoster, Speicherdauer, Datum.
-- [ ] **Urheberschaft Werk I / Werk II** klären (Beitrag laut Instagram geteilt mit @lmklvser). Welche Blätter Werk I
-      und Werk II sind, steht seit den Originalen fest: je drei Blätter mit Strang, benannt von Luke. Das Profil mit
-      dem roten Strang und das Auge mit der Signatur hat er als „Beiwerk“ geschickt, sie sind keine Werke.
-- [ ] **Jahr der Papierarbeiten bestätigen.** Titel und Reihenfolge kommen jetzt von Luke (Dateinamen der
-      Originale): „Befreiung der Körperlichkeit“, Werk I und Werk II mit je Bild 1 bis 3, dazu „Ansichten“ und
-      „Neuordnung des Speichers“. Gesetzt, nicht gewusst, sind noch: das Jahr (überall 2026), die Werknummern III und
-      IV für die beiden Einzelblätter und die Reihenfolge dieser beiden. Änderungen gehören in `js/works.js`, danach
-      `node video/scripts/werke-uebernehmen.mjs`.
-- [ ] **Signatur und Name.** Die Signatur im Video lautet „L. M. Klvser“; sie steht jetzt als Name im Kopf der Seite
-      und in der Kopfleiste (Alternativtext „Luke WTF“). Ob das so gewollt ist, bestätigt Luke.
-- [ ] **Technik von „Neuordnung des Speichers“ prüfen.** Eingetragen ist jetzt „Tusche und Farbe auf Papier“, weil
-      die Hälfte der Blätter rot bemalt ist.
-- [ ] **Technik von „Ansichten“ prüfen.** Eingetragen ist „Farbe auf Papier“, weil sich Acryl und Gouache auf dem Foto nicht
-      unterscheiden lassen. Wenn es feststeht, genauer eintragen.
-- [ ] **Auflösung von „Ansichten“.** Die Vorlage kam mit 896 × 1195 Bildpunkten, nach dem Zuschnitt bleiben 828 × 1130. Das
-      reicht für die Galerie, nicht für Druck. Bei Gelegenheit eine größere Aufnahme nachreichen.
-- [ ] **Grafik: Auftraggeber und Jahre bestätigen.** Eingetragen ist, was auf den Blättern steht. Die Jahre der
-      Plakate und Flyer sind erschlossen (jeder Termin fällt 2026 auf einen Samstag); bei Signets und Covern steht
-      keins mehr, auch nicht die früher gesetzten 2025 und 2026. Offen: für wen „NOX“ ist, der Name der Band zu
-      „Requiem: Zerfall“ (das Logo ist nicht zu lesen), die Jahre der Signets und Cover, und ob bei den
-      Auftragsarbeiten jemand mitgenannt werden muss.
+- [ ] **Grafik: zwei Lücken bleiben.** Vom 22. September ist beantwortet: „NOX“ gehört zum NOX-Podcast von Kiya
+      Noir und Luke (2025); die Jahre der drei Marken lauten Spleen 2026, Wortmarke „Noir“ 2022, Signet
+      „Kollektiv Noir“ 2023; mitgenannt werden muss niemand, alles ist von ihm allein. Offen bleiben der Name der
+      Band zu „Requiem: Zerfall“ (das Logo ist nicht zu lesen) und die Jahre der beiden Cover — Lukes Antwort 11
+      beantwortete die Jahresfrage statt der Bandfrage, seine „12. 2026“ lässt sich keiner Arbeit sicher zuordnen.
+      Beides steht in `docs/fragen-an-luke.md`. Auch die Zuordnung der drei Jahre zu den drei Marken ist
+      erschlossen, nicht gesagt: Er schrieb „Spleen 2026, Noir 2022 und Kolektiv 2023“.
 - [ ] **Signet Kollektiv Noir als Vektor.** Die Datei hat 7441 × 8268 Bildpunkte, ist aber hochgerechnet und
       unscharf. Für die Seite reicht es; eine SVG- oder PDF-Fassung vom Kollektiv wäre besser.
-- [ ] **Texte von Luke absegnen lassen.** Mit dem Umbau zur Werkschau sind drei Texte neu: der Vorspann im Kopf
-      („Zeichner in Köln-Ehrenfeld …“), die Handschrift (von der Linie und von den beiden Werken der Serie) und der
-      Satz im Atelier. Sie sagen nichts, was nicht auf den Blättern zu sehen ist, sind aber nicht von ihm. Der
-      Absatz darunter im Atelier ist von ihm: sein eigener Text, im Wortlaut. Angefasst sind dort nur der Genitiv
-      („jenseits der … Pfade“ statt „Pfaden“) und die Schreibung „L. M. Klvser“, die der Signatur im Video folgt —
-      auch das bestätigt er.
+
 - [ ] **Kontaktkarte und Lukes Schlusssatz.** Sein Text endet mit einer Einladung („Wenn du ein Werk oder
       Tätowierung … suchst, bist du bei mir richtig“); die Karte darunter nennt als Anlass nur Ausstellungen,
       Arbeiten auf Papier und Grafik. Der Weg ist derselbe (Direktnachricht an @lukewtf), die Aufzählung ist es
       nicht. Ob die Karte das Tätowieren mitnennen soll, entscheidet Luke — ungefragt erweitert die Seite ihren
       Zweck nicht.
-- [ ] **Name der Galerie prüfen.** Lukes Text nennt „We Riot Galery“. Ob das so heißt oder „We Riot Gallery“, steht
-      nicht fest; auf der Seite steht es, wie er es geschrieben hat. Die Frage liegt in `docs/fragen-an-luke.md`.
-- [ ] **Impressum und Bluthandwerk.** Im Impressum stehen noch Anschrift und Telefon des Studios. Ob das für eine
-      Werkschau die richtige Anschrift ist, entscheidet Luke; sonst nennt die Seite Bluthandwerk nur noch als
-      Titel des Podcasts im Abschnitt Grafik.
-- [ ] **Maße** der Papierarbeiten eintragen (`masse: 'Maße folgen'`).
-- [ ] **Ton für den Film** entscheiden: derzeit stumm. Wenn Ton, dann Raumton aus dem Atelier
-      und Stiftgeräusche, kein Standard-Whoosh.
+
+- [ ] **Instagram: welcher Account?** Die Seite verlinkt an drei Stellen @lukewtf (Kontaktkarte, Fuß, Film). Auf
+      die Frage nach dem Namen im Kopf antwortete Luke am 22. September: „Ja bitte L.M. Klvser lassen, lukewtf is
+      reines Tattoo Ding.“ Wenn der Account rein fürs Tätowieren ist, zeigt die Werkschau auf den falschen; ein
+      zweiter Account @lmklvser ist aus dem Instagram-Beitrag zu Werk I und II bekannt und laut seiner Antwort 9
+      ebenfalls er. Gesagt hat er dazu nichts, darum bleibt @lukewtf vorerst stehen.
+
 - [ ] **Richtung festlegen**: A, B oder C (siehe README, Bedienfeld mit Shift + B). Standard ist A.
 
 Bereits umgesetzt:
+
+- [x] **Lukes Antworten eingearbeitet** (22. September 2026). Impressum und Datenschutzerklärung tragen Namen
+      (Lukas M. Klüser), E-Mail (lukewtf@web.de) und Datum; ein Abschnitt zur Umsatzsteuer steht nicht mehr da,
+      weil es keine Nummer gibt und § 5 DDG sie nur dann verlangt. Die Anschrift bleibt die des Studios — diesen
+      Teil der Frage hat Luke nicht beantwortet, entschieden wurde es ohne ihn. Alle Werke stehen auf „Tusche,
+      Acryl und digitale Medien“, die Maße sind raus (es gibt keine), „We Riot Gallery“ mit zwei l. Die
+      Vercel-Angaben in der Datenschutzerklärung sind aus Vercels eigener Dokumentation belegt: zertifiziert unter
+      dem EU-US Data Privacy Framework, Protokolle je nach Tarif eine Stunde bis drei Tage einsehbar. Geprüft ist
+      damit Vercels eigene Auskunft, nicht die amtliche DPF-Liste.
 
 - [x] Schriften lokal gehostet (kein Google-Fonts-Aufruf, vgl. LG München I, 2022).
 - [x] Keine Instagram-Einbettung, nur Links.

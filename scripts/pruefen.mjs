@@ -419,7 +419,12 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
       eintritt: Array.from(document.querySelectorAll('.g-item[data-fid="w1"] .rv')).map(el => (el.dataset.eintritt || 'text') + el.dataset.versatz).join(','),
       filter: document.getElementById('werke-filter').hidden,
       titel: !!document.querySelector('#werke h2.hd'),
-      zeile: document.querySelector('.g-item[data-fid="w1"] .g-m').textContent
+      zeile: document.querySelector('.g-item[data-fid="w1"] .g-m').textContent,
+      /* Die Technik kommt aus den Daten. Sie stand hier einmal als fester Text und musste
+         nachgezogen werden, als Luke sie änderte (22. September 2026); geprüft werden soll
+         der Bau der Zeile — Werknummer, Technik, Umfang, Jahr in dieser Reihenfolge —, nicht
+         der Wortlaut einer Angabe, die ihm gehört. */
+      technik: window.LUKE.WERKE.find(w => w.id === 'w1').technik
     };
   });
   t.gleich(r.werke, 'w1:3,w2:3,w3:1,w4:1', 'Werke und ihre Blätter');
@@ -431,7 +436,7 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
   t.gleich(r.dreh, '-1.1deg|0.8deg|1.4deg', '--dreh je Blatt');
   t.gleich(r.eintritt, 'blatt0,blatt1,blatt2,text3', 'die Blätter legen sich nacheinander ab, die Beschriftung zuletzt');
   t.ok(r.filter && r.titel, 'eine Serie, ein Jahr: Überschrift, kein Filter');
-  t.gleich(r.zeile, 'Nr. I — Tusche auf Papier, drei Blätter, 2026', 'Zeile unter Werk I');
+  t.gleich(r.zeile, `Nr. I — ${r.technik}, drei Blätter, 2026`, 'Zeile unter Werk I');
   await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1800);
   await t.bild('werke-gehaengt');
 });

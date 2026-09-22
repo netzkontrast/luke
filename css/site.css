@@ -391,7 +391,6 @@ footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
 .legal h1 { font-size: clamp(36px,5vw,64px); margin: 0 0 24px; }
 .legal h2 { font-size: clamp(22px,2.4vw,30px); margin: 36px 0 10px; }
 .legal p, .legal li { text-wrap: pretty; }
-.legal .todo { background: rgba(209,35,42,0.08); border-left: 3px solid var(--red); padding: 10px 14px; margin: 14px 0; }
 
 /* ---------- Dichte, Rotspur, Papierkorn ---------- */
 .app[data-dichte="kompakt"] { --sp: clamp(28px,4vw,52px); --gg: 12px; font-size: 17px; }

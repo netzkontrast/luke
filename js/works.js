@@ -39,7 +39,7 @@ LUKE.bild = function (name) {
 };
 
 /* Felder eines Werks:
-   id, nr, t (Titel), jahr, technik, masse
+   id, nr, t (Titel), jahr, technik
    bilder   Namen der Bilder, in der Reihenfolge der Hängung. Ein Werk aus mehreren Blättern
             nennt alle; auf der Seite stehen sie dann nebeneinander, gleich hoch.
    serie    optional
@@ -53,21 +53,21 @@ LUKE.bild = function (name) {
    Nicht alles, was auf der Seite zu sehen ist, ist ein Werk; siehe LUKE.GESTALTUNG unten. */
 LUKE.WERKE = [
   { id: 'w1', nr: 'I', t: 'Befreiung der Körperlichkeit, Werk I', serie: 'Befreiung der Körperlichkeit', jahr: 2026,
-    technik: 'Tusche auf Papier', masse: 'Maße folgen', gezeigt: 'Gruppenausstellung „Red“, Stage Gallery, Köln, 2026',
+    technik: 'Tusche, Acryl und digitale Medien', gezeigt: 'Gruppenausstellung „Red“, Stage Gallery, Köln, 2026',
     bilder: ['werk-befreiung-1-bild-1', 'werk-befreiung-1-bild-2', 'werk-befreiung-1-bild-3'] },
   { id: 'w2', nr: 'II', t: 'Befreiung der Körperlichkeit, Werk II', serie: 'Befreiung der Körperlichkeit', jahr: 2026,
-    technik: 'Tusche auf Papier', masse: 'Maße folgen', gezeigt: 'Gruppenausstellung „Red“, Stage Gallery, Köln, 2026',
+    technik: 'Tusche, Acryl und digitale Medien', gezeigt: 'Gruppenausstellung „Red“, Stage Gallery, Köln, 2026',
     bilder: ['werk-befreiung-2-bild-1', 'werk-befreiung-2-bild-2', 'werk-befreiung-2-bild-3'] },
   /* Kein Tusche-, sondern ein Farbblatt: breiter Pinsel, dunkles Rot, cremefarbenes Papier.
      Der Papierton ist beim Aufbereiten auf Weiß gezogen, damit multiply auch hier trägt. */
-  { id: 'w3', nr: 'III', t: 'Ansichten', jahr: 2026, technik: 'Farbe auf Papier', masse: 'Maße folgen',
+  { id: 'w3', nr: 'III', t: 'Ansichten', jahr: 2026, technik: 'Tusche, Acryl und digitale Medien',
     bilder: ['werk-ansichten'] },
   /* Zwölf kleine Blätter, auf schwarzem Holz ausgelegt und dort fotografiert. Das Holz ist
      beim Aufbereiten weggefallen: Die Blätter stehen freigestellt in einem Raster auf Weiß
      (scripts/bilder.py). `kacheln` sagt, wie das Raster geteilt ist; die Galerie zeigt jedes
      Blatt einzeln und lässt sie die Plätze tauschen. Aus der Blattfolge bleibt das Werk
      heraus — zwölf Blätter auf einmal sind kein Blatt, das vorbeizieht. */
-  { id: 'w4', nr: 'IV', t: 'Neuordnung des Speichers', jahr: 2026, technik: 'Tusche und Farbe auf Papier, zwölf Blätter', masse: 'Maße folgen',
+  { id: 'w4', nr: 'IV', t: 'Neuordnung des Speichers', jahr: 2026, technik: 'Tusche, Acryl und digitale Medien, zwölf Blätter',
     kacheln: { spalten: 3, zeilen: 4 }, bilder: ['werk-neuordnung-des-speichers'] }
 ];
 
@@ -124,7 +124,9 @@ LUKE.GESTALTUNG = {
    Felder: id, t (Titel), art (Gattung), fuer (für wen, optional), jahr (optional),
            notiz (Anlass, optional), bild
    Ein Jahr steht nur, wo es sich belegen lässt: Die Termine auf Plakaten und Flyern fallen
-   2026 alle auf einen Samstag, in keinem Nachbarjahr. Bei Signets und Covern steht keins. */
+   2026 alle auf einen Samstag, in keinem Nachbarjahr. Die Jahre der Signets und der Wortmarke
+   kommen von Luke (22. September 2026), ebenso das des NOX-Signets. Bei den beiden Covern
+   steht weiter keins — dazu steht seine Antwort noch aus (siehe NOTES.md). */
 LUKE.GRAFIK = [
   { id: 'gr1', t: 'nebelgrau', art: 'Plakat', fuer: 'Kollektiv Noir und Tränentrinker', jahr: 2026,
     notiz: '5. Dezember 2026, Live Music Hall, Köln', bild: 'grafik-plakat-nebelgrau-2026-12-05' },
@@ -138,10 +140,11 @@ LUKE.GRAFIK = [
     notiz: '21. Februar 2026, 23 Uhr, Live Music Hall, Köln', bild: 'grafik-plakat-nebelgrau-2026-02-21' },
   { id: 'gr6', t: 'Bluthandwerk', art: 'Titelbild für den Podcast', fuer: 'mit Kiya Noir', bild: 'grafik-cover-bluthandwerk' },
   { id: 'gr7', t: 'Requiem: Zerfall', art: 'Albumcover', bild: 'grafik-cover-requiem-zerfall' },
-  { id: 'gr8', t: 'Kollektiv Noir', art: 'Signet', fuer: 'Kollektiv Noir', bild: 'grafik-signet-kollektiv-noir' },
-  { id: 'gr9', t: 'Kollektiv Noir', art: 'Wortmarke', fuer: 'Kollektiv Noir',
+  { id: 'gr8', t: 'Kollektiv Noir', art: 'Signet', fuer: 'Kollektiv Noir', jahr: 2023, bild: 'grafik-signet-kollektiv-noir' },
+  { id: 'gr9', t: 'Kollektiv Noir', art: 'Wortmarke', fuer: 'Kollektiv Noir', jahr: 2022,
     notiz: 'Dark Electro, Post-Punk, Synthie, Shoegaze, Wave', bild: 'grafik-wortmarke-noir' },
-  { id: 'gr10', t: 'Spleen', art: 'Signet für eine Clubnacht', fuer: 'Kollektiv Noir',
+  { id: 'gr10', t: 'Spleen', art: 'Signet für eine Clubnacht', fuer: 'Kollektiv Noir', jahr: 2026,
     notiz: 'Dark Electro, Synth, Coldwave, EBM, Minimal', bild: 'grafik-signet-spleen' },
-  { id: 'gr11', t: 'NOX', art: 'Signet', bild: 'grafik-signet-nox' }
+  { id: 'gr11', t: 'NOX', art: 'Signet', fuer: 'NOX, mit Kiya Noir', jahr: 2025,
+    notiz: 'Podcast und Radiosendung', bild: 'grafik-signet-nox' }
 ];

@@ -240,7 +240,9 @@
     const r = [{ k: 'Werknummer', v: 'Nr. ' + o.nr }, { k: 'Jahr', v: String(o.jahr) }, { k: 'Technik', v: o.technik }];
     const n = L.blaetter(o).length;
     if (n > 1) r.push({ k: 'Umfang', v: blaetterText(n) });
-    r.push({ k: 'Maße', v: o.masse });
+    /* Maße stehen nur, wo es welche gibt: Luke hat keine genommen (22. September 2026).
+       Ohne diese Bedingung stünde in der Werkansicht „Maße: undefined“. */
+    if (o.masse) r.push({ k: 'Maße', v: o.masse });
     if (o.serie) r.push({ k: 'Serie', v: o.serie });
     if (o.gezeigt) r.push({ k: 'Gezeigt', v: o.gezeigt });
     return r;
