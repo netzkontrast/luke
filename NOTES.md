@@ -3,14 +3,26 @@
 Vor Veröffentlichung klären beziehungsweise erledigen. Die Fragen, die nur Luke beantworten kann,
 stehen gesammelt und zum Weiterleiten in `docs/fragen-an-luke.md`.
 
-- [ ] **Veröffentlichen.** Das Projekt gibt es inzwischen: Vercel-Team `lukewtf`, Projekt `luke`, an dieses
-      Repository angebunden (der Vercel-Bot meldet sich an jedem Pull Request). Jeder Push auf `main` wird
-      ausgeliefert. Öffentlich ist die Seite damit noch nicht — ein Abruf von
-      `luke-lukewtf.vercel.app` landet auf Vercels Anmeldung, die Auslieferung steht also unter Zugriffsschutz.
-      Zu klären bleibt: ob eine eigene Domain auf dem Projekt liegt (von hier aus nicht einzusehen, die Vercel-API
-      verweigert den Zugriff auf das Team `lukewtf`), und ob der Schutz für die auch gilt. Erst dann ist die Seite
-      wirklich veröffentlicht. Impressum und Datenschutzerklärung sind seit dem 22. September ausgefüllt und
-      stehen dem nicht mehr im Weg; eine rechtliche Durchsicht bleibt Sache des Verantwortlichen.
+- [ ] **Veröffentlichen — die Seite geht zu Strato, nicht zu Vercel** (entschieden am 22. September 2026). Die
+      Datenschutzerklärung nennt seitdem die STRATO GmbH als Hoster. Zu tun: Webspace einrichten und die Dateien
+      hochladen, die in der README unter „Veröffentlichen“ stehen. Impressum und Datenschutzerklärung sind
+      ausgefüllt und stehen dem nicht mehr im Weg; eine rechtliche Durchsicht bleibt Sache des Verantwortlichen.
+
+- [ ] **Auftragsverarbeitungsvertrag mit Strato.** Wer eine Seite hosten lässt, lässt IP-Adressen durch fremde
+      Hände gehen; Art. 28 DSGVO verlangt dafür einen Vertrag. Strato stellt ihn im Kundenkonto bereit, er muss
+      nur abgeschlossen werden. Auf der Seite steht dazu nichts — er gehört nicht in die Erklärung, sondern in
+      die Unterlagen.
+
+- [ ] **Cache-Kopfzeilen für Strato.** `vercel.json` regelt Cache-Control und die Sicherheits-Kopfzeilen; auf
+      einem Apache-Webspace liest das niemand. Ohne eine `.htaccess` mit denselben Regeln gehen die Schriften
+      (ein Jahr, `immutable`) und die Bilder (eine Woche) ohne Cache-Vorgabe raus, und jeder Besuch lädt sie neu.
+      Die Datei `vercel.json` bleibt liegen: Die Vorschau an den Pull Requests nutzt sie weiter.
+
+- [ ] **Vercel-Anbindung klären.** Am Repository hängt weiter das Vercel-Projekt `luke` (Team `lukewtf`), das zu
+      jedem Pull Request eine Vorschau baut. Als Vorschau ist das nützlich; als zweite, halb vergessene
+      Auslieferung derselben Seite ist es eine Stelle, an der die Werkschau ungewollt öffentlich werden kann.
+      Derzeit steht sie unter Zugriffsschutz — ein Abruf landet auf Vercels Anmeldung. Ob eine eigene Domain
+      darauf zeigt, war von hier aus nicht einzusehen (die Vercel-API verweigert den Zugriff auf das Team).
 
 - [ ] **Grafik: zwei Lücken bleiben.** Vom 22. September ist beantwortet: „NOX“ gehört zum NOX-Podcast von Kiya
       Noir und Luke (2025); die Jahre der drei Marken lauten Spleen 2026, Wortmarke „Noir“ 2022, Signet

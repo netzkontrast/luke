@@ -50,7 +50,8 @@ Danke!
 ## Beantwortet am 22. September 2026
 
 1. Lukas M. Klüser, lukewtf@web.de, keine Umsatzsteuer-ID. *(Anschrift offen, siehe oben.)*
-2. Vercel und die USA sind in Ordnung.
+2. Der Hoster und die USA waren in Ordnung. *(Hinfällig: Die Seite geht zu Strato, einem deutschen
+   Anbieter — eine Übermittlung in die USA steht damit nicht mehr zur Frage.)*
 3. Im Kopf der Seite bleibt „L. M. Klvser“. lukewtf ist ein reines Tattoo-Ding.
 4. Das Jahr 2026 stimmt überall.
 5. Werknummern und Reihenfolge stimmen.

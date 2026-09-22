@@ -210,5 +210,13 @@ Wie er gebaut und gerendert wird, steht in `video/README.md`.
 
 ## Veröffentlichen
 
-Es ist eine reine statische Seite. Das Repository kann direkt auf GitHub Pages, Netlify, Vercel oder einem
-beliebigen Webspace liegen; es gibt nichts zu bauen.
+Es ist eine reine statische Seite; es gibt nichts zu bauen. Sie soll bei **Strato** liegen — so steht es auch
+in der Datenschutzerklärung. Auf den Webspace gehören `index.html`, `impressum.html`, `datenschutz.html`,
+dazu `css/`, `js/`, `assets/` (ohne `assets/original/`) und `vendor/`. Alles andere ist Werkstatt und bleibt
+hier: `video/`, `docs/`, `scripts/`, `skizze.html` samt `js/skizze.js` und `css/skizze.css`.
+
+`vercel.json` gilt dort nicht: Die Regeln für Cache-Control und die Sicherheits-Kopfzeilen liest nur Vercel. Auf
+einem Apache-Webspace wie dem von Strato gehören sie in eine `.htaccess`, sonst liefert der Server die Schriften
+und Bilder ohne Cache-Vorgabe aus. Die Datei bleibt liegen, weil die Vorschau an den Pull Requests sie nutzt.
+`cleanUrls` fehlt dann ebenfalls — die Seite verlinkt aber ohnehin mit Endung (`impressum.html`), das macht
+nichts.
