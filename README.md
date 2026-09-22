@@ -37,6 +37,9 @@ js/tropfspur.js       Die Tropfspur aus PR #2: Canvas mit multiply, läuft dem L
 js/weltzustand.js     Der Weltzustand — eine Schleife, ein Zustand; auf der Werkschau liest ihn die Tropfspur (Tabelle LUKE.ABSCHNITTE in index.html)
 vendor/motion/        Motion 13.2.0, lokal gehostet (siehe HERKUNFT.md)
 scripts/pruefen.mjs   Prüft die Seite mit Playwright: Zusicherungen, leere Konsole, Bilder je Abschnitt
+                      (--wurzel=dist prüft stattdessen das gebaute Bündel)
+scripts/release.mjs   Baut dist/: zwei JS-Bündel, minifiziertes CSS und HTML, Assets ohne original und gif
+dist/                 Das Release-Bündel, wie es auf den Webspace gehört. Erzeugt, nie von Hand ändern
 scripts/bilder.py     Leitet alle Bilder aus assets/original/ ab: Zuschnitt, Papier auf Weiß, WebP je Breite
 skizze.html           Entwurf: ein Weltzustand fährt fliegende Blätter, Sprite und Tränen
 js/skizze.js          Die drei Systeme der Skizze
@@ -210,13 +213,27 @@ Wie er gebaut und gerendert wird, steht in `video/README.md`.
 
 ## Veröffentlichen
 
-Es ist eine reine statische Seite; es gibt nichts zu bauen. Sie soll bei **Strato** liegen — so steht es auch
-in der Datenschutzerklärung. Auf den Webspace gehören `index.html`, `impressum.html`, `datenschutz.html`,
-dazu `css/`, `js/`, `assets/` (ohne `assets/original/`) und `vendor/`. Alles andere ist Werkstatt und bleibt
-hier: `video/`, `docs/`, `scripts/`, `skizze.html` samt `js/skizze.js` und `css/skizze.css`.
+Die Seite soll bei **Strato** liegen — so steht es auch in der Datenschutzerklärung. Hochgeladen wird der
+Ordner `dist/`, und zwar sein **Inhalt**, nicht der Ordner selbst: In das Wurzelverzeichnis des Webspace
+(bei Strato meist `/`) gehören `index.html`, `impressum.html`, `datenschutz.html`, `.htaccess` und die drei
+Ordner `css/`, `js/`, `assets/`.
 
-`vercel.json` gilt dort nicht: Die Regeln für Cache-Control und die Sicherheits-Kopfzeilen liest nur Vercel. Auf
-einem Apache-Webspace wie dem von Strato gehören sie in eine `.htaccess`, sonst liefert der Server die Schriften
-und Bilder ohne Cache-Vorgabe aus. Die Datei bleibt liegen, weil die Vorschau an den Pull Requests sie nutzt.
-`cleanUrls` fehlt dann ebenfalls — die Seite verlinkt aber ohnehin mit Endung (`impressum.html`), das macht
-nichts.
+`dist/` liegt fertig im Repository und lässt sich ohne Node herunterladen und hochschieben. Wer etwas an der
+Seite geändert hat, baut ihn neu:
+
+```
+npm install        # einmalig, holt esbuild
+npm run release    # baut dist/ neu
+npm run pruefen:dist   # dieselben Prüfungen, gegen dist/ statt gegen die Quelle
+```
+
+Gebaut wird nur für die Auslieferung. Am Quellcode ändert sich nichts: `index.html` lässt sich weiter direkt
+öffnen, es gibt keinen Schritt dazwischen, und niemand muss Node installieren, um an der Seite zu arbeiten.
+Was `scripts/release.mjs` tut, steht in seinem Kopf — kurz: zehn Skripte werden zu zwei minifizierten Bündeln
+(`js/luke.min.js`, `js/welt.min.js`), Motion wandert ins erste, CSS und HTML werden minifiziert, und
+`assets/original/` (23 MB Aufnahmen) sowie `assets/gif/` (7 MB für Instagram, von keiner Seite verlinkt)
+bleiben draußen. Aus 45 MB werden rund 15.
+
+Die `.htaccess` in `dist/` übersetzt die Regeln aus `vercel.json` für Apache: Schriften ein Jahr, Bilder und
+Videos eine Woche, HTML nie aus dem Cache, dazu `X-Content-Type-Options` und `Referrer-Policy`. `vercel.json`
+selbst bleibt im Repository, weil die Vorschau an den Pull Requests sie nutzt; auf Strato liest sie niemand.

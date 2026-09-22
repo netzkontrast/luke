@@ -1,0 +1,41 @@
+# Erzeugt von scripts/release.mjs — nicht von Hand ändern.
+# Entspricht den Regeln in vercel.json, übersetzt für Apache.
+
+<IfModule mod_headers.c>
+  # Schriften und Bündel tragen ihren Inhalt im Namen nicht, werden aber selten geändert.
+  # Wer eine Schrift austauscht, benennt sie um oder wartet ein Jahr.
+  <FilesMatch "\.(woff2|woff|ttf|otf|eot)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # Bilder und Videos: eine Woche.
+  <FilesMatch "\.(webp|jpg|jpeg|png|svg|gif|mp4|webm)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+  # HTML nie aus dem Cache: Sonst sieht jemand tagelang die alte Werkliste.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  # CSS und JS werden bei jeder Änderung neu gebaut, behalten aber ihren Namen. Eine Stunde
+  # ist der Kompromiss: schnell genug für Besucher, kurz genug für eine Korrektur.
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+  AddType image/svg+xml .svg
+  AddType video/mp4 .mp4
+  AddType video/webm .webm
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml
+</IfModule>
+
+# Kein ErrorDocument auf die Startseite. Das ist ein Muster für Single-Page-Anwendungen und
+# hier schädlich: Ein fehlendes Bild bekäme die komplette Startseite als Antwort, und ein
+# falscher Pfad in assets/ fiele niemandem mehr auf.

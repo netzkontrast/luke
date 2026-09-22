@@ -13,11 +13,6 @@ stehen gesammelt und zum Weiterleiten in `docs/fragen-an-luke.md`.
       nur abgeschlossen werden. Auf der Seite steht dazu nichts — er gehört nicht in die Erklärung, sondern in
       die Unterlagen.
 
-- [ ] **Cache-Kopfzeilen für Strato.** `vercel.json` regelt Cache-Control und die Sicherheits-Kopfzeilen; auf
-      einem Apache-Webspace liest das niemand. Ohne eine `.htaccess` mit denselben Regeln gehen die Schriften
-      (ein Jahr, `immutable`) und die Bilder (eine Woche) ohne Cache-Vorgabe raus, und jeder Besuch lädt sie neu.
-      Die Datei `vercel.json` bleibt liegen: Die Vorschau an den Pull Requests nutzt sie weiter.
-
 - [ ] **Vercel-Anbindung klären.** Am Repository hängt weiter das Vercel-Projekt `luke` (Team `lukewtf`), das zu
       jedem Pull Request eine Vorschau baut. Als Vorschau ist das nützlich; als zweite, halb vergessene
       Auslieferung derselben Seite ist es eine Stelle, an der die Werkschau ungewollt öffentlich werden kann.
@@ -49,6 +44,14 @@ stehen gesammelt und zum Weiterleiten in `docs/fragen-an-luke.md`.
 - [ ] **Richtung festlegen**: A, B oder C (siehe README, Bedienfeld mit Shift + B). Standard ist A.
 
 Bereits umgesetzt:
+
+- [x] **Release-Bündel** (22. September 2026). `npm run release` baut `dist/` — den Ordner, dessen Inhalt auf den
+      Webspace gehört. Zehn Skripte werden zu zwei minifizierten Bündeln (zwei, weil zwischen ihnen der
+      Inline-Block mit `LUKE.ABSCHNITTE` stehen bleiben muss), Motion wandert ins erste, CSS und HTML werden
+      minifiziert, `assets/original` und `assets/gif` bleiben draußen: aus 45 MB werden rund 15, aus 320 kB Code
+      231. Die mitgebaute `.htaccess` ersetzt die Cache-Regeln aus `vercel.json`, die Apache nicht liest. Der
+      Quellcode bleibt buildfrei — `index.html` lässt sich weiter direkt öffnen. Geprüft wird das Bündel mit
+      denselben Zusicherungen wie die Quelle: `npm run pruefen:dist`.
 
 - [x] **Lukes Antworten eingearbeitet** (22. September 2026). Impressum und Datenschutzerklärung tragen Namen
       (Lukas M. Klüser), E-Mail (lukewtf@web.de) und Datum; ein Abschnitt zur Umsatzsteuer steht nicht mehr da,
