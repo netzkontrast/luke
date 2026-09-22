@@ -2,7 +2,7 @@
 
 Zum Weiterleiten, als Nachricht oder ausgedruckt. Alles, was die Seite nicht selbst wissen
 kann; die Antworten gehören danach in `js/works.js`, `impressum.html`, `datenschutz.html` und
-`NOTES.md`. Stand: 11. September 2026.
+`NOTES.md`. Stand: 22. September 2026.
 
 ---
 
@@ -47,8 +47,13 @@ sie richtiger.
 
 15. Drei Texte auf der Seite sind nicht von dir: der Satz im Kopf („Zeichner in Köln-Ehrenfeld
     …“), der Abschnitt Handschrift und der Satz im Atelier. Bitte einmal lesen und absegnen.
-16. Für die **Vernissage am 23. September** gibt es eine 15-Sekunden-Story (Werk I und II, dann
+16. **Dein eigener Text** steht jetzt im Atelier, im Wortlaut, wie du ihn geschickt hast. Zwei
+    Kleinigkeiten habe ich angefasst: „jenseits der … **Pfade**“ statt „Pfaden“, und den Namen
+    als „**L. M. Klvser**“, so wie die Signatur im Video. Einverstanden?
+17. Heißt die Galerie **„We Riot Galery“** oder „We Riot Gallery“? Auf der Seite steht sie so,
+    wie du sie geschrieben hast.
+18. Für die **Vernissage am 23. September** gibt es eine 15-Sekunden-Story (Werk I und II, dann
     Ort und Termine). Darf sie so raus, mit @lukewtf am Ende?
-17. Soll der Film **Ton** bekommen? Wenn ja: Raumton aus dem Atelier, Stift, Papier — keine Musik.
+19. Soll der Film **Ton** bekommen? Wenn ja: Raumton aus dem Atelier, Stift, Papier — keine Musik.
 
 Danke!

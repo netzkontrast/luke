@@ -360,6 +360,16 @@ html[data-js="an"] #grafik-list:empty { min-height: 160vh; }
 
 /* ---------- Atelier ---------- */
 .atelier-text { margin: 0 0 26px; max-width: 46ch; font-size: 19px; text-wrap: pretty; }
+/* Lukes eigene Worte. Sie stehen im selben Maß wie der Satz darüber, aber in --ink statt
+   --mut: eine eigene Stimme, keine Bildunterschrift. Statt eines Anführungszeichen-Paars der
+   rote Strich an der Kante — dieselbe Farbe, die in Richtung A unter den Überschriften liegt,
+   und in B und C ebenfalls gesetzt. Die Namenszeile nimmt die Auszeichnungsschrift der Seite,
+   damit sie als Zäsur steht und nicht als vierter Absatz. */
+.selbst { margin: 0 0 26px; max-width: 46ch; padding-left: 20px; border-left: 2px solid var(--red); }
+.selbst p { margin: 0 0 14px; font-size: 19px; text-wrap: pretty; }
+.selbst p:last-child { margin-bottom: 0; }
+.selbst p.selbst-name { font-family: var(--fd); font-weight: var(--wtd); text-transform: var(--ttd); font-size: 22px; line-height: 1.3; margin-bottom: 18px; }
+@media (max-width: 540px) { .selbst { padding-left: 16px; } }
 /* Das Foto liegt auf dem Papier, über der Tropfspur. Der z-index steht auf der Figur, nicht
    auf dem Bild: Die Parallaxe macht die Figur zum Stapelkontext, ein z-index am Bild darin
    käme nicht nach außen. */

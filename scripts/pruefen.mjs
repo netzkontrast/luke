@@ -682,18 +682,35 @@ pruefung('abschnitte: Linien wachsen, das Foto wächst, die Handschrift steht', 
 
 /* Die Seite ist eine Werkschau. Was zum Tätowieren gehörte — Anfrage, Ablauf, Flash, der
    Träger „Haut“, das Team des Studios —, ist raus und soll nicht zurückkommen. */
-pruefung('werkschau: keine Anfrage, kein Flash, keine Haut, kein Tattoo', 'beide', async (page, t) => {
-  const r = await page.evaluate(() => ({
-    teile: ['anfrage', 'flash', 'studio', 'tr-tabs', 'af-form'].filter(id => document.getElementById(id)),
-    nav: Array.from(document.querySelectorAll('.top a')).filter(a => !a.hidden).map(a => (a.getAttribute('aria-label') || a.textContent).trim()).join(' | '),
-    text: /tätow|tattoo|walk-in|blackwork|körperstelle|sitzung/i.exec(document.body.innerText + ' ' + document.title + ' ' + (document.querySelector('meta[name="description"]') || {}).content),
-    formular: document.querySelectorAll('form, input, textarea, select').length
-  }));
+/* Vom Tätowieren spricht genau eine Stelle: Lukes eigener Text im Atelier, den er so geschickt
+   hat. Er erzählt seinen Weg, er wirbt nicht um Termine — darum bleibt die Zusicherung stehen,
+   nur enger gefasst: „tätow“ und „tattoo“ dürfen dort stehen und nirgends sonst, das Vokabular
+   der Anfrage (Walk-in, Blackwork, Körperstelle, Sitzung) nirgends, auch nicht bei ihm. Titel und
+   Beschreibung bleiben ganz frei davon: Die Seite heißt eine Werkschau, auch in der Suche. */
+pruefung('werkschau: keine Anfrage, kein Flash, keine Haut — vom Tätowieren nur Lukes eigener Text', 'beide', async (page, t) => {
+  const r = await page.evaluate(() => {
+    const eigen = Array.from(document.querySelectorAll('#atelier .selbst')).map(el => el.innerText);
+    /* Der eigene Text wird aus dem Seitentext herausgeschnitten, nicht aus dem DOM entfernt:
+       innerText liest nur, was sichtbar ist, und das Bedienfeld heißt eine Richtung „Nach der
+       Sitzung“. Es ist verborgen und darf es bleiben. */
+    const umfeld = eigen.reduce((text, ab) => text.split(ab).join(' '), document.body.innerText);
+    const kopf = document.title + ' ' + ((document.querySelector('meta[name="description"]') || {}).content || '');
+    return {
+      teile: ['anfrage', 'flash', 'studio', 'tr-tabs', 'af-form'].filter(id => document.getElementById(id)),
+      nav: Array.from(document.querySelectorAll('.top a')).filter(a => !a.hidden).map(a => (a.getAttribute('aria-label') || a.textContent).trim()).join(' | '),
+      eigene: eigen.length,
+      umfeld: /tätow|tattoo|walk-in|blackwork|körperstelle|sitzung/i.exec(umfeld + ' ' + kopf),
+      anfrage: /walk-in|blackwork|körperstelle|sitzung/i.exec(eigen.join(' ')),
+      formular: document.querySelectorAll('form, input, textarea, select').length
+    };
+  });
   t.gleich(r.teile.join(','), '', 'Abschnitte, die es nicht mehr gibt');
   /* „Aktuell“ verschwindet nach dem 27. September von selbst. */
   /* Die Einträge links, die Handschrift rechts; sie führt zum Anfang. */
   t.ok(/^(Aktuell \| )?Werke \| Grafik \| Atelier \| Luke WTF, zum Anfang$/.test(r.nav), 'Navigation: ' + r.nav);
-  t.ok(!r.text, 'kein Wort vom Tätowieren: ' + (r.text && r.text[0]));
+  t.gleich(r.eigene, 1, 'Lukes eigener Text steht im Atelier');
+  t.ok(!r.umfeld, 'vom Tätowieren kein Wort außerhalb seines Textes: ' + (r.umfeld && r.umfeld[0]));
+  t.ok(!r.anfrage, 'auch sein Text wirbt nicht um Termine: ' + (r.anfrage && r.anfrage[0]));
   t.gleich(r.formular, 0, 'kein Formular');
 });
 
