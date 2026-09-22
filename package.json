@@ -1,0 +1,14 @@
+{
+  "name": "luke-werkschau",
+  "private": true,
+  "type": "module",
+  "description": "Werkschau Luke WTF — statische Seite. Der Quellcode braucht keinen Build; esbuild ist nur für das Release-Bündel da (scripts/release.mjs).",
+  "scripts": {
+    "release": "node scripts/release.mjs",
+    "pruefen": "node scripts/pruefen.mjs",
+    "pruefen:dist": "node scripts/pruefen.mjs --wurzel=dist"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

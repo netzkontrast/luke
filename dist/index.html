@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luke WTF — Zeichnungen, Köln</title>
+  <meta name="description" content="Luke WTF, Zeichner in Köln-Ehrenfeld: Tusche und Farbe auf Papier, darunter „Befreiung der Körperlichkeit“, dazu Grafik für Clubnächte und Kollektive.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Luke WTF — Zeichnungen, Köln">
+  <meta property="og:description" content="Tusche und Farbe auf Papier, darunter „Befreiung der Körperlichkeit“. Grafik für Clubnächte und Kollektive. Köln-Ehrenfeld.">
+  <meta property="og:image" content="assets/img/og-bild.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#FFFFFF">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/alegreya-sans-300-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/alegreya-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <script>(function(){var e=new URLSearchParams(location.search).get("bewegung");e==="aus"||window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches||(document.documentElement.dataset.js="an")})();</script>
+  <link rel="stylesheet" href="css/site.css">
+  <noscript><style>.hero-still{opacity:1}.hero-video{display:none}#sequenz{display:none}</style></noscript>
+</head>
+<body>
+<div class="app" data-richtung="a" data-bewegung="voll" data-dichte="luftig" data-rot="spur" data-sequenz="voll" data-korn="aus">
+  <canvas id="tropfspur" aria-hidden="true"></canvas>
+  <nav class="top" aria-label="Hauptnavigation">
+    <div class="wrap">
+      <a href="#aktuell" data-nav="aktuell">Aktuell</a>
+      <a href="#werke">Werke</a>
+      <a href="#grafik">Grafik</a>
+      <a href="#atelier">Atelier</a>
+      <a class="brand" href="#auftakt" aria-label="Luke WTF, zum Anfang"><span class="nav-hand"><img class="nav-hand-still ink-img" src="assets/img/signatur/kopf-36.webp" width="352" height="89" alt="" decoding="async"><canvas class="nav-hand-folge ink-img" aria-hidden="true"></canvas></span><img class="handschrift" src="assets/img/signatur/handschrift.webp" width="1150" height="294" alt="" decoding="async"></a>
+    </div>
+  </nav>
+  <main>
+    <section id="auftakt">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div class="hero-text" data-depth="0.10">
+            <h1 class="hd hero-name"><img class="handschrift" src="assets/img/signatur/handschrift.webp" width="1150" height="294" alt="Luke WTF" fetchpriority="high" decoding="async"></h1>
+            <p>Zeichner in Köln-Ehrenfeld. Tusche und Farbe auf Papier, dazu Grafik für Clubnächte und Kollektive.</p>
+          </div>
+          <div class="hero-draw" id="hero-par">
+            <figure class="hero-neben">
+              <img class="hero-kniend ink-img"
+                   src="assets/img/gestaltung-kniend-800.webp"
+                   srcset="assets/img/gestaltung-kniend-800.webp 800w, assets/img/gestaltung-kniend-1200.webp 1200w, assets/img/gestaltung-kniend-1900.webp 1900w"
+                   sizes="(max-width: 540px) 32vh, 42vh"
+                   width="1900" height="2535" decoding="async"
+                   alt="Tuschzeichnung: kniende Figur im Profil, Kopf gesenkt, hinter ihr ein offener Kreis">
+            </figure>
+            <figure class="hero-fig">
+              <div class="hero-motiv">
+                <video class="hero-video ink-img" muted playsinline preload="none" aria-hidden="true" tabindex="-1">
+                  <source src="assets/video/gestaltung-profil-zeichnung-av1.mp4" type='video/mp4; codecs="av01.0.04M.08"'>
+                  <source src="assets/video/gestaltung-profil-zeichnung.webm" type="video/webm">
+                  <source src="assets/video/gestaltung-profil-zeichnung.mp4" type="video/mp4">
+                </video>
+                <img class="hero-still ink-img"
+                     src="assets/img/gestaltung-profil-ende-432.webp"
+                     width="432" height="704" decoding="async"
+                     alt="Tuschzeichnung: Kopf im Profil, nach links gewandt; aus dem Hals läuft ein roter Strang">
+              </div>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="sequenz" aria-label="Blätter">
+      <div class="bf" id="blattfolge"></div>
+    </section>
+    <section id="aktuell">
+      <div class="wrap aktuell-row">
+        <div class="a mut rv" data-eigen>Aktuell, bis 27. September</div>
+        <div class="b rv" data-eigen>Zwei Arbeiten in der Gruppenausstellung „Red“: <em>Befreiung der Körperlichkeit</em>, Werk I und Werk II, je drei Blätter. Stage Gallery, Köln.</div>
+        <div class="c mut rv" data-eigen>Vernissage 23. September, 19–21 Uhr. Danach Do–Fr 14–18 Uhr, So 14–17 Uhr.</div>
+      </div>
+    </section>
+    <section id="werke" class="pad">
+      <div class="wrap">
+        <h2 class="hd rv">Werke</h2>
+        <p class="werke-lead rv">Arbeiten auf Papier. Tusche und Farbe, jedes Blatt ein Original. <span id="werke-count"></span></p>
+        <div id="werke-filter" class="chips" hidden></div>
+        <noscript><p class="mut">Für die Werkübersicht bitte JavaScript aktivieren.</p></noscript>
+        <div class="g-wall">
+          <div id="g-list" class="g-list" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+    <section id="handschrift" class="pad alt">
+      <div class="wrap">
+        <div class="hand-grid">
+          <h2 class="hd rv">Handschrift</h2>
+          <div>
+            <p class="rv">Jede Arbeit fängt als Linie an: Linienbündel, Waschungen, Korrekturen, bis die Form steht. Schwarze Tusche und ein Rot auf weißem Papier — was stehen bleibt, ist das Original.</p>
+            <p class="rv">Manches bleibt ein einzelnes Blatt, manches wird eine Folge. „Befreiung der Körperlichkeit“ hängt als zwei Werke zu je drei Blättern: In Werk I sind die Gesichter zu sehen, in Werk II sind sie abgewandt.</p>
+          </div>
+        </div>
+        <figure class="band-fig">
+          <div class="band-rahmen rv" data-eintritt="block">
+            <img class="band-standbild ink-img" src="assets/img/signatur/folge-36.webp" width="1072" height="272" loading="lazy" decoding="async"
+                 alt="Tuschzeichnung eines Auges am Ende einer langen Linie, dazu die handschriftliche Signatur">
+          </div>
+        </figure>
+      </div>
+    </section>
+    <section id="grafik" class="pad">
+      <div class="wrap">
+        <h2 class="hd rv">Grafik</h2>
+        <p class="lead rv">Plakate und Flyer für Clubnächte, Cover für Podcast und Platte, Signets für Kollektive. Auftragsarbeiten, gesetzt und gebaut statt gezeichnet — dieselbe Hand an anderem Gerät.</p>
+        <div id="grafik-list" class="gr-grid"></div>
+      </div>
+    </section>
+    <section id="atelier" class="pad alt">
+      <div class="wrap two">
+        <div>
+          <h2 class="hd rv">Atelier</h2>
+          <p class="rv atelier-text">Luke zeichnet in Köln-Ehrenfeld. Hier entstehen die Blätter; die Grafik entsteht am Rechner.</p>
+          <blockquote class="rv selbst">
+            <p>Vom Steinmetzhandwerk über die Gestaltungstechnik bis zur Musikbranche: Mein künstlerischer Weg
+              verläuft seit jeher jenseits der schon so oft beschrittenen Pfade. Heute arbeite ich als
+              Vollzeit-Tätowierer und freier Künstler, vertreten auf internationalen Conventions wie der
+              „We Riot Gallery“ sowie durch grafische Arbeiten für diverse Events.</p>
+            <p class="selbst-name">Mein Name ist L. M. Klvser.</p>
+            <p>Ich arbeite medienübergreifend – von klassischer Kohle und Tusche bis hin zu digitalen Techniken.
+              Stilistisch bewegt sich mein Schaffen seit jeher im Schattenreich: Ich habe ein tief sitzendes
+              Faible für das Düstere, Mystische und die dunklen Facetten der Kunst. Wenn du ein Werk oder
+              Tätowierung mit morbidem Charme und handwerklicher Tiefe suchst, bist du bei mir richtig.</p>
+          </blockquote>
+          <div class="card rv" data-eintritt="block">
+            <div><div class="k">Kontakt</div><div>Direktnachricht an <a href="https://instagram.com/lukewtf" target="_blank" rel="noopener">@lukewtf</a> — für Ausstellungen, Arbeiten auf Papier und Grafik.</div></div>
+            <div><div class="k">Ort</div><div>Köln-Ehrenfeld</div></div>
+          </div>
+        </div>
+        <div>
+          <figure class="atelier-fig" data-depth="0.07">
+            <div class="atelier-rahmen rv" data-eintritt="block">
+              <img src="assets/img/luke-atelier-1200.webp"
+                   srcset="assets/img/luke-atelier-800.webp 800w, assets/img/luke-atelier-1200.webp 1200w, assets/img/luke-atelier-1536.webp 1536w"
+                   sizes="(max-width: 900px) 90vw, 40vw"
+                   width="1536" height="2048" loading="lazy" decoding="async"
+                   alt="Luke im Atelier: mit Pinsel und Palette vor der Staffelei, im Hintergrund Regale mit Farben">
+            </div>
+            <figcaption>Im Atelier, Köln-Ehrenfeld.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer id="fuss">
+    <div class="wrap foot-row">
+      <span class="brand">Luke WTF, Köln</span>
+      <span class="sp"></span>
+      <a href="https://instagram.com/lukewtf" target="_blank" rel="noopener">Instagram</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </div>
+  </footer>
+  <div id="ov-root"></div>
+  <div id="panel" class="panel" hidden>
+    <div class="panel-head"><span>Prototyp, Bedienfeld</span><button id="panel-zu" type="button" aria-label="Bedienfeld einklappen">–</button></div>
+    <div class="panel-lbl">Richtung</div>
+    <div class="panel-grid c3">
+      <button type="button" data-set="richtung" data-val="a" title="Werkverzeichnis">A</button>
+      <button type="button" data-set="richtung" data-val="b" title="Nach der Sitzung">B</button>
+      <button type="button" data-set="richtung" data-val="c" title="Werkstatt">C</button>
+    </div>
+    <div id="panel-rname" class="panel-note"></div>
+    <div class="panel-lbl">Bewegung</div>
+    <div class="panel-grid c3">
+      <button type="button" data-set="bewegung" data-val="aus">Aus</button>
+      <button type="button" data-set="bewegung" data-val="dezent">Dezent</button>
+      <button type="button" data-set="bewegung" data-val="voll">Voll</button>
+    </div>
+    <div class="panel-lbl">Dichte</div>
+    <div class="panel-grid c2">
+      <button type="button" data-set="dichte" data-val="luftig">Luftig</button>
+      <button type="button" data-set="dichte" data-val="kompakt">Kompakt</button>
+    </div>
+    <div class="panel-lbl">Rotspur</div>
+    <div class="panel-grid c3">
+      <button type="button" data-set="rotspur" data-val="aus">Aus</button>
+      <button type="button" data-set="rotspur" data-val="spur">Spur</button>
+      <button type="button" data-set="rotspur" data-val="satt">Satt</button>
+    </div>
+    <div class="panel-lbl">3D-Sequenz</div>
+    <div class="panel-grid c3">
+      <button type="button" data-set="sequenz" data-val="voll">Voll</button>
+      <button type="button" data-set="sequenz" data-val="still">Still</button>
+      <button type="button" data-set="sequenz" data-val="aus">Aus</button>
+    </div>
+    <div class="panel-lbl">Papierkorn</div>
+    <div class="panel-grid c2">
+      <button type="button" data-set="korn" data-val="aus">Aus</button>
+      <button type="button" data-set="korn" data-val="an">An</button>
+    </div>
+    <div id="panel-prm" class="panel-note" hidden>Systemeinstellung „reduzierte Bewegung“ erkannt — Start auf Aus.</div>
+    <button id="panel-vorfuehr" type="button" class="panel-wide">Bedienfeld ausblenden</button>
+    <div class="panel-note">Zurück mit Shift + B.</div>
+  </div>
+  <button id="panel-mini" type="button" class="panel-mini" hidden aria-label="Bedienfeld öffnen">P</button>
+</div>
+<script src="js/luke.min.js"></script>
+<script>LUKE.ABSCHNITTE=[{id:"auftakt",name:"Auftakt",stufe:3,fassung:.05,schmal:.05},{id:"sequenz",name:"Blattfolge",stufe:3,fassung:.05,schmal:.05},{id:"aktuell",name:"Aktuell",stufe:2,fassung:.2,schmal:1},{id:"werke",name:"Werke",stufe:2,fassung:.3,schmal:1},{id:"handschrift",name:"Handschrift",stufe:1,fassung:.5,schmal:1},{id:"grafik",name:"Grafik",stufe:1,fassung:.7,schmal:1},{id:"atelier",name:"Atelier",stufe:0,fassung:1,schmal:1},{id:"fuss",name:"Fu\xDF",stufe:0,fassung:1,schmal:1}];</script>
+<script src="js/welt.min.js"></script>
+</body>
+</html>

@@ -47,11 +47,15 @@ async function browserStarten() {
   throw fehler;
 }
 
-const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const AUSGABE = path.join(WURZEL, 'pruefung');
+const PROJEKT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const AUSGABE = path.join(PROJEKT, 'pruefung');
 const ARGS = process.argv.slice(2);
 const BILDER = ARGS.includes('--bilder');
 const NUR = (ARGS.find(a => a.startsWith('--nur=')) || '').slice(6);
+/* Was ausgeliefert wird, ist normalerweise das Projekt selbst. Mit --wurzel=dist laufen
+   dieselben Prüfungen gegen das gebaute Bündel: Es soll sich nicht anders verhalten als die
+   Quelle, und das ist nur zu wissen, wenn man es misst. */
+const WURZEL = path.resolve(PROJEKT, (ARGS.find(a => a.startsWith('--wurzel=')) || '--wurzel=.').slice(9));
 
 /* Bis Aufgabe 3 stand hier eine Ausnahme für die WebGL-Warnungen der 3D-Sequenz. Die
    Sequenz ist jetzt raus, also gibt es nichts mehr zu tolerieren: Die Konsole muss
@@ -415,7 +419,7 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
       oben: items.map(el => Array.from(el.querySelectorAll('.g-bild')).map(b => Math.round(b.getBoundingClientRect().top))),
       breite: Math.max(...items.map(el => el.getBoundingClientRect().right)) - Math.min(...items.map(el => el.getBoundingClientRect().left)),
       spalte: document.querySelector('#werke .wrap').clientWidth,
-      dreh: Array.from(document.querySelectorAll('.g-blatt')).slice(0, 3).map(el => getComputedStyle(el).getPropertyValue('--dreh').trim()).join('|'),
+      dreh: Array.from(document.querySelectorAll('.g-blatt')).slice(0, 3).map(el => getComputedStyle(el).getPropertyValue('--dreh').trim()),
       eintritt: Array.from(document.querySelectorAll('.g-item[data-fid="w1"] .rv')).map(el => (el.dataset.eintritt || 'text') + el.dataset.versatz).join(','),
       filter: document.getElementById('werke-filter').hidden,
       titel: !!document.querySelector('#werke h2.hd'),
@@ -433,7 +437,11 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
   r.hoehen.forEach((h, i) => t.ok(Math.max(...h) - Math.min(...h) <= 1, 'Blätter eines Werks gleich hoch (' + i + '): ' + h.join(',')));
   r.oben.forEach((o, i) => t.ok(Math.max(...o) - Math.min(...o) <= 1, 'Blätter eines Werks auf einer Linie (' + i + '): ' + o.join(',')));
   t.ok(r.breite <= r.spalte - 20, 'die Hängung bleibt in der Spalte: ' + Math.round(r.breite) + ' / ' + r.spalte);
-  t.gleich(r.dreh, '-1.1deg|0.8deg|1.4deg', '--dreh je Blatt');
+  /* Als Zahl vergleichen, nicht als Text. Im Release-Bündel minifiziert esbuild das
+     Stylesheet und schreibt „.8deg“ statt „0.8deg“ — derselbe Winkel, andere Schreibweise.
+     Die Einheit wird eigens geprüft, damit ein Wechsel von deg auf rad nicht durchrutscht. */
+  t.ok(r.dreh.every(w => /deg$/.test(w)), '--dreh in Grad: ' + r.dreh.join('|'));
+  t.gleich(r.dreh.map(w => parseFloat(w)).join('|'), '-1.1|0.8|1.4', '--dreh je Blatt');
   t.gleich(r.eintritt, 'blatt0,blatt1,blatt2,text3', 'die Blätter legen sich nacheinander ab, die Beschriftung zuletzt');
   t.ok(r.filter && r.titel, 'eine Serie, ein Jahr: Überschrift, kein Filter');
   t.gleich(r.zeile, `Nr. I — ${r.technik}, drei Blätter, 2026`, 'Zeile unter Werk I');
