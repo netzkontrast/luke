@@ -4,56 +4,67 @@ Zum Weiterleiten, als Nachricht oder ausgedruckt. Alles, was die Seite nicht sel
 kann; die Antworten gehören danach in `js/works.js`, `impressum.html`, `datenschutz.html` und
 `NOTES.md`. Stand: 22. September 2026.
 
+Die erste Runde ist beantwortet (siehe unten). Was jetzt hier steht, ist der Rest.
+
 ---
 
 Hallo Luke,
 
-die Werkschau ist so weit fertig. Damit sie online gehen kann, brauche ich ein paar Angaben
-von dir. Die ersten drei Punkte sind nötig, bevor die Seite öffentlich wird; der Rest macht
-sie richtiger.
+danke für die Antworten — fast alles ist drin. Sechs Kleinigkeiten fehlen noch, zwei davon
+sind mir wichtig.
 
-**Vor der Veröffentlichung**
+**Das Impressum**
 
-1. **Impressum.** Dein voller Name, eine E-Mail-Adresse und: Umsatzsteuer-ID, oder bist du
-   Kleinunternehmer? Außerdem: Soll dort die Anschrift von Bluthandwerk (Vogelsangerstraße 84)
-   stehen, oder eine andere?
-2. **Datenschutz.** Gleicher Name und dieselbe E-Mail als Verantwortlicher. Einverstanden,
-   dass die Seite bei Vercel liegt (Server auch in den USA)?
-3. **Name im Kopf der Seite.** Oben steht jetzt deine Signatur „L. M. Klvser“ aus dem Video,
-   nicht „Luke WTF“. Ist das so gewollt?
+1. **Die Anschrift.** Bei Frage 1 hast du Namen, Mail und die Umsatzsteuer beantwortet, die
+   Adresse nicht. Im Impressum steht deshalb weiter die vom Studio: Luke WTF, Bluthandwerk,
+   Vogelsangerstraße 84, 50823 Köln, mit der Studionummer 0221 29496764. Das Impressum braucht
+   eine Anschrift, unter der man dich tatsächlich erreicht — bestätige die bitte einmal, oder
+   nenn eine andere. Es passt nur insofern nicht recht, als du bei Frage 3 geschrieben hast,
+   lukewtf sei ein reines Tattoo-Ding; die Werkschau trägt damit die Adresse des Studios.
 
-**Zu den Werken**
+**Zwei Grafiken**
 
-4. Stimmt überall das Jahr **2026**?
-5. „Ansichten“ und „Neuordnung des Speichers“ laufen als **Werk III und IV** — passt die
-   Nummer und die Reihenfolge?
-6. **Technik:** „Ansichten“ steht als *Farbe auf Papier* (Acryl? Gouache?), „Neuordnung des
-   Speichers“ als *Tusche und Farbe auf Papier*. Genauer?
-7. **Maße** aller Blätter, gern in Zentimetern.
-8. Hast du „Ansichten“ in **höherer Auflösung**? Die Aufnahme reicht für die Seite, nicht für Druck.
-9. Werk I und II hattest du auf Instagram zusammen mit **@lmklvser** gepostet — muss dort jemand
-   mitgenannt werden?
+2. **Die Band zu „Requiem: Zerfall“.** Die Frage ist untergegangen — deine Nummer 11 nennt
+   Jahreszahlen und beantwortet damit Nummer 12. Das Logo auf dem Cover lässt sich nicht lesen.
+   Wie heißt die Band?
+3. **Die Jahre der beiden Cover.** „Bluthandwerk“ (Podcast) und „Requiem: Zerfall“ stehen
+   weiter ohne Jahr. Deine „12. 2026“ konnte ich keiner Arbeit sicher zuordnen — meintest du
+   die beiden?
+4. **Die Marken, zur Sicherheit.** Aus „Spleen 2026, Noir 2022 und Kolektiv 2023“ habe ich
+   gemacht: Signet „Spleen“ 2026, Wortmarke „Noir“ 2022, Signet „Kollektiv Noir“ 2023. Richtig
+   so?
+5. **Das Signet von Kollektiv Noir als Vektor.** Du wolltest wühlen — die Datei ist nach wie
+   vor willkommen (SVG oder PDF). Für die Seite reicht das Vorhandene.
 
-**Zu den Grafiken**
+**Die Seite**
 
-10. Für wen ist **NOX**?
-11. Wie heißt die Band zu **„Requiem: Zerfall“**? Das Logo lässt sich nicht lesen.
-12. Aus welchen **Jahren** sind die Signets und Cover?
-13. Gibt es das **Signet von Kollektiv Noir** als Vektordatei (SVG oder PDF)? Die jetzige Datei
-    ist hochgerechnet und unscharf.
-14. Muss bei den Auftragsarbeiten jemand **mitgenannt** werden?
-
-**Texte und Film**
-
-15. Drei Texte auf der Seite sind nicht von dir: der Satz im Kopf („Zeichner in Köln-Ehrenfeld
-    …“), der Abschnitt Handschrift und der Satz im Atelier. Bitte einmal lesen und absegnen.
-16. **Dein eigener Text** steht jetzt im Atelier, im Wortlaut, wie du ihn geschickt hast. Zwei
-    Kleinigkeiten habe ich angefasst: „jenseits der … **Pfade**“ statt „Pfaden“, und den Namen
-    als „**L. M. Klvser**“, so wie die Signatur im Video. Einverstanden?
-17. Heißt die Galerie **„We Riot Galery“** oder „We Riot Gallery“? Auf der Seite steht sie so,
-    wie du sie geschrieben hast.
-18. Für die **Vernissage am 23. September** gibt es eine 15-Sekunden-Story (Werk I und II, dann
-    Ort und Termine). Darf sie so raus, mit @lukewtf am Ende?
-19. Soll der Film **Ton** bekommen? Wenn ja: Raumton aus dem Atelier, Stift, Papier — keine Musik.
+6. **Welcher Instagram-Account?** Die Werkschau verlinkt an drei Stellen @lukewtf — in der
+   Kontaktkarte, im Fuß und am Ende des Films. Wenn das rein fürs Tätowieren ist: Soll dort
+   @lmklvser stehen? Und soll die Kontaktkarte, die bisher nur Ausstellungen, Arbeiten auf
+   Papier und Grafik nennt, das Tätowieren mitnennen? Dein Text im Atelier lädt ja dazu ein.
 
 Danke!
+
+---
+
+## Beantwortet am 22. September 2026
+
+1. Lukas M. Klüser, lukewtf@web.de, keine Umsatzsteuer-ID. *(Anschrift offen, siehe oben.)*
+2. Der Hoster und die USA waren in Ordnung. *(Hinfällig: Die Seite geht zu Strato, einem deutschen
+   Anbieter — eine Übermittlung in die USA steht damit nicht mehr zur Frage.)*
+3. Im Kopf der Seite bleibt „L. M. Klvser“. lukewtf ist ein reines Tattoo-Ding.
+4. Das Jahr 2026 stimmt überall.
+5. Werknummern und Reihenfolge stimmen.
+6. Technik überall: Tusche, Acryl und digitale Medien.
+7. Maße gibt es keine; sie bleiben vorerst draußen.
+8. „Ansichten“ läuft nur über die Seite, Druck ist nicht geplant — die Auflösung reicht.
+9. Bei Werk I und II muss niemand mitgenannt werden.
+10. „NOX“ gehört zum NOX-Podcast beziehungsweise der Radiosendung von Kiya Noir und ihm, 2025.
+11./12. Spleen 2026, Noir 2022, Kolektiv 2023. *(Die Bandfrage blieb damit offen.)*
+13. Das Vektor-Signet sucht er heraus.
+14. Alle Auftragsarbeiten sind von ihm allein.
+15. Die drei Texte, die nicht von ihm sind, sind abgesegnet.
+16. Sein eigener Text steht im Wortlaut; „Pfade“ und „L. M. Klvser“ sind einverstanden.
+17. Die Galerie schreibt sich „We Riot Gallery“, mit Doppel-l.
+18. Die Vernissage-Story darf raus.
+19. Ton für den Film: seine Sache nicht, wir entscheiden. Beides wäre ihm recht.

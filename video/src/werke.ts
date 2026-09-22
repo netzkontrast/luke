@@ -11,7 +11,7 @@ export const WERKE: Werk[] = [
     "nr": "I",
     "titel": "Befreiung der Körperlichkeit, Werk I",
     "jahr": 2026,
-    "technik": "Tusche auf Papier",
+    "technik": "Tusche, Acryl und digitale Medien",
     "serie": "Befreiung der Körperlichkeit",
     "blaetter": 3,
     "bilder": [
@@ -33,7 +33,7 @@ export const WERKE: Werk[] = [
     "nr": "II",
     "titel": "Befreiung der Körperlichkeit, Werk II",
     "jahr": 2026,
-    "technik": "Tusche auf Papier",
+    "technik": "Tusche, Acryl und digitale Medien",
     "serie": "Befreiung der Körperlichkeit",
     "blaetter": 3,
     "bilder": [
@@ -55,7 +55,7 @@ export const WERKE: Werk[] = [
     "nr": "III",
     "titel": "Ansichten",
     "jahr": 2026,
-    "technik": "Farbe auf Papier",
+    "technik": "Tusche, Acryl und digitale Medien",
     "serie": null,
     "blaetter": 1,
     "bilder": [
@@ -69,7 +69,7 @@ export const WERKE: Werk[] = [
     "nr": "IV",
     "titel": "Neuordnung des Speichers",
     "jahr": 2026,
-    "technik": "Tusche und Farbe auf Papier, zwölf Blätter",
+    "technik": "Tusche, Acryl und digitale Medien, zwölf Blätter",
     "serie": null,
     "blaetter": 1,
     "bilder": [

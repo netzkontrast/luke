@@ -419,7 +419,12 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
       eintritt: Array.from(document.querySelectorAll('.g-item[data-fid="w1"] .rv')).map(el => (el.dataset.eintritt || 'text') + el.dataset.versatz).join(','),
       filter: document.getElementById('werke-filter').hidden,
       titel: !!document.querySelector('#werke h2.hd'),
-      zeile: document.querySelector('.g-item[data-fid="w1"] .g-m').textContent
+      zeile: document.querySelector('.g-item[data-fid="w1"] .g-m').textContent,
+      /* Die Technik kommt aus den Daten. Sie stand hier einmal als fester Text und musste
+         nachgezogen werden, als Luke sie änderte (22. September 2026); geprüft werden soll
+         der Bau der Zeile — Werknummer, Technik, Umfang, Jahr in dieser Reihenfolge —, nicht
+         der Wortlaut einer Angabe, die ihm gehört. */
+      technik: window.LUKE.WERKE.find(w => w.id === 'w1').technik
     };
   });
   t.gleich(r.werke, 'w1:3,w2:3,w3:1,w4:1', 'Werke und ihre Blätter');
@@ -431,7 +436,7 @@ pruefung('werke: Hängung, alle gleich hoch, die Blätter eines Werks nebeneinan
   t.gleich(r.dreh, '-1.1deg|0.8deg|1.4deg', '--dreh je Blatt');
   t.gleich(r.eintritt, 'blatt0,blatt1,blatt2,text3', 'die Blätter legen sich nacheinander ab, die Beschriftung zuletzt');
   t.ok(r.filter && r.titel, 'eine Serie, ein Jahr: Überschrift, kein Filter');
-  t.gleich(r.zeile, 'Nr. I — Tusche auf Papier, drei Blätter, 2026', 'Zeile unter Werk I');
+  t.gleich(r.zeile, `Nr. I — ${r.technik}, drei Blätter, 2026`, 'Zeile unter Werk I');
   await t.zu((await t.abschnitte()).find(a => a.id === 'werke').oben - 40); await t.warten(1800);
   await t.bild('werke-gehaengt');
 });
@@ -712,6 +717,48 @@ pruefung('werkschau: keine Anfrage, kein Flash, keine Haut — vom Tätowieren n
   t.ok(!r.umfeld, 'vom Tätowieren kein Wort außerhalb seines Textes: ' + (r.umfeld && r.umfeld[0]));
   t.ok(!r.anfrage, 'auch sein Text wirbt nicht um Termine: ' + (r.anfrage && r.anfrage[0]));
   t.gleich(r.formular, 0, 'kein Formular');
+});
+
+/* Die Datenschutzerklärung sagt: „Sie setzt keine Cookies. Sie schreibt auch sonst nichts in
+   deinen Browser.“ Das ist eine Zusage auf einer Rechtsseite, also wird sie geprüft und nicht
+   geglaubt. Vor dem Laden hängt sich diese Prüfung in die drei Wege, auf denen etwas im
+   Browser landen kann — Cookie, Web Storage, IndexedDB —, und lädt die Seite dann neu.
+   Gepatcht wird am Prototyp, nicht am Objekt: Eine Zuweisung an localStorage.setItem legte
+   selbst einen Eintrag namens „setItem“ an, die Prüfung wäre ihr eigener Verstoß.
+   Wer hier künftig etwas ablegen will, ändert vorher die Erklärung. */
+pruefung('datenschutz: die Seite legt nichts im Browser ab', 'beide', async (page, t) => {
+  await page.addInitScript(() => {
+    window.__ablagen = [];
+    const merke = was => window.__ablagen.push(was);
+    for (const m of ['setItem', 'removeItem', 'clear']) {
+      const echt = Storage.prototype[m];
+      Storage.prototype[m] = function (...a) { merke('Storage.' + m); return echt.apply(this, a); };
+    }
+    const keks = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
+    if (keks) Object.defineProperty(Document.prototype, 'cookie', {
+      configurable: true, enumerable: keks.enumerable,
+      get() { return keks.get.call(this); },
+      set(v) { merke('document.cookie'); return keks.set.call(this, v); }
+    });
+    if (window.IDBFactory) {
+      const echt = IDBFactory.prototype.open;
+      IDBFactory.prototype.open = function (...a) { merke('indexedDB.open'); return echt.apply(this, a); };
+    }
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await t.warten(500);
+  await t.durchscrollen();
+  await t.warten(1200);
+  const r = await page.evaluate(() => ({
+    ablagen: window.__ablagen.join(','),
+    kekse: document.cookie,
+    lokal: localStorage.length,
+    sitzung: sessionStorage.length
+  }));
+  t.gleich(r.ablagen, '', 'Zugriffe auf Cookie, Web Storage oder IndexedDB');
+  t.gleich(r.kekse, '', 'gesetzte Cookies');
+  t.gleich(r.lokal, 0, 'Einträge im lokalen Speicher');
+  t.gleich(r.sitzung, 0, 'Einträge im Sitzungsspeicher');
 });
 
 for (const r of ['b', 'c']) {
